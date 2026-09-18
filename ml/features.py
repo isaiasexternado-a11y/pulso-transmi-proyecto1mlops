@@ -82,6 +82,57 @@ def construir(ancha: pd.DataFrame, ctx: pd.DataFrame,
     return out.sort_values(["target_at", "station_id", "horizon"]).reset_index(drop=True)
 
 
+def construir_para_objetivos(ancha: pd.DataFrame, ctx: pd.DataFrame,
+                             origen: pd.Timestamp,
+                             objetivos: list[tuple[str, pd.Timestamp]]) -> pd.DataFrame:
+    """Variables para una lista exacta de (estación, instante objetivo).
+
+    A diferencia de `construir`, los objetivos aquí caen en el futuro: todavía no
+    existe `y`. Del contexto en el instante objetivo tampoco hay pronóstico
+    publicado, así que se usa el último disponible en el origen. Es una
+    aproximación deliberada, no un descuido: el objetivo está a minutos del corte
+    y esas variables pesan ~0.05 puntos de accuracy.
+    """
+    ts = ancha.index
+    o = ts.get_loc(origen)
+    vals = ancha.to_numpy(dtype=float)
+    roll1h = ancha.rolling(4).mean().to_numpy()
+    roll24h = ancha.rolling(PERIODOS_DIA).mean().to_numpy()
+    roll7d = ancha.rolling(PERIODOS_SEMANA).mean().to_numpy()
+    col = {e: i for i, e in enumerate(ancha.columns)}
+    paso = ts[1] - ts[0]
+
+    def ctx_en(idx: int, campo: str) -> float:
+        i = idx if 0 <= idx < len(ctx) else o
+        return float(ctx[campo].to_numpy()[i])
+
+    filas = []
+    for est, objetivo in objetivos:
+        objetivo = pd.Timestamp(objetivo).tz_convert(ts.tz)
+        h = int((objetivo - origen) / paso)
+        if h < 1:
+            raise ValueError(f"objetivo {objetivo} no es posterior al origen {origen}")
+        t = o + h
+        si = col[est]
+        filas.append({
+            "station_id": est, "target_at": objetivo, "horizon": h,
+            "lag0": vals[o, si], "lag1": vals[o - 1, si], "lag2": vals[o - 2, si],
+            "lag3": vals[o - 3, si], "lag4": vals[o - 4, si],
+            "roll1h": roll1h[o, si], "roll24h": roll24h[o, si], "roll7d": roll7d[o, si],
+            "lag_dia": vals[t - PERIODOS_DIA, si],
+            "lag_sem": vals[t - PERIODOS_SEMANA, si],
+            "slot": objetivo.hour * 4 + objetivo.minute // 15,
+            "dow": objetivo.dayofweek,
+            "es_finde": int(objetivo.dayofweek >= 5),
+            "rain_forecast": ctx_en(t, "rain_forecast"),
+            "temp_forecast": ctx_en(t, "temperature_forecast"),
+            "rain_origen": ctx_en(o, "rain_mm"),
+            "temp_origen": ctx_en(o, "temperature_c"),
+            "evento_origen": ctx_en(o, "event_intensity"),
+        })
+    return pd.DataFrame(filas)
+
+
 def origenes_por_hora(ancha: pd.DataFrame, desde: pd.Timestamp,
                       hasta: pd.Timestamp, max_horizonte: int = 4) -> np.ndarray:
     """Un origen por hora, como los ciclos de la competencia.

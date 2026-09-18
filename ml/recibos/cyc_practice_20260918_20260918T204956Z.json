@@ -1,0 +1,90 @@
+{
+  "status": 201,
+  "enviado": {
+    "schema_version": "1.0",
+    "cycle_id": "cyc_practice_20260918",
+    "client_run_id": "local-cyc_practice_20260918-20260918T202534Z",
+    "data_cutoff": "2026-09-09T04:45:00Z",
+    "model": {
+      "version": "20260918T202534Z",
+      "trained_at": "2026-09-18T20:25:34.744730+00:00",
+      "training_data_end": "2026-09-08 23:45:00-05:00",
+      "git_commit": "ea98bac9a69883f32f00efb5306258f40204ebfe"
+    },
+    "predictions": [
+      {
+        "station_id": "02300",
+        "target_at": "2026-09-09T05:00:00Z",
+        "value": 122.73
+      },
+      {
+        "station_id": "03000",
+        "target_at": "2026-09-09T05:00:00Z",
+        "value": 102.11
+      },
+      {
+        "station_id": "05000",
+        "target_at": "2026-09-09T05:00:00Z",
+        "value": 136.38
+      },
+      {
+        "station_id": "05100",
+        "target_at": "2026-09-09T05:00:00Z",
+        "value": 297.98
+      },
+      {
+        "station_id": "06000",
+        "target_at": "2026-09-09T05:00:00Z",
+        "value": 261.55
+      },
+      {
+        "station_id": "06111",
+        "target_at": "2026-09-09T05:00:00Z",
+        "value": 72.79
+      },
+      {
+        "station_id": "07105",
+        "target_at": "2026-09-09T05:00:00Z",
+        "value": 144.69
+      },
+      {
+        "station_id": "07107",
+        "target_at": "2026-09-09T05:00:00Z",
+        "value": 78.42
+      },
+      {
+        "station_id": "07111",
+        "target_at": "2026-09-09T05:00:00Z",
+        "value": 332.95
+      },
+      {
+        "station_id": "09000",
+        "target_at": "2026-09-09T05:00:00Z",
+        "value": 82.79
+      },
+      {
+        "station_id": "09122",
+        "target_at": "2026-09-09T05:00:00Z",
+        "value": 101.18
+      },
+      {
+        "station_id": "10009",
+        "target_at": "2026-09-09T05:00:00Z",
+        "value": 259.93
+      }
+    ]
+  },
+  "recibo": {
+    "submission_id": "sub_b1a9eacfa614414bbd4cd0c51aa05817",
+    "status": "accepted",
+    "attempt": 1,
+    "received_at": "2026-09-18T20:49:23.860420+00:00",
+    "closes_at": "2026-09-19T04:59:00+00:00",
+    "predictions_received": 12,
+    "expected_predictions": 12,
+    "is_official": true,
+    "payload_hash": "sha256:761e9271ae26a3bb1542c053a0436d409712f55b3e235f978e866c7101303cac",
+    "replaced_submission_id": null
+  },
+  "idempotency_key": "e702dd8193fbe09fa37f2a07009f4c30"
+}
