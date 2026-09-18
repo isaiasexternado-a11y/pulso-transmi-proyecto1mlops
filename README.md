@@ -60,12 +60,23 @@ supabase db push          # o ejecutar supabase/migrations/*.sql en orden
 
 ```bash
 export SUPABASE_URL="https://<ref>.supabase.co"
-export SUPABASE_KEY="<publishable key>"
+export SUPABASE_KEY="<service_role key>"   # la publishable ya no puede escribir
 export PULSO_DATA_DIR="ruta/al/sdk/data"
 python3 scripts/load_historico.py
 ```
 
 Es idempotente (`upsert` con `merge-duplicates`): correrlo dos veces no duplica filas.
+
+### Seguridad (RLS)
+
+Las 10 tablas tienen Row Level Security activo con **solo políticas de lectura**:
+
+- La key pública (`anon`) puede **leer** stations, observations, context, pipeline_runs, models,
+  model_metrics, drift_signals, retrain_decisions y predictions. No puede escribir nada.
+- `run_events` no tiene política: los logs de operación solo los ve `service_role`.
+- `predictions.submit_response` está restringida por columna: el recibo de la API no llega al navegador.
+- El pipeline escribe con la **service_role key**, que ignora RLS por diseño. Vive en GitHub Actions
+  Secrets y nunca en el repositorio ni en el navegador.
 
 ## Baselines
 
@@ -79,10 +90,9 @@ Accuracy = `100 × max(0, 1 − WAPE)`, promedio no ponderado de las 12 estacion
 
 ## Pendientes
 
-1. **Activar RLS** en las 10 tablas: hoy la key pública permite leer y escribir todo.
-2. **Modelar ciclos y submissions**: falta `cycle_id`, `submission_id` y llave de idempotencia.
+1. **Modelar ciclos y submissions**: falta `cycle_id`, `submission_id` y llave de idempotencia.
    Sin eso, varios intentos sobre el mismo ciclo contarían el mismo target más de una vez al calcular accuracy.
-3. Collector incremental, workflows de GitHub Actions, modelo champion y submissions.
+2. Collector incremental, workflows de GitHub Actions, modelo champion y submissions.
 
 ## Fuentes oficiales
 

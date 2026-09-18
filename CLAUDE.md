@@ -74,9 +74,12 @@ Histórico fijo disponible: 45 días, 12 estaciones, 51.840 observaciones (2026-
 
 ## Pendientes conocidos
 
-1. **RLS deshabilitado** en las 10 tablas — con la key pública cualquiera lee y escribe.
-2. **Repositorio propio del equipo** — el clon local apunta al repo del profesor, no a uno del equipo (entregable #1).
-3. Collector incremental, workflows de GitHub Actions, modelo champion, submissions.
+1. **Modelar ciclos y submissions** — faltan `cycle_id`, `submission_id` y llave de idempotencia.
+   Sin eso, los hasta 3 intentos de un mismo ciclo cuentan el mismo target varias veces en el accuracy.
+2. Collector incremental, workflows de GitHub Actions, modelo champion, submissions.
+
+RLS ya está activo (solo lectura para `anon`, escritura con `service_role`) y el repositorio
+público del equipo ya existe: `isaiasexternado-a11y/pulso-transmi-proyecto1mlops`.
 
 ## Evaluación
 
