@@ -47,6 +47,20 @@ Target ausente se evalúa como predicción cero.
 - **La API key vive en GitHub Actions Secrets.** Jamás en el repo, en tablas visibles desde el dashboard ni en variables públicas de Vercel.
 - Reentrenar no se decide por un único periodo malo: se consideran persistencia, volumen de datos nuevos y tiempo desde el último entrenamiento.
 
+## Trabajo de machine learning — rama `experimentos-ml`
+
+**Todo lo de ML va obligatoriamente en la rama `experimentos-ml`**: entrenamiento, features,
+notebooks, comparación de modelos y artefactos. `main` conserva datos, esquema, EDA y operación.
+No mezclar experimentos en `main`; el champion se promueve a `main` solo cuando gana.
+
+Para que la comparación signifique algo, todos los candidatos se miden igual:
+
+- **Validación temporal**, nunca split aleatorio.
+- Métrica de decisión: `Accuracy = 100 × max(0, 1 − WAPE)`, promedio **no ponderado** de las 12 estaciones.
+- Todo candidato se compara contra los baselines. El piso a superar es **naive s-1 = 83,11 %**.
+- Cada experimento registra ventana de entrenamiento, features, hiperparámetros y resultado.
+- Gana el de mejores métricas, pero además debe completar una inferencia de prueba antes de promoverse.
+
 ## Estado actual
 
 Fase actual: la competencia **no ha empezado** (el reloj responde `waiting`, el stream incremental está vacío).
