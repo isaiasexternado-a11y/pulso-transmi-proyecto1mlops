@@ -57,7 +57,7 @@ Para que la comparación signifique algo, todos los candidatos se miden igual:
 
 - **Validación temporal**, nunca split aleatorio.
 - Métrica de decisión: `Accuracy = 100 × max(0, 1 − WAPE)`, promedio **no ponderado** de las 12 estaciones.
-- Todo candidato se compara contra los baselines. El piso a superar es **naive s-1 = 83,11 %**.
+- Todo candidato se compara contra los baselines. El piso a superar es el **perfil (estación × slot × tipo de día) = 88,11 %**, no el naive s-1.
 - Cada experimento registra ventana de entrenamiento, features, hiperparámetros y resultado.
 - Gana el de mejores métricas, pero además debe completar una inferencia de prueba antes de promoverse.
 
@@ -67,7 +67,7 @@ Fase actual: la competencia **no ha empezado** (el reloj responde `waiting`, el 
 Histórico fijo disponible: 45 días, 12 estaciones, 51.840 observaciones (2026-07-26 → 2026-09-08).
 
 - `pulso-transmi-sdk/` — SDK del profesor con los datos semilla (`data/*.csv`)
-- `eda/` — análisis exploratorio. Mejor baseline: naive s-1 (misma hora, semana pasada), accuracy 83,11 %
+- `eda/` — análisis exploratorio. Mejor baseline: perfil estación × slot × tipo de día, accuracy 88,11 %
 - `hallazgos/` — reporte EDA, mapa de estaciones, modelo de datos y ERD (10 tablas, 3 vistas)
 - `docs/` — guía metodológica del profesor
 - Supabase: proyecto `proyecto1` (`twjvjqyqxcfxbacewhdh`, sa-east-1). Histórico cargado y esquema alineado al ERD.
