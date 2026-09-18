@@ -1,0 +1,373 @@
+<title>ERD Pulso TransMi</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Source+Sans+3:wght@400;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<style>
+  :root{--ground:#f4f5f7;--surface:#fcfcfb;--surface-2:#eceef1;--head:#e7eaee;--ink:#14181d;--ink-2:#4e565f;--ink-3:#7c858f;
+    --rule:#dde1e6;--rule-strong:#b6bec7;--accent:#2a78d6;
+    --fam-st:#2a78d6;--fam-run:#eb6834;--fam-mod:#1baf7a;
+    --display:"Barlow Semi Condensed","Arial Narrow",system-ui,sans-serif;
+    --body:"Source Sans 3",system-ui,-apple-system,sans-serif;
+    --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;}
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+    --ground:#121316;--surface:#1c1e21;--surface-2:#24262a;--head:#2b2f34;--ink:#f1f2f4;--ink-2:#b5bbc2;--ink-3:#868d95;
+    --rule:#2c2f34;--rule-strong:#474d55;--accent:#3987e5;
+    --fam-st:#3987e5;--fam-run:#d95926;--fam-mod:#199e70;}}
+  :root[data-theme="dark"]{--ground:#121316;--surface:#1c1e21;--surface-2:#24262a;--head:#2b2f34;--ink:#f1f2f4;
+    --ink-2:#b5bbc2;--ink-3:#868d95;--rule:#2c2f34;--rule-strong:#474d55;--accent:#3987e5;
+    --fam-st:#3987e5;--fam-run:#d95926;--fam-mod:#199e70;}
+
+  body{background:var(--ground);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:1240px;margin:0 auto;padding-inline:20px;padding-block:0 60px;}
+  header{padding-block:38px 22px;border-bottom:2px solid var(--ink);}
+  .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin:0 0 9px;}
+  h1{font-family:var(--display);font-weight:700;font-size:clamp(32px,5.5vw,50px);line-height:1;letter-spacing:-.015em;margin:0 0 12px;}
+  .standfirst{font-size:16.5px;color:var(--ink-2);max-width:66ch;margin:0;}
+
+  .bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:12px 0;border-bottom:1px solid var(--rule);margin-top:18px;}
+  .bar button{font-family:var(--mono);font-size:11px;letter-spacing:.04em;padding:6px 11px;background:transparent;color:var(--ink-2);border:1px solid var(--rule-strong);cursor:pointer;}
+  .bar button[aria-pressed="true"]{background:var(--ink);color:var(--ground);border-color:var(--ink);}
+  .bar button:hover{border-color:var(--accent);color:var(--accent);}
+  .bar button[aria-pressed="true"]:hover{color:var(--ground);}
+  .bar .hint{font-family:var(--mono);font-size:10.5px;color:var(--ink-3);margin-left:auto;}
+
+  .canvas{border:1px solid var(--rule);background:var(--surface);margin-top:0;overflow:hidden;position:relative;}
+  svg#erd{display:block;width:100%;height:auto;cursor:grab;touch-action:none;}
+  svg#erd:active{cursor:grabbing;}
+
+  .ent-bx{fill:var(--surface);stroke:var(--rule-strong);stroke-width:1.1;}
+  .ent-hd{fill:var(--head);stroke:var(--rule-strong);stroke-width:1.1;}
+  .ent-nm{font-family:var(--mono);font-size:12.5px;font-weight:500;fill:var(--ink);}
+  .ent-ct{font-family:var(--mono);font-size:9px;fill:var(--ink-3);}
+  .col-nm{font-family:var(--mono);font-size:10.5px;fill:var(--ink);}
+  .col-pk{font-weight:500;}
+  .col-ty{font-family:var(--mono);font-size:9.5px;fill:var(--ink-3);}
+  .col-tag{font-family:var(--mono);font-size:8px;fill:var(--ink-3);letter-spacing:.04em;}
+  .rowline{stroke:var(--rule);stroke-width:.7;}
+  .rel{fill:none;stroke-width:1.5;}
+  .rel-mark{stroke-width:1.5;fill:none;}
+  .dim{opacity:.14;}
+  .lg{font-family:var(--mono);font-size:10.5px;fill:var(--ink-2);}
+
+  .legend{display:flex;flex-wrap:wrap;gap:26px;padding:13px 16px;border:1px solid var(--rule);border-top:0;background:var(--surface);}
+  .lgi{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;color:var(--ink-2);}
+  .sw{width:22px;height:3px;}
+  h2{font-family:var(--display);font-weight:600;font-size:clamp(23px,3.4vw,29px);margin:42px 0 8px;}
+  p.lede{color:var(--ink-2);max-width:66ch;margin:0 0 6px;}
+  .scroller{overflow-x:auto;margin-top:16px;border:1px solid var(--rule);background:var(--surface);}
+  table{border-collapse:collapse;width:100%;font-size:13.5px;}
+  th{text-align:left;font-family:var(--mono);font-weight:500;font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3);padding:9px 14px;border-bottom:1px solid var(--rule-strong);white-space:nowrap;}
+  td{padding:8px 14px;border-bottom:1px solid var(--rule);vertical-align:top;}
+  tbody tr:last-child td{border-bottom:0;}
+  code{font-family:var(--mono);font-size:12.5px;background:var(--surface-2);padding:1px 5px;}
+  .note{border-left:3px solid var(--accent);background:color-mix(in srgb,var(--accent) 8%,var(--surface));padding:14px 16px;margin-top:22px;}
+  .note p{margin:0;max-width:66ch;font-size:14px;}
+  .note .hd{font-family:var(--display);font-weight:600;font-size:16px;display:block;margin-bottom:3px;}
+  footer{margin-top:46px;padding-top:16px;border-top:1px solid var(--rule);font-family:var(--mono);font-size:11.5px;color:var(--ink-3);}
+  a{color:var(--accent);} :focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+</style>
+
+<div class="wrap">
+<header>
+  <p class="eyebrow">Diagrama entidad–relación · notación pata de gallo · PostgreSQL 15</p>
+  <h1>ERD · Pulso TransMi</h1>
+  <p class="standfirst">Las 10 tablas con todos sus atributos y las 15 claves foráneas que las unen.
+  El color de cada línea indica hacia qué entidad apunta. Pasa el cursor por una tabla para aislar
+  sus relaciones; arrastra y haz zoom para leer los atributos.</p>
+</header>
+
+<div class="bar" role="group" aria-label="Controles del diagrama">
+  <button id="f-all" aria-pressed="true">Todas</button>
+  <button id="f-st" aria-pressed="false">→ stations</button>
+  <button id="f-run" aria-pressed="false">→ pipeline_runs</button>
+  <button id="f-mod" aria-pressed="false">→ models</button>
+  <button id="z-reset" aria-pressed="false">Reencuadrar</button>
+  <span class="hint">arrastra para mover · rueda para zoom</span>
+</div>
+
+<div class="canvas"><svg id="erd" viewBox="0 0 1180 920" role="img"
+  aria-label="Diagrama entidad-relación de las diez tablas del pipeline Pulso TransMi"></svg></div>
+<div class="legend">
+  <span class="lgi"><span class="sw" style="background:var(--fam-st)"></span>FK → stations</span>
+  <span class="lgi"><span class="sw" style="background:var(--fam-run)"></span>FK → pipeline_runs</span>
+  <span class="lgi"><span class="sw" style="background:var(--fam-mod)"></span>FK → models</span>
+  <span class="lgi"><svg width="34" height="12" style="overflow:visible"><line x1="2" y1="6" x2="24" y2="6" stroke="currentColor" stroke-width="1.5"/><path d="M24 1 L32 6 M24 6 L32 6 M24 11 L32 6" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>muchos</span>
+  <span class="lgi"><svg width="34" height="12" style="overflow:visible"><line x1="10" y1="6" x2="32" y2="6" stroke="currentColor" stroke-width="1.5"/><line x1="10" y1="1" x2="10" y2="11" stroke="currentColor" stroke-width="1.5"/></svg>uno</span>
+  <span class="lgi"><svg width="34" height="12" style="overflow:visible"><line x1="14" y1="6" x2="32" y2="6" stroke="currentColor" stroke-width="1.5"/><circle cx="8" cy="6" r="4" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>opcional (FK nulable)</span>
+</div>
+
+<h2>Las 15 relaciones, en texto</h2>
+<p class="lede">Lo mismo que muestra el diagrama, por si hay que citarlo en el README.</p>
+<div class="scroller"><table>
+  <thead><tr><th>Hija</th><th>Atributo</th><th>Madre</th><th>Card.</th><th>Regla de negocio</th></tr></thead>
+  <tbody id="rel-tb"></tbody>
+</table></div>
+
+<div class="note">
+  <span class="hd">La relación que no aparece como línea</span>
+  <p><code>predictions</code> y <code>observations</code> se comparan por
+  <code>(station_id, target_at = observed_at)</code>, pero <b>no hay clave foránea entre ellas</b>:
+  cuando se emite la predicción, esa observación todavía no existe. Es una unión diferida en el tiempo
+  y por eso el <i>scoring</i> es la vista <code>v_prediction_scores</code>, no una columna.</p>
+</div>
+
+<footer>
+  <p>Notación pata de gallo (crow's foot). PK = clave primaria, FK = clave foránea.
+  Los tipos son los de PostgreSQL abreviados: ts = timestamptz, f8 = double precision,
+  i2/i4/i8 = smallint/integer/bigint. DDL completo en el documento de modelo de datos.</p>
+</footer>
+</div>
+
+<script>
+const FAM = { st:"--fam-st", run:"--fam-run", mod:"--fam-mod" };
+const cv = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+/* columnas: [nombre, tipo, marca]  marca: "pk" | "pkfk:fam" | "fk:fam" | "fko:fam" (opcional) | "" */
+const ENT = {
+  stations: { x:90, y:40, cols:[
+    ["station_id","text","pk"],["station_name","text",""],["corridor","text",""],
+    ["latitude","f8",""],["longitude","f8",""],["vagones","i2",""],["accesos","i2",""],
+    ["tipo","i2",""],["is_portal","bool",""]], note:"12 filas · semilla" },
+
+  observations: { x:90, y:250, cols:[
+    ["station_id","text","pkfk:st"],["observed_at","ts","pk"],["demand","i4",""],
+    ["run_id","i8","fk:run"],["ingested_at","ts",""]], note:"la verdad · crece" },
+
+  context: { x:90, y:400, cols:[
+    ["observed_at","ts","pk"],["rain_mm","f8",""],["rain_forecast","f8",""],
+    ["temperature_c","f8",""],["temperature_forecast","f8",""],["event_intensity","f8",""],
+    ["run_id","i8","fk:run"],["ingested_at","ts",""]], note:"1 fila / periodo" },
+
+  pipeline_runs: { x:460, y:40, cols:[
+    ["run_id","i8","pk"],["attempt","i2",""],["trigger","text",""],["git_commit","text",""],
+    ["git_ref","text",""],["run_url","text",""],["started_at","ts",""],["finished_at","ts",""],
+    ["status","text",""],["cutoff_at","ts",""],["rows_ingested","i4",""],
+    ["error_stage","text",""],["error_message","text",""]], note:"1 fila / ejecución" },
+
+  run_events: { x:460, y:310, cols:[
+    ["event_id","bigserial","pk"],["run_id","i8","fk:run"],["stage","text",""],
+    ["level","text",""],["message","text",""],["payload","jsonb",""],["at","ts",""]],
+    note:"log por etapa" },
+
+  drift_signals: { x:460, y:490, cols:[
+    ["run_id","i8","fk:run"],["station_id","text","fko:st"],["signal","text",""],
+    ["value","f8",""],["threshold","f8",""],["breached","bool",""],["computed_at","ts",""]],
+    note:"unique (run, station, signal)" },
+
+  retrain_decisions: { x:460, y:670, cols:[
+    ["run_id","i8","pkfk:run"],["decision","text",""],["reason","text",""],
+    ["breached_signals","text[]",""],["incumbent_model_id","uuid","fko:mod"],
+    ["new_model_id","uuid","fko:mod"],["cooldown_until","ts",""],["decided_at","ts",""]],
+    note:"1:1 con la corrida" },
+
+  models: { x:830, y:40, cols:[
+    ["model_id","uuid","pk"],["name","text",""],["kind","text",""],["algorithm","text",""],
+    ["hyperparams","jsonb",""],["feature_set","text",""],["feature_list","text[]",""],
+    ["train_start","ts",""],["train_end","ts",""],["n_train_rows","i4",""],
+    ["artifact_uri","text",""],["artifact_sha256","text",""],["git_commit","text",""],
+    ["trained_by_run_id","i8","fko:run"],["parent_model_id","uuid","fko:mod"],
+    ["status","text",""],["activated_at","ts",""],["retired_at","ts",""],["created_at","ts",""]],
+    note:"baselines incluidos" },
+
+  model_metrics: { x:830, y:400, cols:[
+    ["model_id","uuid","fk:mod"],["split","text",""],["fold","i2",""],
+    ["station_id","text","fko:st"],["metric","text",""],["value","f8",""],
+    ["window_start","ts",""],["window_end","ts",""],["computed_at","ts",""]],
+    note:"formato largo" },
+
+  predictions: { x:830, y:610, cols:[
+    ["run_id","i8","pkfk:run"],["station_id","text","pkfk:st"],["target_at","ts","pk"],
+    ["model_id","uuid","fk:mod"],["issued_at","ts",""],["horizon","i2",""],
+    ["y_pred","f8",""],["submitted","bool",""],["submit_response","jsonb",""],
+    ["created_at","ts",""]], note:"4 horizontes / corrida" },
+};
+
+const BW=250, RH=15, HH=28, PADB=8;
+for (const k in ENT){ const e=ENT[k]; e.w=BW; e.h=HH+e.cols.length*RH+PADB; e.name=k; }
+
+/* pts: polilínea de la hija (pata de gallo) a la madre (barra). o1/oN: extremo opcional */
+const REL = [
+  {id:"obs_st",  from:"observations", to:"stations", fam:"st", col:"station_id", card:"N:1",
+   rule:"Toda observación pertenece a una estación del catálogo",
+   pts:[[215,250],[215,211]]},
+  {id:"ctx_run", from:"context", to:"pipeline_runs", fam:"run", col:"run_id", card:"N:1",
+   rule:"Qué corrida trajo esta fila de contexto",
+   pts:[[340,478],[370,478],[370,200],[460,200]]},
+  {id:"obs_run", from:"observations", to:"pipeline_runs", fam:"run", col:"run_id", card:"N:1",
+   rule:"Qué corrida trajo esta observación",
+   pts:[[340,305],[400,305],[400,150],[460,150]]},
+  {id:"ev_run",  from:"run_events", to:"pipeline_runs", fam:"run", col:"run_id", card:"N:1",
+   rule:"Log de la corrida, con etapa y nivel",
+   pts:[[585,310],[585,271]]},
+  {id:"dr_run",  from:"drift_signals", to:"pipeline_runs", fam:"run", col:"run_id", card:"N:1",
+   rule:"Señales medidas durante esa corrida",
+   pts:[[710,560],[725,560],[725,235],[710,235]]},
+  {id:"rt_run",  from:"retrain_decisions", to:"pipeline_runs", fam:"run", col:"run_id", card:"1:1",
+   rule:"Exactamente una decisión por corrida: el run_id es la PK",
+   pts:[[710,745],[745,745],[745,215],[710,215]], one1:true},
+  {id:"mod_run", from:"models", to:"pipeline_runs", fam:"run", col:"trained_by_run_id", card:"N:1",
+   rule:"Qué corrida entrenó este modelo (nulo en los baselines sembrados)",
+   pts:[[830,200],[710,200]], opt:true},
+  {id:"prd_run", from:"predictions", to:"pipeline_runs", fam:"run", col:"run_id", card:"N:1",
+   rule:"Predicciones emitidas en esa corrida",
+   pts:[[830,660],[765,660],[765,255],[710,255]]},
+  {id:"mm_mod",  from:"model_metrics", to:"models", fam:"mod", col:"model_id", card:"N:1",
+   rule:"Todas las métricas de un modelo, por split y estación",
+   pts:[[955,400],[955,361]]},
+  {id:"prd_mod", from:"predictions", to:"models", fam:"mod", col:"model_id", card:"N:1",
+   rule:"Qué modelo produjo la predicción",
+   pts:[[1080,650],[1110,650],[1110,300],[1080,300]]},
+  {id:"mod_mod", from:"models", to:"models", fam:"mod", col:"parent_model_id", card:"N:1",
+   rule:"Linaje: a qué modelo reemplazó este",
+   pts:[[1080,245],[1145,245],[1145,285],[1080,285]], opt:true},
+  {id:"rt_mod",  from:"retrain_decisions", to:"models", fam:"mod", col:"incumbent / new_model_id", card:"N:1",
+   rule:"Qué modelo había y cuál quedó tras la decisión",
+   pts:[[710,700],[800,700],[800,330],[830,330]], opt:true},
+  {id:"prd_st",  from:"predictions", to:"stations", fam:"st", col:"station_id", card:"N:1",
+   rule:"Solo se predice sobre estaciones del catálogo",
+   pts:[[955,796],[955,870],[60,870],[60,130],[90,130]]},
+  {id:"mm_st",   from:"model_metrics", to:"stations", fam:"st", col:"station_id", card:"N:1",
+   rule:"NULL = métrica agregada, no desglosada por estación",
+   pts:[[830,500],[790,500],[790,845],[75,845],[75,160],[90,160]], opt:true},
+  {id:"dr_st",   from:"drift_signals", to:"stations", fam:"st", col:"station_id", card:"N:1",
+   rule:"NULL = señal global del sistema, no de una estación",
+   pts:[[460,600],[355,600],[355,170],[340,170]], opt:true},
+];
+
+const svg = d3.select("#erd");
+const root = svg.append("g");
+const gRel = root.append("g"), gEnt = root.append("g");
+
+/* ---------- entidades ---------- */
+function drawEntities(){
+  for (const k in ENT){
+    const e = ENT[k];
+    const g = gEnt.append("g").attr("class","ent").attr("data-ent",k)
+      .style("cursor","pointer")
+      .on("mouseenter",()=>focus(k)).on("mouseleave",()=>focus(null));
+
+    g.append("rect").attr("class","ent-bx").attr("x",e.x).attr("y",e.y)
+      .attr("width",e.w).attr("height",e.h).attr("rx",2);
+    g.append("rect").attr("class","ent-hd").attr("x",e.x).attr("y",e.y)
+      .attr("width",e.w).attr("height",HH).attr("rx",2);
+    g.append("rect").attr("class","ent-hd").attr("x",e.x).attr("y",e.y+HH-4)
+      .attr("width",e.w).attr("height",4).attr("stroke","none");
+    g.append("text").attr("class","ent-nm").attr("x",e.x+10).attr("y",e.y+18).text(k);
+    g.append("text").attr("class","ent-ct").attr("x",e.x+e.w-10).attr("y",e.y+18)
+      .attr("text-anchor","end").text(e.note);
+
+    e.cols.forEach((c,i)=>{
+      const y = e.y+HH+i*RH+11;
+      if(i) g.append("line").attr("class","rowline")
+        .attr("x1",e.x+1).attr("x2",e.x+e.w-1).attr("y1",y-11).attr("y2",y-11);
+
+      const mk = c[2] || "";
+      const isPk = mk.startsWith("pk");
+      const fkFam = mk.includes(":") ? mk.split(":")[1] : null;
+      const tag = isPk && fkFam ? "PK,FK" : isPk ? "PK" : fkFam ? "FK" : "";
+
+      if(tag) g.append("text").attr("class","col-tag").attr("x",e.x+8).attr("y",y).text(tag);
+      if(fkFam) g.append("circle").attr("cx",e.x+e.w-8).attr("cy",y-3.5).attr("r",2.6)
+        .attr("fill",cv(FAM[fkFam]));
+      g.append("text").attr("class","col-nm"+(isPk?" col-pk":"")).attr("x",e.x+42).attr("y",y).text(c[0]);
+      g.append("text").attr("class","col-ty").attr("x",e.x+e.w-18).attr("y",y)
+        .attr("text-anchor","end").text(c[1]);
+    });
+  }
+}
+
+/* ---------- marcas de cardinalidad ---------- */
+function dirAt(pts, atEnd){
+  const [a,b] = atEnd ? [pts[pts.length-2],pts[pts.length-1]] : [pts[1],pts[0]];
+  const dx=b[0]-a[0], dy=b[1]-a[1], L=Math.hypot(dx,dy)||1;
+  return [dx/L, dy/L];
+}
+function crowFoot(g,p,d,color){           // "muchos": tres patas abriendo hacia la tabla hija
+  const [ux,uy]=d, [px,py]=[-uy,ux], L=9, S=4.5;
+  const bx=p[0]-ux*L, by=p[1]-uy*L;
+  [[0,0],[px*S,py*S],[-px*S,-py*S]].forEach(([ox,oy])=>
+    g.append("line").attr("class","rel-mark").attr("stroke",color)
+     .attr("x1",p[0]).attr("y1",p[1]).attr("x2",bx+ox).attr("y2",by+oy));
+}
+function oneBar(g,p,d,color,off){          // "uno": barra perpendicular
+  const [ux,uy]=d, [px,py]=[-uy,ux], S=5;
+  const cx=p[0]-ux*off, cy=p[1]-uy*off;
+  g.append("line").attr("class","rel-mark").attr("stroke",color)
+   .attr("x1",cx-px*S).attr("y1",cy-py*S).attr("x2",cx+px*S).attr("y2",cy+py*S);
+}
+function optCircle(g,p,d,color,off){       // opcional: círculo hueco
+  const [ux,uy]=d;
+  g.append("circle").attr("class","rel-mark").attr("stroke",color).attr("fill",cv("--surface"))
+   .attr("cx",p[0]-ux*off).attr("cy",p[1]-uy*off).attr("r",3.4);
+}
+
+function drawRels(){
+  REL.forEach(r=>{
+    const color = cv(FAM[r.fam]);
+    const g = gRel.append("g").attr("class","rel-g").attr("data-rel",r.id)
+      .attr("data-from",r.from).attr("data-to",r.to);
+    g.append("polyline").attr("class","rel").attr("stroke",color)
+      .attr("points", r.pts.map(p=>p.join(",")).join(" "));
+
+    const pA = r.pts[0],            dA = dirAt(r.pts,false);   // extremo hija
+    const pB = r.pts[r.pts.length-1], dB = dirAt(r.pts,true);  // extremo madre
+    if(r.one1) oneBar(g,pA,dA,color,7); else crowFoot(g,pA,dA,color);
+    oneBar(g,pB,dB,color,7);
+    if(r.opt) optCircle(g,pA,dA,color, r.one1?16:16);
+  });
+}
+
+/* ---------- foco ---------- */
+let pinned=null;
+function focus(k){
+  const key = pinned || k;
+  if(!key){ gEnt.selectAll(".ent").classed("dim",false); gRel.selectAll(".rel-g").classed("dim",false); applyFilter(); return; }
+  const linked=new Set([key]);
+  REL.forEach(r=>{ if(r.from===key) linked.add(r.to); if(r.to===key) linked.add(r.from); });
+  gEnt.selectAll(".ent").classed("dim",function(){ return !linked.has(this.dataset.ent); });
+  gRel.selectAll(".rel-g").classed("dim",function(){
+    return !(this.dataset.from===key || this.dataset.to===key); });
+}
+
+/* ---------- filtro por familia ---------- */
+let fam="all";
+function applyFilter(){
+  if(pinned) return;
+  gRel.selectAll(".rel-g").classed("dim",function(){
+    if(fam==="all") return false;
+    const r=REL.find(x=>x.id===this.dataset.rel);
+    return r.fam!==fam;
+  });
+  gEnt.selectAll(".ent").classed("dim",false);
+}
+const BTN={all:"f-all",st:"f-st",run:"f-run",mod:"f-mod"};
+Object.entries(BTN).forEach(([k,id])=>{
+  document.getElementById(id).onclick=()=>{
+    fam=k; pinned=null;
+    Object.values(BTN).forEach(b=>document.getElementById(b).setAttribute("aria-pressed","false"));
+    document.getElementById(id).setAttribute("aria-pressed","true");
+    applyFilter();
+  };
+});
+
+/* ---------- zoom ---------- */
+const zoom=d3.zoom().scaleExtent([0.55,5]).on("zoom",e=>root.attr("transform",e.transform));
+svg.call(zoom);
+document.getElementById("z-reset").onclick=()=>svg.transition().duration(350).call(zoom.transform,d3.zoomIdentity);
+
+/* ---------- tabla de relaciones ---------- */
+(function(){
+  const tb=document.getElementById("rel-tb");
+  REL.forEach(r=>{
+    const tr=document.createElement("tr");
+    tr.innerHTML=`<td><code>${r.from}</code></td><td><code>${r.col}</code></td>`+
+      `<td><code>${r.to}</code></td><td>${r.card}${r.opt?" · nulable":""}</td><td>${r.rule}</td>`;
+    tr.addEventListener("mouseenter",()=>{ pinned=null; focus(r.from); });
+    tr.addEventListener("mouseleave",()=>focus(null));
+    tb.appendChild(tr);
+  });
+})();
+
+function render(){ gEnt.selectAll("*").remove(); gRel.selectAll("*").remove(); drawRels(); drawEntities(); applyFilter(); }
+render();
+window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change",render);
+</script>

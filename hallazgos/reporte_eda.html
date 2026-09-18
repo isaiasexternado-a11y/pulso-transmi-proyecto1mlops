@@ -1,0 +1,762 @@
+<title>Corte inicial Pulso TransMi</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Source+Sans+3:wght@400;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    --ground:      #f4f5f7;
+    --surface:     #fcfcfb;
+    --surface-2:   #eceef1;
+    --ink:         #14181d;
+    --ink-2:       #4e565f;
+    --ink-3:       #7c858f;
+    --rule:        #dde1e6;
+    --rule-strong: #c3cad2;
+    --accent:      #2a78d6;
+    --accent-soft: #e4eefb;
+    --good:        #0ca30c;
+    --warn:        #fab219;
+    --crit:        #d03b3b;
+    --grid:        #e6e9ed;
+
+    --display: "Barlow Semi Condensed", "Arial Narrow", system-ui, sans-serif;
+    --body:    "Source Sans 3", system-ui, -apple-system, sans-serif;
+    --mono:    "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground:      #121316;
+      --surface:     #1a1a19;
+      --surface-2:   #24262a;
+      --ink:         #f1f2f4;
+      --ink-2:       #b5bbc2;
+      --ink-3:       #868d95;
+      --rule:        #2c2f34;
+      --rule-strong: #3d4248;
+      --accent:      #3987e5;
+      --accent-soft: #14243a;
+      --good:        #0ca30c;
+      --warn:        #fab219;
+      --crit:        #e66767;
+      --grid:        #2a2d31;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground:      #121316;
+    --surface:     #1a1a19;
+    --surface-2:   #24262a;
+    --ink:         #f1f2f4;
+    --ink-2:       #b5bbc2;
+    --ink-3:       #868d95;
+    --rule:        #2c2f34;
+    --rule-strong: #3d4248;
+    --accent:      #3987e5;
+    --accent-soft: #14243a;
+    --good:        #0ca30c;
+    --warn:        #fab219;
+    --crit:        #e66767;
+    --grid:        #2a2d31;
+  }
+
+  body {
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--body);
+    font-size: 15px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; padding-inline: 20px; padding-block: 0 72px; }
+
+  /* ---------- masthead ---------- */
+  .mast { padding-block: 44px 28px; border-bottom: 2px solid var(--ink); }
+  .eyebrow {
+    font-family: var(--mono); font-size: 11px; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--accent); margin: 0 0 10px;
+  }
+  h1 {
+    font-family: var(--display); font-weight: 700; font-size: clamp(38px, 7vw, 62px);
+    line-height: .98; letter-spacing: -.015em; margin: 0 0 14px; text-wrap: balance;
+  }
+  .standfirst { font-size: 17px; color: var(--ink-2); max-width: 62ch; margin: 0; }
+
+  .facts { display: flex; flex-wrap: wrap; gap: 0; margin-top: 30px;
+           border: 1px solid var(--rule); background: var(--surface); }
+  .fact { flex: 1 1 120px; padding: 14px 16px; border-right: 1px solid var(--rule); }
+  .fact:last-child { border-right: 0; }
+  .fact b { display: block; font-family: var(--display); font-weight: 600;
+            font-size: 26px; line-height: 1.1; font-variant-numeric: tabular-nums; }
+  .fact span { font-family: var(--mono); font-size: 10.5px; letter-spacing: .08em;
+               text-transform: uppercase; color: var(--ink-3); }
+
+  /* ---------- nav ---------- */
+  nav { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20;
+        background: var(--ground); border-bottom: 1px solid var(--rule);
+        display: flex; gap: 18px; overflow-x: auto; padding-block: 11px; }
+  nav a { font-family: var(--mono); font-size: 11px; letter-spacing: .06em;
+          color: var(--ink-3); text-decoration: none; white-space: nowrap; }
+  nav a:hover, nav a:focus-visible { color: var(--accent); }
+
+  /* ---------- sections ---------- */
+  section { padding-block: 46px 8px; scroll-margin-top: 60px; }
+  .snum { font-family: var(--mono); font-size: 11px; color: var(--accent);
+          letter-spacing: .1em; display: block; margin-bottom: 6px; }
+  h2 { font-family: var(--display); font-weight: 600; font-size: clamp(26px, 4vw, 34px);
+       line-height: 1.08; margin: 0 0 10px; letter-spacing: -.01em; text-wrap: balance; }
+  h3 { font-family: var(--display); font-weight: 600; font-size: 19px;
+       margin: 30px 0 8px; letter-spacing: .005em; }
+  p { max-width: 68ch; }
+  .lede { color: var(--ink-2); max-width: 66ch; margin: 0 0 6px; }
+
+  /* ---------- tables ---------- */
+  .scroller { overflow-x: auto; margin-top: 16px; border: 1px solid var(--rule);
+              background: var(--surface); }
+  table { border-collapse: collapse; width: 100%; font-size: 13.5px; }
+  caption { text-align: left; font-family: var(--mono); font-size: 11px;
+            letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3);
+            padding: 11px 14px; border-bottom: 1px solid var(--rule); background: var(--surface-2); }
+  th { text-align: left; font-family: var(--mono); font-weight: 500; font-size: 10.5px;
+       letter-spacing: .07em; text-transform: uppercase; color: var(--ink-3);
+       padding: 9px 14px; border-bottom: 1px solid var(--rule-strong); white-space: nowrap; }
+  td { padding: 8px 14px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  tbody tr:last-child td { border-bottom: 0; }
+  .num { text-align: right; font-variant-numeric: tabular-nums; font-family: var(--mono); font-size: 12.5px; }
+  code, .mono { font-family: var(--mono); font-size: 12.5px; }
+  td code { color: var(--ink); background: var(--surface-2); padding: 1px 5px; }
+
+  .tag { font-family: var(--mono); font-size: 10.5px; padding: 2px 6px;
+         border: 1px solid var(--rule-strong); color: var(--ink-2); white-space: nowrap; }
+
+  /* ---------- checks ---------- */
+  .checks { list-style: none; padding: 0; margin: 18px 0 0;
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1px;
+            background: var(--rule); border: 1px solid var(--rule); }
+  .checks li { background: var(--surface); padding: 12px 14px; display: flex; gap: 10px; align-items: flex-start; }
+  .dot { width: 9px; height: 9px; flex: none; margin-top: 7px; border-radius: 50%; background: var(--good); }
+  .dot.w { background: var(--warn); }
+  .checks b { font-weight: 600; font-size: 13.5px; display: block; }
+  .checks span { font-size: 12.5px; color: var(--ink-2); font-family: var(--mono); }
+
+  /* ---------- charts ---------- */
+  figure { margin: 22px 0 0; border: 1px solid var(--rule); background: var(--surface); padding: 16px 16px 10px; }
+  figcaption { font-family: var(--mono); font-size: 11px; letter-spacing: .07em;
+               text-transform: uppercase; color: var(--ink-3); margin-bottom: 12px; }
+  .chart { position: relative; }
+  svg { display: block; width: 100%; height: auto; overflow: visible; }
+  .tip { position: absolute; pointer-events: none; opacity: 0; transition: opacity .12s;
+         background: var(--ink); color: var(--ground); font-family: var(--mono); font-size: 11.5px;
+         padding: 6px 9px; white-space: nowrap; z-index: 5; transform: translate(-50%, -130%); }
+  .tip b { color: var(--ground); }
+
+  /* ---------- callout ---------- */
+  .note { border-left: 3px solid var(--accent); background: var(--accent-soft);
+          padding: 14px 16px; margin: 20px 0 0; }
+  .note p { margin: 0; max-width: 64ch; font-size: 14px; }
+  .note .hd { font-family: var(--display); font-weight: 600; font-size: 16px;
+              margin: 0 0 4px; display: block; }
+  .warnote { border-left-color: var(--crit); background: color-mix(in srgb, var(--crit) 9%, var(--surface)); }
+
+  /* ---------- takeaways ---------- */
+  .take { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 16px; margin-top: 20px; }
+  .take article { border-top: 2px solid var(--ink); padding-top: 12px; }
+  .take h4 { font-family: var(--display); font-size: 18px; font-weight: 600; margin: 0 0 6px; }
+  .take p { font-size: 14px; color: var(--ink-2); margin: 0; max-width: none; }
+
+  footer { margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--rule);
+           font-family: var(--mono); font-size: 11.5px; color: var(--ink-3); }
+  footer p { max-width: 70ch; }
+  a { color: var(--accent); }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="wrap">
+
+  <header class="mast">
+    <p class="eyebrow">EDA · pulso-transmi-starter-v1 · corte 2026-07-26 → 2026-09-08</p>
+    <h1>Pulso TransMi<br>Corte inicial de 45 días</h1>
+    <p class="standfirst">Estructura, tipología y calidad de las tres tablas del starter kit, con los patrones
+    que cualquier modelo tendrá que reproducir y los baselines contra los que se va a medir.</p>
+    <div class="facts">
+      <div class="fact"><b>51.840</b><span>observaciones</span></div>
+      <div class="fact"><b>12</b><span>estaciones</span></div>
+      <div class="fact"><b>4.320</b><span>periodos / estación</span></div>
+      <div class="fact"><b>15 min</b><span>frecuencia</span></div>
+      <div class="fact"><b>0</b><span>nulos · huecos · duplicados</span></div>
+      <div class="fact"><b>88,1</b><span>accuracy a batir</span></div>
+    </div>
+  </header>
+
+  <nav>
+    <a href="#estructura">01 · Estructura</a>
+    <a href="#calidad">02 · Calidad</a>
+    <a href="#estaciones">03 · Estaciones</a>
+    <a href="#tiempo">04 · Tiempo</a>
+    <a href="#contexto">05 · Contexto</a>
+    <a href="#baselines">06 · Baselines</a>
+    <a href="#drift">07 · Drift</a>
+    <a href="#pipeline">08 · Qué implica</a>
+  </nav>
+
+  <!-- ============================= 01 ============================= -->
+  <section id="estructura">
+    <span class="snum">01</span>
+    <h2>Estructura y tipología</h2>
+    <p class="lede">Tres tablas planas que se unen por dos claves: <code>station_id</code> y <code>observed_at</code>.
+    No hay jerarquías, ni anidamiento, ni campos de texto libre.</p>
+
+    <div class="scroller">
+      <table>
+        <caption>observations — 51.840 × 3 · grano: estación × periodo de 15 min</caption>
+        <thead><tr><th>Columna</th><th>Dtype leído</th><th>Tipología</th><th>Rango observado</th><th>Nulos</th><th>Únicos</th></tr></thead>
+        <tbody>
+          <tr><td><code>observed_at</code></td><td class="mono">datetime64[ns, America/Bogota]</td><td>Marca temporal con zona (-05:00)</td><td class="mono">2026-07-26 00:00 → 2026-09-08 23:45</td><td class="num">0</td><td class="num">4.320</td></tr>
+          <tr><td><code>station_id</code></td><td class="mono">string</td><td>Categórica nominal, 5 dígitos con ceros iniciales</td><td class="mono">02300 … 10009</td><td class="num">0</td><td class="num">12</td></tr>
+          <tr><td><code>demand</code></td><td class="mono">int64</td><td>Conteo discreto, no negativo</td><td class="mono">14 → 2.284</td><td class="num">0</td><td class="num">1.778</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="scroller">
+      <table>
+        <caption>stations — 12 × 5 · catálogo estático</caption>
+        <thead><tr><th>Columna</th><th>Dtype leído</th><th>Tipología</th><th>Rango observado</th><th>Nulos</th><th>Únicos</th></tr></thead>
+        <tbody>
+          <tr><td><code>station_id</code></td><td class="mono">string</td><td>Clave primaria</td><td class="mono">12 valores</td><td class="num">0</td><td class="num">12</td></tr>
+          <tr><td><code>station_name</code></td><td class="mono">object</td><td>Texto, con tildes y guiones largos</td><td class="mono">Portal Suba … Universidades – CityU</td><td class="num">0</td><td class="num">12</td></tr>
+          <tr><td><code>corridor</code></td><td class="mono">object</td><td>Categórica nominal (troncal)</td><td class="mono">7 troncales</td><td class="num">0</td><td class="num">7</td></tr>
+          <tr><td><code>latitude</code></td><td class="mono">float64</td><td>Geográfica continua</td><td class="mono">4,5317 → 4,7468</td><td class="num">0</td><td class="num">12</td></tr>
+          <tr><td><code>longitude</code></td><td class="mono">float64</td><td>Geográfica continua</td><td class="mono">−74,1731 → −74,0577</td><td class="num">0</td><td class="num">12</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="scroller">
+      <table>
+        <caption>context — 4.320 × 6 · una fila por periodo, común a toda la ciudad</caption>
+        <thead><tr><th>Columna</th><th>Dtype leído</th><th>Tipología</th><th>Media</th><th>Rango observado</th><th>Nulos</th></tr></thead>
+        <tbody>
+          <tr><td><code>observed_at</code></td><td class="mono">datetime64[ns, tz]</td><td>Clave temporal</td><td class="mono">—</td><td class="mono">idéntico a observations</td><td class="num">0</td></tr>
+          <tr><td><code>rain_mm</code></td><td class="mono">float64</td><td>Continua, asimétrica a la derecha</td><td class="num">0,260</td><td class="mono">0 → 7,722</td><td class="num">0</td></tr>
+          <tr><td><code>rain_forecast</code></td><td class="mono">float64</td><td>Continua · disponible antes del hecho</td><td class="num">0,381</td><td class="mono">0 → 7,461</td><td class="num">0</td></tr>
+          <tr><td><code>temperature_c</code></td><td class="mono">float64</td><td>Continua, cíclica diaria</td><td class="num">14,507</td><td class="mono">6,75 → 22,32</td><td class="num">0</td></tr>
+          <tr><td><code>temperature_forecast</code></td><td class="mono">float64</td><td>Continua · disponible antes del hecho</td><td class="num">14,506</td><td class="mono">5,45 → 23,57</td><td class="num">0</td></tr>
+          <tr><td><code>event_intensity</code></td><td class="mono">float64</td><td>Continua acotada [0,1], inflada en cero</td><td class="num">0,032</td><td class="mono">0 → 1,000</td><td class="num">0</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="note warnote">
+      <span class="hd">Dos trampas de tipo</span>
+      <p><b>1.</b> <code>station_id</code> lleva ceros iniciales. Si pandas lo infiere como entero,
+      <code>03000</code> se vuelve <code>3000</code> y el join contra el catálogo devuelve filas vacías.
+      Siempre <code>dtype={"station_id": "string"}</code>.<br>
+      <b>2.</b> <code>observed_at</code> viene con offset <code>-05:00</code>. Bogotá no tiene horario de verano,
+      así que el offset es constante, pero si lo conviertes a UTC y extraes la hora, los picos se desplazan 5 horas.</p>
+    </div>
+  </section>
+
+  <!-- ============================= 02 ============================= -->
+  <section id="calidad">
+    <span class="snum">02</span>
+    <h2>Calidad: el corte está limpio</h2>
+    <p class="lede">Doce comprobaciones sobre integridad, continuidad y dominio. Ninguna falla.
+    Es un dataset sintético y se nota: no hay que gastar esfuerzo en imputación.</p>
+    <ul class="checks">
+      <li><span class="dot"></span><div><b>Sin nulos</b><span>0 en las 3 tablas</span></div></li>
+      <li><span class="dot"></span><div><b>Sin duplicados de clave</b><span>0 en (observed_at, station_id)</span></div></li>
+      <li><span class="dot"></span><div><b>Rejilla temporal completa</b><span>4.320 / 4.320 periodos por estación</span></div></li>
+      <li><span class="dot"></span><div><b>Panel balanceado</b><span>las 12 estaciones con idéntico rango</span></div></li>
+      <li><span class="dot"></span><div><b>Integridad referencial</b><span>0 huérfanas, 0 sin observar</span></div></li>
+      <li><span class="dot"></span><div><b>Contexto alineado 1:1</b><span>51.840 filas unidas, 0 sin contexto</span></div></li>
+      <li><span class="dot"></span><div><b>Dominio de demand</b><span>0 negativos, 0 ceros, 0 no enteros</span></div></li>
+      <li><span class="dot"></span><div><b>Cobertura</b><span>45 días naturales consecutivos</span></div></li>
+      <li><span class="dot"></span><div><b>Checksum verificado</b><span>SHA-256 de /v1/meta coincide</span></div></li>
+      <li><span class="dot"></span><div><b>Zona horaria constante</b><span>-05:00 sin saltos de DST</span></div></li>
+      <li><span class="dot w"></span><div><b>Sin futuro incluido</b><span>future_included: false</span></div></li>
+      <li><span class="dot w"></span><div><b>Sin ground truth de la competencia</b><span>solo histórico congelado</span></div></li>
+    </ul>
+    <p style="margin-top:18px">Las dos marcas ámbar no son defectos: son recordatorios de que este corte
+    <em>no</em> contiene nada de la ventana competitiva. Todo lo que sigue describe un régimen que, por diseño del reto, va a cambiar.</p>
+  </section>
+
+  <!-- ============================= 03 ============================= -->
+  <section id="estaciones">
+    <span class="snum">03</span>
+    <h2>Las estaciones no son intercambiables</h2>
+    <p class="lede">La demanda media va de 218 a 684 pasajeros por periodo: un factor de 3,1×.
+    Como la métrica promedia el WAPE por estación, Portal Usme pesa lo mismo que Ricaurte.</p>
+
+    <figure>
+      <figcaption>Demanda media por periodo de 15 min · barra = media, marca = p05–p95</figcaption>
+      <div class="chart"><div id="c-est"></div><div class="tip" id="tip-est"></div></div>
+    </figure>
+
+    <div class="scroller">
+      <table>
+        <caption>Perfil estadístico por estación · ordenado por demanda media</caption>
+        <thead><tr><th>ID</th><th>Estación</th><th>Troncal</th><th>Media</th><th>Mediana</th><th>p05</th><th>p95</th><th>Máx</th><th>CV</th><th>% total</th></tr></thead>
+        <tbody id="tb-est"></tbody>
+      </table>
+    </div>
+
+    <div class="note">
+      <span class="hd">La mediana está muy por debajo de la media en todas</span>
+      <p>Calle 100 marca media 294 y mediana 158. La distribución de demanda es fuertemente asimétrica
+      a la derecha: muchos periodos valle y pocos periodos pico enormes. Un modelo entrenado con error
+      cuadrático perseguirá los picos; WAPE, que es error absoluto, no premia eso igual.</p>
+    </div>
+  </section>
+
+  <!-- ============================= 04 ============================= -->
+  <section id="tiempo">
+    <span class="snum">04</span>
+    <h2>Todo el problema es un reloj</h2>
+    <p class="lede">La estructura temporal explica casi toda la varianza. Dos picos de hora punta,
+    una caída de fin de semana estable y autocorrelación semanal de 0,94.</p>
+
+    <figure>
+      <figcaption>Perfil intradiario · demanda media por cada uno de los 96 periodos del día</figcaption>
+      <div class="chart"><div id="c-slot"></div><div class="tip" id="tip-slot"></div></div>
+    </figure>
+
+    <div class="take" style="margin-top:22px">
+      <article><h4>5,1×</h4><p>entre la hora pico (17 h, media 701) y la hora valle (2 h, media 138).</p></article>
+      <article><h4>−21,8 %</h4><p>cae la demanda el fin de semana frente al día laboral. Sábado y domingo son casi idénticos entre sí.</p></article>
+      <article><h4>0,94</h4><p>autocorrelación a 1 semana, por encima de la de 1 día (0,89). El calendario semanal manda.</p></article>
+    </div>
+
+    <figure>
+      <figcaption>Demanda total diaria · 45 días · los valles son sábados y domingos</figcaption>
+      <div class="chart"><div id="c-dia"></div><div class="tip" id="tip-dia"></div></div>
+    </figure>
+
+    <div class="scroller">
+      <table>
+        <caption>Autocorrelación media de las 12 series</caption>
+        <thead><tr><th>Rezago</th><th>Periodos</th><th>ACF</th><th>Lectura</th></tr></thead>
+        <tbody>
+          <tr><td>15 minutos</td><td class="num">1</td><td class="num">+0,940</td><td>Persistencia inmediata alta</td></tr>
+          <tr><td>1 hora</td><td class="num">4</td><td class="num">+0,790</td><td>Cae: dentro de una hora el perfil ya cambió</td></tr>
+          <tr><td>1 día</td><td class="num">96</td><td class="num">+0,890</td><td>Repunta por el ciclo diario</td></tr>
+          <tr><td>1 semana</td><td class="num">672</td><td class="num">+0,943</td><td><b>El lag más informativo de todos</b></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="margin-top:14px">Lectura práctica: los lags que valen son <code>t−1</code>, <code>t−96</code> y <code>t−672</code>,
+    más las variables de calendario (slot del día, día de semana, indicador de fin de semana).
+    El lag de 1 hora es el menos útil de los cuatro.</p>
+  </section>
+
+  <!-- ============================= 05 ============================= -->
+  <section id="contexto">
+    <span class="snum">05</span>
+    <h2>Contexto: menos de lo que parece, pero no cero</h2>
+    <p class="lede">Aquí es donde un EDA descuidado se equivoca. Las dos series continuas casi nunca valen
+    exactamente cero, y la correlación cruda con la demanda está contaminada por la hora del día.</p>
+
+    <h3>El umbral importa</h3>
+    <p>Contar <code>rain_mm &gt; 0</code> da 99,9 % de los periodos "con lluvia", lo cual no significa nada:
+    <code>rain_mm</code> es una serie continua que solo toca el cero exacto en 5 filas, todas de madrugada.
+    Lo mismo con <code>event_intensity</code>, que tiene cola de valores diminutos.</p>
+
+    <div class="scroller">
+      <table>
+        <caption>Prevalencia según umbral · % de los 4.320 periodos</caption>
+        <thead><tr><th>Variable</th><th>= 0 exacto</th><th>≥ 0,01</th><th>≥ 0,1</th><th>≥ 0,5</th><th>≥ 1,0</th></tr></thead>
+        <tbody>
+          <tr><td><code>rain_mm</code></td><td class="num">0,1 %</td><td class="num">70,4 %</td><td class="num">42,7 %</td><td class="num">15,6 %</td><td class="num">6,6 %</td></tr>
+          <tr><td><code>event_intensity</code></td><td class="num">10,5 %</td><td class="num">7,8 %</td><td class="num">5,5 %</td><td class="num">3,0 %</td><td class="num">0,1 %</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>La correlación cruda miente</h3>
+    <p>Para aislar el clima del ciclo diario, se divide cada observación por su perfil esperado
+    (estación × slot × tipo de día). Ese residuo vale 1,00 cuando el periodo se comporta como de costumbre.
+    La diferencia entre las dos columnas es el efecto de confusión:</p>
+
+    <div class="scroller">
+      <table>
+        <caption>Correlación de Pearson con la demanda</caption>
+        <thead><tr><th>Variable</th><th>Cruda</th><th>Sobre el residuo</th><th>Veredicto</th></tr></thead>
+        <tbody>
+          <tr><td><code>temperature_c</code></td><td class="num">+0,343</td><td class="num">−0,001</td><td><span class="tag">espuria</span> hace calor a las 15 h, que también es hora punta</td></tr>
+          <tr><td><code>temperature_forecast</code></td><td class="num">+0,339</td><td class="num">+0,002</td><td><span class="tag">espuria</span> mismo mecanismo</td></tr>
+          <tr><td><code>rain_mm</code></td><td class="num">−0,017</td><td class="num">−0,331</td><td><span class="tag">real</span> oculta por el ciclo diario</td></tr>
+          <tr><td><code>rain_forecast</code></td><td class="num">−0,013</td><td class="num">−0,264</td><td><span class="tag">real</span> y es la versión usable</td></tr>
+          <tr><td><code>event_intensity</code></td><td class="num">+0,145</td><td class="num">+0,287</td><td><span class="tag">real</span> se refuerza al limpiar</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <figure>
+      <figcaption>Efecto sobre la demanda esperada · 1,00 = el periodo se comporta como de costumbre</figcaption>
+      <div class="chart"><div id="c-ctx"></div><div class="tip" id="tip-ctx"></div></div>
+    </figure>
+
+    <h3>Calidad del pronóstico</h3>
+    <p>Durante la operación solo tendrás <code>rain_forecast</code> y <code>temperature_forecast</code>
+    para el futuro; los valores realizados llegan después. Conviene saber cuánto se equivocan:</p>
+    <div class="scroller">
+      <table>
+        <caption>Pronóstico frente a valor realizado</caption>
+        <thead><tr><th>Variable</th><th>Sesgo medio</th><th>MAE</th><th>Correlación</th><th>Lectura</th></tr></thead>
+        <tbody>
+          <tr><td>Lluvia (mm)</td><td class="num">+0,121</td><td class="num">0,238</td><td class="num">+0,823</td><td>Sobreestima la lluvia de forma sistemática</td></tr>
+          <tr><td>Temperatura (°C)</td><td class="num">−0,001</td><td class="num">0,634</td><td class="num">+0,982</td><td>Prácticamente insesgado y muy preciso</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="margin-top:14px">Como la temperatura no aporta señal real, su precisión da igual.
+    La lluvia sí aporta, y su pronóstico está sesgado al alza: si usas <code>rain_forecast</code> como feature,
+    el modelo aprende sobre una variable con +0,121 mm de sesgo, no sobre la lluvia real.</p>
+  </section>
+
+  <!-- ============================= 06 ============================= -->
+  <section id="baselines">
+    <span class="snum">06</span>
+    <h2>La barra a superar: 88,1</h2>
+    <p class="lede">Cuatro baselines evaluados con la métrica oficial sobre los últimos 7 días
+    (8.064 filas), entrenando solo con los 38 anteriores.</p>
+
+    <figure>
+      <figcaption>Accuracy = 100 × (1 − WAPE), promediada por estación · marca = peor y mejor estación</figcaption>
+      <div class="chart"><div id="c-base"></div><div class="tip" id="tip-base"></div></div>
+    </figure>
+
+    <div class="note">
+      <span class="hd">Por qué la media móvil de 24 h se hunde a 37,9</span>
+      <p>Promediar las últimas 24 horas aplana exactamente lo que hay que predecir: el ciclo intradiario de 5,1×.
+      Sirve como control negativo — confirma que la forma del día, y no el nivel, es el problema.
+      El perfil por slot, que es un modelo sin aprendizaje y de tres líneas de pandas, ya llega a 88,1.</p>
+    </div>
+    <p style="margin-top:16px">Ese 88,1 es el número honesto a batir. Un modelo de gradient boosting que quede
+    en 87 no está funcionando, por más features que tenga. Y el rango entre la peor y la mejor estación
+    del perfil es estrecho (86,1–89,4), así que las ganancias van a venir de todas las estaciones a la vez,
+    no de arreglar una sola.</p>
+  </section>
+
+  <!-- ============================= 07 ============================= -->
+  <section id="drift">
+    <span class="snum">07</span>
+    <h2>El histórico es estable — todavía</h2>
+    <p class="lede">Comparando la semana 6 con la semana 1, ninguna estación se mueve más de 5,5 %
+    y el pico de la tarde se mantiene a las 17 h en 6 de las 7 semanas.</p>
+
+    <figure>
+      <figcaption>Variación de la demanda media · semana 6 frente a semana 1 (%)</figcaption>
+      <div class="chart"><div id="c-drift"></div><div class="tip" id="tip-drift"></div></div>
+    </figure>
+
+    <p style="margin-top:18px">No hay drift apreciable en el corte estático, y era de esperarse:
+    el reto dice explícitamente que los patrones cambiarán <em>durante la competencia</em>.
+    El valor de esta sección no es el hallazgo, es la <b>línea base</b>: estos ±5 % son el ruido normal
+    del sistema. Cuando el monitor de producción vea una estación moviéndose 12 % semana a semana,
+    ya se sabrá que eso no es ruido.</p>
+  </section>
+
+  <!-- ============================= 08 ============================= -->
+  <section id="pipeline">
+    <span class="snum">08</span>
+    <h2>Qué implica para el pipeline</h2>
+    <div class="take">
+      <article><h4>Features mínimas</h4><p>Lags <code>t−1</code>, <code>t−96</code>, <code>t−672</code>;
+      slot del día (0–95), día de semana, indicador de fin de semana; <code>rain_forecast</code>.
+      Descartar temperatura: su señal es cero una vez controlada la hora.</p></article>
+
+      <article><h4>Validación</h4><p>Partición temporal, nunca aleatoria. El corte natural es
+      38 días de entrenamiento y 7 de validación, que es el que usan estas cifras.</p></article>
+
+      <article><h4>Umbral de alerta</h4><p>±5 % semana a semana por estación es el ruido de base.
+      Un monitor que dispare por debajo de eso va a generar reentrenamientos inútiles.</p></article>
+
+      <article><h4>Contrato de ingesta</h4><p>Validar en cada corrida lo que hoy pasa limpio:
+      rejilla de 15 min sin huecos, 12 estaciones presentes, <code>demand ≥ 0</code>, join 1:1 con contexto.
+      Cuando algo de esto falle en producción, será una señal, no un accidente.</p></article>
+
+      <article><h4>Cuidado con el tipo</h4><p><code>station_id</code> como string en cada lectura,
+      cada escritura y cada submission. Es el error más silencioso del dataset.</p></article>
+
+      <article><h4>Control negativo</h4><p>Guardar el perfil por slot como baseline permanente.
+      Si el modelo entrenado cae por debajo de 88,1 en producción, el perfil es el plan de contingencia.</p></article>
+    </div>
+  </section>
+
+  <footer>
+    <p>Generado con <code>eda/eda_pulso.py</code> sobre <code>pulso-transmi-starter-v1</code>
+    (SHA-256 verificado contra <code>/v1/meta</code>). Todas las cifras de esta página salen de
+    <code>eda/eda_summary.json</code>. La demanda, el clima y los eventos son sintéticos;
+    los nombres y coordenadas de estación provienen de datos oficiales de TransMilenio.</p>
+  </footer>
+</div>
+
+<script>
+const D = {"slot": [157.56, 153.43, 148.35, 144.89, 142.54, 139.82, 138.75, 137.1, 137.7, 137.22, 137.02, 139.4, 142.34, 143.93, 150.25, 158.9, 174.41, 196.44, 223.17, 264.22, 306.55, 359.06, 418.35, 485.65, 551.1, 597.46, 645.8, 679.99, 692.94, 694.15, 672.46, 650.01, 615.86, 562.82, 514.21, 461.22, 418.78, 377.61, 338.59, 311.12, 286.37, 271.85, 260.24, 254.31, 248.34, 253.27, 249.36, 250.98, 258.72, 254.91, 259.97, 259.47, 260.31, 260.51, 257.43, 256.84, 257.07, 266.23, 271.02, 286.63, 306.07, 331.88, 368.81, 413.7, 464.31, 509.96, 567.91, 616.63, 655.8, 697.17, 720.89, 730.46, 727.17, 714.43, 676.01, 641.95, 597.79, 557.03, 514.75, 468.48, 431.66, 401.25, 361.84, 337.36, 312.8, 290.4, 271.69, 248.49, 234.81, 219.77, 205.96, 195.18, 186.57, 175.87, 165.36, 161.01], "serie_diaria": {"2026-07-26": 332887.0, "2026-07-27": 424547.0, "2026-07-28": 432982.0, "2026-07-29": 438948.0, "2026-07-30": 438426.0, "2026-07-31": 434337.0, "2026-08-01": 337078.0, "2026-08-02": 343977.0, "2026-08-03": 468376.0, "2026-08-04": 433067.0, "2026-08-05": 424000.0, "2026-08-06": 446458.0, "2026-08-07": 422397.0, "2026-08-08": 339528.0, "2026-08-09": 353644.0, "2026-08-10": 462856.0, "2026-08-11": 441535.0, "2026-08-12": 429688.0, "2026-08-13": 435996.0, "2026-08-14": 420314.0, "2026-08-15": 347427.0, "2026-08-16": 341836.0, "2026-08-17": 435266.0, "2026-08-18": 448663.0, "2026-08-19": 431100.0, "2026-08-20": 441023.0, "2026-08-21": 429600.0, "2026-08-22": 340778.0, "2026-08-23": 348828.0, "2026-08-24": 423147.0, "2026-08-25": 440316.0, "2026-08-26": 467339.0, "2026-08-27": 427338.0, "2026-08-28": 426214.0, "2026-08-29": 339044.0, "2026-08-30": 344065.0, "2026-08-31": 422911.0, "2026-09-01": 439066.0, "2026-09-02": 448596.0, "2026-09-03": 440092.0, "2026-09-04": 458321.0, "2026-09-05": 342468.0, "2026-09-06": 344840.0, "2026-09-07": 441909.0, "2026-09-08": 450918.0}, "stations": [{"station_id": "07111", "station_name": "Ricaurte - NQS", "corridor": "NQS", "media": 683.72, "mediana": 452.0, "p05": 261.0, "p95": 1627.05, "cv": 0.672, "maximo": 2284, "minimo": 159, "share_pct": 15.98}, {"station_id": "05100", "station_name": "Banderas", "corridor": "Américas", "media": 591.06, "mediana": 392.0, "p05": 226.0, "p95": 1369.25, "cv": 0.662, "maximo": 2065, "minimo": 159, "share_pct": 13.82}, {"station_id": "06000", "station_name": "Portal El Dorado – C.C. NUESTRO BOGOTÁ", "corridor": "Calle 26", "media": 510.94, "mediana": 340.5, "p05": 191.0, "p95": 1205.0, "cv": 0.671, "maximo": 1789, "minimo": 127, "share_pct": 11.94}, {"station_id": "05000", "station_name": "Portal Américas", "corridor": "Américas", "media": 342.06, "mediana": 201.0, "p05": 103.0, "p95": 974.1, "cv": 0.844, "maximo": 1944, "minimo": 59, "share_pct": 8.0}, {"station_id": "10009", "station_name": "Museo Nacional", "corridor": "Carrera 7-10", "media": 337.92, "mediana": 266.0, "p05": 80.0, "p95": 910.2, "cv": 0.801, "maximo": 1434, "minimo": 50, "share_pct": 7.9}, {"station_id": "02300", "station_name": "Calle 100 - Marketmedios", "corridor": "Autonorte", "media": 293.97, "mediana": 158.0, "p05": 55.0, "p95": 909.05, "cv": 0.95, "maximo": 1472, "minimo": 29, "share_pct": 6.87}, {"station_id": "07107", "station_name": "Universidad Nacional", "corridor": "NQS", "media": 281.03, "mediana": 248.0, "p05": 44.0, "p95": 662.05, "cv": 0.707, "maximo": 982, "minimo": 17, "share_pct": 6.57}, {"station_id": "07105", "station_name": "Movistar Arena", "corridor": "NQS", "media": 272.59, "mediana": 213.5, "p05": 64.0, "p95": 729.0, "cv": 0.798, "maximo": 1313, "minimo": 42, "share_pct": 6.37}, {"station_id": "03000", "station_name": "Portal Suba", "corridor": "Suba", "media": 258.43, "mediana": 153.0, "p05": 78.0, "p95": 754.1, "cv": 0.839, "maximo": 1252, "minimo": 48, "share_pct": 6.04}, {"station_id": "09122", "station_name": "Calle 72", "corridor": "Caracas", "media": 249.8, "mediana": 134.0, "p05": 46.0, "p95": 768.05, "cv": 0.938, "maximo": 1249, "minimo": 22, "share_pct": 5.84}, {"station_id": "06111", "station_name": "Universidades – CityU", "corridor": "Calle 26", "media": 238.89, "mediana": 207.0, "p05": 36.0, "p95": 569.05, "cv": 0.711, "maximo": 835, "minimo": 14, "share_pct": 5.58}, {"station_id": "09000", "station_name": "Portal Usme", "corridor": "Caracas", "media": 217.87, "mediana": 128.0, "p05": 64.0, "p95": 629.05, "cv": 0.844, "maximo": 1071, "minimo": 33, "share_pct": 5.09}], "baselines": {"Naive d-1 (mismo momento de ayer)": {"accuracy_promedio": 77.89, "peor_estacion": 69.39, "mejor_estacion": 83.1}, "Naive s-1 (misma hora, semana pasada)": {"accuracy_promedio": 83.11, "peor_estacion": 79.15, "mejor_estacion": 85.57}, "Media movil 24h": {"accuracy_promedio": 37.88, "peor_estacion": 26.17, "mejor_estacion": 44.79}, "Perfil (estacion x slot x tipo de dia)": {"accuracy_promedio": 88.11, "peor_estacion": 86.07, "mejor_estacion": 89.4}}, "efectos": {"lluvia fuerte (>=1mm)": {"n": 286, "residuo_medio": 0.9397}, "lluvia moderada (>=0.5mm)": {"n": 673, "residuo_medio": 0.9596}, "seco (<0.01mm)": {"n": 1277, "residuo_medio": 1.0157}, "evento fuerte (>=0.5)": {"n": 129, "residuo_medio": 1.0928}, "evento leve (>=0.1)": {"n": 239, "residuo_medio": 1.0621}, "sin evento (<0.01)": {"n": 3985, "residuo_medio": 0.9961}}, "drift": {"05000": -0.3, "09122": -0.1, "06000": 0.1, "03000": 0.4, "07111": 1.9, "10009": 2.1, "06111": 2.5, "02300": 2.8, "05100": 2.9, "09000": 2.9, "07107": 4.4, "07105": 5.5}};
+
+const NS = "http://www.w3.org/2000/svg";
+const el = (n, a) => { const e = document.createElementNS(NS, n); for (const k in a) e.setAttribute(k, a[k]); return e; };
+const fmt = (v, d = 0) => v.toLocaleString("es-CO", { minimumFractionDigits: d, maximumFractionDigits: d });
+
+function tipFor(host, tipEl) {
+  return {
+    show(x, y, html) { tipEl.innerHTML = html; tipEl.style.left = x + "px"; tipEl.style.top = y + "px"; tipEl.style.opacity = 1; },
+    hide() { tipEl.style.opacity = 0; }
+  };
+}
+
+/* ---------- 03 · barras horizontales por estación ---------- */
+(function () {
+  const host = document.getElementById("c-est"), tip = tipFor(host, document.getElementById("tip-est"));
+  const rows = D.stations, W = 720, rowH = 26, padL = 168, padR = 46, padT = 6;
+  const H = padT + rows.length * rowH + 22;
+  const max = Math.max(...rows.map(r => r.p95));
+  const x = v => padL + (v / max) * (W - padL - padR);
+  const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Demanda media por estación" });
+
+  [0, 400, 800, 1200, 1600].forEach(v => {
+    svg.appendChild(el("line", { x1: x(v), x2: x(v), y1: padT, y2: padT + rows.length * rowH, stroke: "var(--grid)", "stroke-width": 1 }));
+    const t = el("text", { x: x(v), y: H - 6, "text-anchor": "middle", fill: "var(--ink-3)", "font-size": 10, "font-family": "var(--mono)" });
+    t.textContent = fmt(v); svg.appendChild(t);
+  });
+
+  rows.forEach((r, i) => {
+    const y = padT + i * rowH, bh = 13, by = y + (rowH - bh) / 2 - 2;
+    const lbl = el("text", { x: padL - 10, y: by + 11, "text-anchor": "end", fill: "var(--ink)", "font-size": 12, "font-family": "var(--body)" });
+    lbl.textContent = r.station_name.length > 24 ? r.station_name.slice(0, 23) + "…" : r.station_name;
+    svg.appendChild(lbl);
+
+    svg.appendChild(el("rect", { x: x(0), y: by, width: Math.max(2, x(r.media) - x(0)), height: bh, rx: 3, fill: "var(--accent)" }));
+    svg.appendChild(el("line", { x1: x(r.p05), x2: x(r.p95), y1: by + bh / 2, y2: by + bh / 2, stroke: "var(--ink-3)", "stroke-width": 1.5 }));
+    [r.p05, r.p95].forEach(v => svg.appendChild(el("line", { x1: x(v), x2: x(v), y1: by + 1, y2: by + bh - 1, stroke: "var(--ink-3)", "stroke-width": 1.5 })));
+
+    const val = el("text", { x: x(r.p95) + 7, y: by + 11, fill: "var(--ink-2)", "font-size": 11, "font-family": "var(--mono)" });
+    val.textContent = fmt(r.media); svg.appendChild(val);
+
+    const hit = el("rect", { x: 0, y: y, width: W, height: rowH, fill: "transparent", style: "cursor:crosshair" });
+    hit.addEventListener("mousemove", e => {
+      const b = host.getBoundingClientRect();
+      tip.show(e.clientX - b.left, e.clientY - b.top,
+        `<b>${r.station_name}</b> · ${r.station_id}<br>media ${fmt(r.media)} · mediana ${fmt(r.mediana)}<br>p05–p95 ${fmt(r.p05)}–${fmt(r.p95)} · CV ${r.cv}`);
+    });
+    hit.addEventListener("mouseleave", tip.hide);
+    svg.appendChild(hit);
+  });
+  host.appendChild(svg);
+})();
+
+/* ---------- 04 · perfil intradiario 96 slots ---------- */
+(function () {
+  const host = document.getElementById("c-slot"), tip = tipFor(host, document.getElementById("tip-slot"));
+  const v = D.slot, W = 720, H = 250, padL = 46, padR = 14, padT = 14, padB = 26;
+  const max = 760;
+  const x = i => padL + (i / (v.length - 1)) * (W - padL - padR);
+  const y = d => padT + (1 - d / max) * (H - padT - padB);
+  const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Perfil intradiario de demanda" });
+
+  [0, 200, 400, 600].forEach(g => {
+    svg.appendChild(el("line", { x1: padL, x2: W - padR, y1: y(g), y2: y(g), stroke: "var(--grid)", "stroke-width": 1 }));
+    const t = el("text", { x: padL - 8, y: y(g) + 4, "text-anchor": "end", fill: "var(--ink-3)", "font-size": 10, "font-family": "var(--mono)" });
+    t.textContent = fmt(g); svg.appendChild(t);
+  });
+  [0, 6, 12, 18, 23].forEach(h => {
+    const t = el("text", { x: x(h * 4), y: H - 8, "text-anchor": "middle", fill: "var(--ink-3)", "font-size": 10, "font-family": "var(--mono)" });
+    t.textContent = String(h).padStart(2, "0") + "h"; svg.appendChild(t);
+  });
+
+  const area = v.map((d, i) => `${x(i)},${y(d)}`).join(" ");
+  svg.appendChild(el("polygon", { points: `${padL},${y(0)} ${area} ${W - padR},${y(0)}`, fill: "var(--accent)", opacity: .1 }));
+  svg.appendChild(el("polyline", { points: area, fill: "none", stroke: "var(--accent)", "stroke-width": 2, "stroke-linejoin": "round" }));
+
+  [[28, "pico mañana"], [68, "pico tarde"]].forEach(([i, txt]) => {
+    let best = i; for (let k = i - 6; k <= i + 6; k++) if (v[k] > v[best]) best = k;
+    svg.appendChild(el("circle", { cx: x(best), cy: y(v[best]), r: 4, fill: "var(--accent)", stroke: "var(--surface)", "stroke-width": 2 }));
+    const t = el("text", { x: x(best), y: y(v[best]) - 12, "text-anchor": "middle", fill: "var(--ink)", "font-size": 11, "font-family": "var(--body)", "font-weight": 600 });
+    t.textContent = `${txt} · ${fmt(v[best])}`; svg.appendChild(t);
+  });
+
+  const cross = el("line", { x1: 0, x2: 0, y1: padT, y2: y(0), stroke: "var(--ink-3)", "stroke-width": 1, opacity: 0 });
+  svg.appendChild(cross);
+  const hit = el("rect", { x: padL, y: padT, width: W - padL - padR, height: y(0) - padT, fill: "transparent", style: "cursor:crosshair" });
+  hit.addEventListener("mousemove", e => {
+    const b = host.getBoundingClientRect(), sc = W / b.width;
+    const i = Math.max(0, Math.min(95, Math.round(((e.clientX - b.left) * sc - padL) / (W - padL - padR) * 95)));
+    cross.setAttribute("x1", x(i)); cross.setAttribute("x2", x(i)); cross.setAttribute("opacity", .5);
+    const hh = String(Math.floor(i / 4)).padStart(2, "0"), mm = String((i % 4) * 15).padStart(2, "0");
+    tip.show(x(i) / sc, y(v[i]) / sc, `<b>${hh}:${mm}</b> · slot ${i}<br>demanda media ${fmt(v[i], 1)}`);
+  });
+  hit.addEventListener("mouseleave", () => { cross.setAttribute("opacity", 0); tip.hide(); });
+  svg.appendChild(hit);
+  host.appendChild(svg);
+})();
+
+/* ---------- 04 · serie diaria ---------- */
+(function () {
+  const host = document.getElementById("c-dia"), tip = tipFor(host, document.getElementById("tip-dia"));
+  const keys = Object.keys(D.serie_diaria), vals = keys.map(k => D.serie_diaria[k]);
+  const W = 720, H = 210, padL = 52, padR = 14, padT = 14, padB = 26, max = 500000;
+  const x = i => padL + (i / (vals.length - 1)) * (W - padL - padR);
+  const y = d => padT + (1 - d / max) * (H - padT - padB);
+  const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Demanda total diaria" });
+
+  [0, 250000, 500000].forEach(g => {
+    svg.appendChild(el("line", { x1: padL, x2: W - padR, y1: y(g), y2: y(g), stroke: "var(--grid)", "stroke-width": 1 }));
+    const t = el("text", { x: padL - 8, y: y(g) + 4, "text-anchor": "end", fill: "var(--ink-3)", "font-size": 10, "font-family": "var(--mono)" });
+    t.textContent = g === 0 ? "0" : fmt(g / 1000) + "k"; svg.appendChild(t);
+  });
+
+  keys.forEach((k, i) => {
+    const dow = new Date(k + "T12:00:00").getDay();
+    if (dow === 0 || dow === 6) svg.appendChild(el("rect", {
+      x: x(i) - (W - padL - padR) / (vals.length - 1) / 2, y: padT,
+      width: (W - padL - padR) / (vals.length - 1), height: y(0) - padT,
+      fill: "var(--ink-3)", opacity: .08
+    }));
+  });
+
+  svg.appendChild(el("polyline", { points: vals.map((d, i) => `${x(i)},${y(d)}`).join(" "), fill: "none", stroke: "var(--accent)", "stroke-width": 2, "stroke-linejoin": "round" }));
+
+  [0, 14, 30, 44].forEach(i => {
+    const t = el("text", { x: x(i), y: H - 8, "text-anchor": i === 0 ? "start" : (i === 44 ? "end" : "middle"), fill: "var(--ink-3)", "font-size": 10, "font-family": "var(--mono)" });
+    t.textContent = keys[i].slice(5); svg.appendChild(t);
+  });
+
+  const DOW = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"];
+  const hit = el("rect", { x: padL, y: padT, width: W - padL - padR, height: y(0) - padT, fill: "transparent", style: "cursor:crosshair" });
+  hit.addEventListener("mousemove", e => {
+    const b = host.getBoundingClientRect(), sc = W / b.width;
+    const i = Math.max(0, Math.min(44, Math.round(((e.clientX - b.left) * sc - padL) / (W - padL - padR) * 44)));
+    tip.show(x(i) / sc, y(vals[i]) / sc, `<b>${keys[i]}</b> · ${DOW[new Date(keys[i] + "T12:00:00").getDay()]}<br>${fmt(vals[i])} pasajeros`);
+  });
+  hit.addEventListener("mouseleave", tip.hide);
+  svg.appendChild(hit);
+  host.appendChild(svg);
+})();
+
+/* ---------- 05 · efecto del contexto (divergente en 1,00) ---------- */
+(function () {
+  const host = document.getElementById("c-ctx"), tip = tipFor(host, document.getElementById("tip-ctx"));
+  const rows = Object.entries(D.efectos).map(([k, o]) => ({ k, ...o }));
+  const W = 720, rowH = 30, padL = 190, padR = 20, padT = 20;
+  const H = padT + rows.length * rowH + 22;
+  const lo = 0.90, hi = 1.10;
+  const x = v => padL + ((v - lo) / (hi - lo)) * (W - padL - padR);
+  const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Efecto del contexto sobre la demanda esperada" });
+
+  [0.92, 0.96, 1.00, 1.04, 1.08].forEach(g => {
+    svg.appendChild(el("line", { x1: x(g), x2: x(g), y1: padT - 6, y2: padT + rows.length * rowH, stroke: g === 1 ? "var(--rule-strong)" : "var(--grid)", "stroke-width": g === 1 ? 1.5 : 1 }));
+    const t = el("text", { x: x(g), y: H - 6, "text-anchor": "middle", fill: "var(--ink-3)", "font-size": 10, "font-family": "var(--mono)" });
+    t.textContent = g.toFixed(2).replace(".", ","); svg.appendChild(t);
+  });
+
+  rows.forEach((r, i) => {
+    const y = padT + i * rowH, bh = 14, by = y + (rowH - bh) / 2;
+    const up = r.residuo_medio >= 1;
+    const lbl = el("text", { x: padL - 12, y: by + 11, "text-anchor": "end", fill: "var(--ink)", "font-size": 12, "font-family": "var(--body)" });
+    lbl.textContent = r.k; svg.appendChild(lbl);
+    const x0 = x(1), x1 = x(r.residuo_medio);
+    svg.appendChild(el("rect", { x: Math.min(x0, x1), y: by, width: Math.max(2, Math.abs(x1 - x0)), height: bh, rx: 3, fill: up ? "var(--accent)" : "var(--crit)" }));
+    const val = el("text", { x: up ? x1 + 8 : x1 - 8, y: by + 11, "text-anchor": up ? "start" : "end", fill: "var(--ink-2)", "font-size": 11, "font-family": "var(--mono)" });
+    val.textContent = (up ? "+" : "") + fmt((r.residuo_medio - 1) * 100, 1) + " %"; svg.appendChild(val);
+
+    const hit = el("rect", { x: 0, y: y, width: W, height: rowH, fill: "transparent", style: "cursor:crosshair" });
+    hit.addEventListener("mousemove", e => {
+      const b = host.getBoundingClientRect();
+      tip.show(e.clientX - b.left, e.clientY - b.top, `<b>${r.k}</b><br>residuo ${fmt(r.residuo_medio, 3)} · n = ${fmt(r.n)} periodos`);
+    });
+    hit.addEventListener("mouseleave", tip.hide);
+    svg.appendChild(hit);
+  });
+  host.appendChild(svg);
+})();
+
+/* ---------- 06 · baselines ---------- */
+(function () {
+  const host = document.getElementById("c-base"), tip = tipFor(host, document.getElementById("tip-base"));
+  const rows = Object.entries(D.baselines).map(([k, o]) => ({ k, ...o })).sort((a, b) => b.accuracy_promedio - a.accuracy_promedio);
+  const W = 720, rowH = 40, padL = 258, padR = 46, padT = 8;
+  const H = padT + rows.length * rowH + 22;
+  const x = v => padL + (v / 100) * (W - padL - padR);
+  const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Accuracy de los baselines" });
+
+  [0, 25, 50, 75, 100].forEach(g => {
+    svg.appendChild(el("line", { x1: x(g), x2: x(g), y1: padT, y2: padT + rows.length * rowH, stroke: "var(--grid)", "stroke-width": 1 }));
+    const t = el("text", { x: x(g), y: H - 6, "text-anchor": "middle", fill: "var(--ink-3)", "font-size": 10, "font-family": "var(--mono)" });
+    t.textContent = g; svg.appendChild(t);
+  });
+
+  rows.forEach((r, i) => {
+    const y = padT + i * rowH, bh = 16, by = y + (rowH - bh) / 2 - 3;
+    const lbl = el("text", { x: padL - 12, y: by + 12, "text-anchor": "end", fill: "var(--ink)", "font-size": 12.5, "font-family": "var(--body)" });
+    lbl.textContent = r.k; svg.appendChild(lbl);
+    svg.appendChild(el("rect", { x: x(0), y: by, width: Math.max(2, x(r.accuracy_promedio) - x(0)), height: bh, rx: 3, fill: i === 0 ? "var(--accent)" : "var(--ink-3)" }));
+    svg.appendChild(el("line", { x1: x(r.peor_estacion), x2: x(r.mejor_estacion), y1: by + bh + 7, y2: by + bh + 7, stroke: "var(--ink-3)", "stroke-width": 1.25 }));
+    [r.peor_estacion, r.mejor_estacion].forEach(v => svg.appendChild(el("line", { x1: x(v), x2: x(v), y1: by + bh + 3.5, y2: by + bh + 10.5, stroke: "var(--ink-3)", "stroke-width": 1.25 })));
+    const val = el("text", { x: x(r.accuracy_promedio) + 8, y: by + 13, fill: "var(--ink)", "font-size": 13, "font-weight": 600, "font-family": "var(--mono)" });
+    val.textContent = fmt(r.accuracy_promedio, 1); svg.appendChild(val);
+
+    const hit = el("rect", { x: 0, y: y, width: W, height: rowH, fill: "transparent", style: "cursor:crosshair" });
+    hit.addEventListener("mousemove", e => {
+      const b = host.getBoundingClientRect();
+      tip.show(e.clientX - b.left, e.clientY - b.top, `<b>${r.k}</b><br>accuracy ${fmt(r.accuracy_promedio, 2)}<br>peor ${fmt(r.peor_estacion, 2)} · mejor ${fmt(r.mejor_estacion, 2)}`);
+    });
+    hit.addEventListener("mouseleave", tip.hide);
+    svg.appendChild(hit);
+  });
+  host.appendChild(svg);
+})();
+
+/* ---------- 07 · drift por estación ---------- */
+(function () {
+  const host = document.getElementById("c-drift"), tip = tipFor(host, document.getElementById("tip-drift"));
+  const byId = Object.fromEntries(D.stations.map(s => [s.station_id, s]));
+  const rows = Object.entries(D.drift).map(([id, v]) => ({ id, v, name: byId[id] ? byId[id].station_name : id }))
+    .sort((a, b) => b.v - a.v);
+  const W = 720, rowH = 26, padL = 172, padR = 46, padT = 16;
+  const H = padT + rows.length * rowH + 22;
+  const lo = -8, hi = 8;
+  const x = v => padL + ((v - lo) / (hi - lo)) * (W - padL - padR);
+  const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Variación semana 6 frente a semana 1" });
+
+  [-5, 0, 5].forEach(g => {
+    const strong = g === 0;
+    svg.appendChild(el("line", { x1: x(g), x2: x(g), y1: padT - 8, y2: padT + rows.length * rowH,
+      stroke: strong ? "var(--rule-strong)" : "var(--grid)", "stroke-width": strong ? 1.5 : 1,
+      "stroke-dasharray": strong ? "" : "3 3" }));
+    const t = el("text", { x: x(g), y: H - 6, "text-anchor": "middle", fill: "var(--ink-3)", "font-size": 10, "font-family": "var(--mono)" });
+    t.textContent = (g > 0 ? "+" : "") + g + " %"; svg.appendChild(t);
+  });
+  const band = el("text", { x: x(0), y: padT - 12, "text-anchor": "middle", fill: "var(--ink-3)", "font-size": 10, "font-family": "var(--mono)" });
+  band.textContent = "banda de ruido ±5 %"; svg.appendChild(band);
+
+  rows.forEach((r, i) => {
+    const y = padT + i * rowH, bh = 13, by = y + (rowH - bh) / 2 - 1;
+    const up = r.v >= 0;
+    const lbl = el("text", { x: padL - 12, y: by + 11, "text-anchor": "end", fill: "var(--ink)", "font-size": 12, "font-family": "var(--body)" });
+    lbl.textContent = r.name.length > 22 ? r.name.slice(0, 21) + "…" : r.name; svg.appendChild(lbl);
+    const x0 = x(0), x1 = x(r.v);
+    svg.appendChild(el("rect", { x: Math.min(x0, x1), y: by, width: Math.max(2, Math.abs(x1 - x0)), height: bh, rx: 3, fill: up ? "var(--accent)" : "var(--crit)" }));
+    const val = el("text", { x: up ? x1 + 8 : x1 - 8, y: by + 11, "text-anchor": up ? "start" : "end", fill: "var(--ink-2)", "font-size": 11, "font-family": "var(--mono)" });
+    val.textContent = (up ? "+" : "") + fmt(r.v, 1) + " %"; svg.appendChild(val);
+
+    const hit = el("rect", { x: 0, y: y, width: W, height: rowH, fill: "transparent", style: "cursor:crosshair" });
+    hit.addEventListener("mousemove", e => {
+      const b = host.getBoundingClientRect();
+      tip.show(e.clientX - b.left, e.clientY - b.top, `<b>${r.name}</b> · ${r.id}<br>semana 6 vs semana 1: ${(r.v > 0 ? "+" : "") + fmt(r.v, 1)} %`);
+    });
+    hit.addEventListener("mouseleave", tip.hide);
+    svg.appendChild(hit);
+  });
+  host.appendChild(svg);
+})();
+
+/* ---------- tabla de estaciones ---------- */
+(function () {
+  const tb = document.getElementById("tb-est");
+  D.stations.forEach(s => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td><code>${s.station_id}</code></td><td>${s.station_name}</td><td>${s.corridor}</td>` +
+      [s.media, s.mediana, s.p05, s.p95, s.maximo].map(v => `<td class="num">${fmt(v, v % 1 ? 1 : 0)}</td>`).join("") +
+      `<td class="num">${fmt(s.cv, 2)}</td><td class="num">${fmt(s.share_pct, 1)} %</td>`;
+    tb.appendChild(tr);
+  });
+})();
+</script>

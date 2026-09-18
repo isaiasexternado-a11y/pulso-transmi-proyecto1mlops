@@ -1,0 +1,15 @@
+# El SDK del profesor es un repositorio aparte, no se vendoriza aquí
+pulso-transmi-sdk/
+
+# Material académico del docente: no se redistribuye en un repo público
+docs/*.pdf
+
+# Entornos y artefactos
+.venv/
+__pycache__/
+*.py[cod]
+.env
+.env.local
+
+# Notas de trabajo sin contenido
+proyecto.txt

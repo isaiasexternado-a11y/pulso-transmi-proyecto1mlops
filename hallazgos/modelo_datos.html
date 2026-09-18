@@ -1,0 +1,635 @@
+<title>Modelo de datos Pulso TransMi</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Source+Sans+3:wght@400;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root{--ground:#f4f5f7;--surface:#fcfcfb;--surface-2:#eceef1;--ink:#14181d;--ink-2:#4e565f;--ink-3:#7c858f;
+    --rule:#dde1e6;--rule-strong:#c3cad2;--accent:#2a78d6;--accent-soft:#e4eefb;--good:#0ca30c;--warn:#fab219;--crit:#d03b3b;
+    --code-bg:#f1f3f5;
+    --display:"Barlow Semi Condensed","Arial Narrow",system-ui,sans-serif;
+    --body:"Source Sans 3",system-ui,-apple-system,sans-serif;
+    --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;}
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+    --ground:#121316;--surface:#1a1a19;--surface-2:#24262a;--ink:#f1f2f4;--ink-2:#b5bbc2;--ink-3:#868d95;
+    --rule:#2c2f34;--rule-strong:#3d4248;--accent:#3987e5;--accent-soft:#14243a;--crit:#e66767;--code-bg:#1f2125;}}
+  :root[data-theme="dark"]{--ground:#121316;--surface:#1a1a19;--surface-2:#24262a;--ink:#f1f2f4;--ink-2:#b5bbc2;
+    --ink-3:#868d95;--rule:#2c2f34;--rule-strong:#3d4248;--accent:#3987e5;--accent-soft:#14243a;--crit:#e66767;--code-bg:#1f2125;}
+
+  body{background:var(--ground);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.62;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:1000px;margin:0 auto;padding-inline:20px;padding-block:0 72px;}
+  header{padding-block:44px 26px;border-bottom:2px solid var(--ink);}
+  .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin:0 0 10px;}
+  h1{font-family:var(--display);font-weight:700;font-size:clamp(36px,6.5vw,58px);line-height:.99;letter-spacing:-.015em;margin:0 0 14px;text-wrap:balance;}
+  .standfirst{font-size:17px;color:var(--ink-2);max-width:64ch;margin:0;}
+  .facts{display:flex;flex-wrap:wrap;margin-top:28px;border:1px solid var(--rule);background:var(--surface);}
+  .fact{flex:1 1 130px;padding:13px 16px;border-right:1px solid var(--rule);}
+  .fact:last-child{border-right:0;}
+  .fact b{display:block;font-family:var(--display);font-weight:600;font-size:26px;line-height:1.1;}
+  .fact span{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);}
+
+  nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--ground);border-bottom:1px solid var(--rule);display:flex;gap:18px;overflow-x:auto;padding-block:11px;}
+  nav a{font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:var(--ink-3);text-decoration:none;white-space:nowrap;}
+  nav a:hover{color:var(--accent);}
+
+  section{padding-block:46px 8px;scroll-margin-top:60px;}
+  .snum{font-family:var(--mono);font-size:11px;color:var(--accent);letter-spacing:.1em;display:block;margin-bottom:6px;}
+  h2{font-family:var(--display);font-weight:600;font-size:clamp(26px,4vw,34px);line-height:1.08;margin:0 0 10px;letter-spacing:-.01em;text-wrap:balance;}
+  h3{font-family:var(--display);font-weight:600;font-size:20px;margin:32px 0 6px;}
+  p{max-width:68ch;} .lede{color:var(--ink-2);max-width:66ch;margin:0 0 6px;}
+
+  figure{margin:24px 0 0;border:1px solid var(--rule);background:var(--surface);padding:18px 16px 12px;}
+  figure svg{display:block;width:100%;height:auto;color:var(--ink);}
+  figcaption{font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:var(--ink-3);margin-top:14px;line-height:1.5;}
+  .bx{fill:var(--surface);stroke:var(--rule-strong);stroke-width:1.2;}
+  .bx-hub{fill:var(--accent-soft);stroke:var(--accent);stroke-width:1.6;}
+  .bx-dim{fill:var(--surface-2);stroke:var(--rule-strong);stroke-width:1.2;stroke-dasharray:4 3;}
+  .tx{font-family:var(--mono);font-size:11.5px;fill:var(--ink);}
+  .tx-s{font-family:var(--body);font-size:10.5px;fill:var(--ink-3);}
+  .tx-a{font-family:var(--mono);font-size:10px;fill:var(--accent);}
+  .ln{stroke:var(--rule-strong);stroke-width:1.3;fill:none;}
+  .ln-a{stroke:var(--accent);stroke-width:1.6;fill:none;}
+  .ln-d{stroke:var(--ink-3);stroke-width:1.3;fill:none;stroke-dasharray:4 3;}
+
+  .scroller{overflow-x:auto;margin-top:18px;border:1px solid var(--rule);background:var(--surface);}
+  table{border-collapse:collapse;width:100%;font-size:13.5px;}
+  caption{text-align:left;font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);padding:11px 14px;border-bottom:1px solid var(--rule);background:var(--surface-2);}
+  th{text-align:left;font-family:var(--mono);font-weight:500;font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3);padding:9px 14px;border-bottom:1px solid var(--rule-strong);white-space:nowrap;}
+  td{padding:8px 14px;border-bottom:1px solid var(--rule);vertical-align:top;}
+  tbody tr:last-child td{border-bottom:0;}
+  .num{text-align:right;font-variant-numeric:tabular-nums;font-family:var(--mono);font-size:12.5px;}
+  code{font-family:var(--mono);font-size:12.5px;background:var(--surface-2);padding:1px 5px;}
+  pre{overflow-x:auto;background:var(--code-bg);border:1px solid var(--rule);padding:14px 16px;margin:16px 0 0;font-size:12.5px;line-height:1.62;}
+  pre code{background:none;padding:0;font-size:12.5px;}
+  .cm{color:var(--ink-3);} .kw{color:var(--accent);font-weight:600;} .st{color:var(--crit);}
+
+  .note{border-left:3px solid var(--accent);background:var(--accent-soft);padding:14px 16px;margin:22px 0 0;}
+  .note p{margin:0;max-width:64ch;font-size:14px;}
+  .note .hd{font-family:var(--display);font-weight:600;font-size:16px;margin:0 0 4px;display:block;}
+  .warn{border-left-color:var(--crit);background:color-mix(in srgb,var(--crit) 9%,var(--surface));}
+
+  ol.steps{padding-left:0;list-style:none;counter-reset:s;margin:20px 0 0;}
+  ol.steps li{counter-increment:s;display:grid;grid-template-columns:30px 1fr;gap:14px;padding:11px 0;border-top:1px solid var(--rule);}
+  ol.steps li::before{content:counter(s);font-family:var(--mono);font-size:12px;color:var(--accent);padding-top:2px;}
+  ol.steps b{font-weight:600;}
+  ol.steps p{margin:2px 0 0;font-size:14px;color:var(--ink-2);}
+
+  footer{margin-top:56px;padding-top:18px;border-top:1px solid var(--rule);font-family:var(--mono);font-size:11.5px;color:var(--ink-3);}
+  a{color:var(--accent);} :focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+</style>
+
+<div class="wrap">
+<header>
+  <p class="eyebrow">Diseño de persistencia · reto MLOps Pulso TransMi</p>
+  <h1>Diez tablas<br>y un solo hilo</h1>
+  <p class="standfirst">GitHub Actions no recuerda nada entre ejecuciones. Toda la memoria del sistema
+  vive en la base de datos, así que el esquema no es un detalle de implementación: <b>es el entregable</b>.
+  Esta es la propuesta, tabla por tabla, con el porqué de cada decisión.</p>
+  <div class="facts">
+    <div class="fact"><b>10</b><span>tablas</span></div>
+    <div class="fact"><b>3</b><span>vistas</span></div>
+    <div class="fact"><b>15</b><span>claves foráneas</span></div>
+    <div class="fact"><b>1</b><span>hilo: run_id</span></div>
+    <div class="fact"><b>6/6</b><span>requisitos de trazabilidad</span></div>
+  </div>
+</header>
+
+<nav>
+  <a href="#principio">01 · El principio</a>
+  <a href="#tiempos">02 · Los cuatro tiempos</a>
+  <a href="#tablas">03 · Las diez tablas</a>
+  <a href="#relaciones">04 · Relaciones</a>
+  <a href="#flujo">05 · Flujo de una corrida</a>
+  <a href="#ddl">06 · DDL</a>
+  <a href="#decisiones">07 · Decisiones</a>
+  <a href="#arquitectura">08 · Arquitectura</a>
+</nav>
+
+<section id="principio">
+  <span class="snum">01</span>
+  <h2>El principio: todo cuelga de la corrida</h2>
+  <p class="lede">Hay una decisión que gobierna el resto del diseño. Cada fila que el pipeline produce
+  guarda el <code>run_id</code> de la ejecución que la produjo.</p>
+  <p>Suena burocrático hasta que un evaluador pregunta <i>«¿por qué el 14 de octubre el modelo predijo esto?»</i>.
+  Con <code>run_id</code> en todas partes, la respuesta es una consulta: qué commit corría, con qué cutoff,
+  qué señales de drift vio, qué decidió, con qué modelo predijo. Sin él, la respuesta es arqueología de logs.</p>
+
+  <figure>
+    <svg viewBox="0 0 1000 300" role="img" aria-label="Siete tablas cuelgan de pipeline_runs a través de la clave run_id">
+      <rect class="bx-hub" x="390" y="14" width="220" height="50" rx="3"/>
+      <text class="tx" x="500" y="36" text-anchor="middle" font-weight="600">pipeline_runs</text>
+      <text class="tx-s" x="500" y="52" text-anchor="middle">1 fila por ejecución de Actions</text>
+      <line class="ln-a" x1="500" y1="64" x2="500" y2="104"/>
+      <line class="ln-a" x1="21" y1="104" x2="979" y2="104"/>
+      <text class="tx-a" x="516" y="84">run_id  →  clave foránea en las siete</text>
+
+      <g>
+        <line class="ln-a" x1="80"  y1="104" x2="80"  y2="140"/>
+        <line class="ln-a" x1="220" y1="104" x2="220" y2="140"/>
+        <line class="ln-a" x1="360" y1="104" x2="360" y2="140"/>
+        <line class="ln-a" x1="500" y1="104" x2="500" y2="140"/>
+        <line class="ln-a" x1="640" y1="104" x2="640" y2="140"/>
+        <line class="ln-a" x1="780" y1="104" x2="780" y2="140"/>
+        <line class="ln-d" x1="920" y1="104" x2="920" y2="140"/>
+      </g>
+
+      <rect class="bx" x="21"  y="140" width="118" height="54" rx="3"/>
+      <text class="tx" x="80" y="163" text-anchor="middle">observations</text>
+      <text class="tx-s" x="80" y="180" text-anchor="middle">la verdad</text>
+
+      <rect class="bx" x="161" y="140" width="118" height="54" rx="3"/>
+      <text class="tx" x="220" y="163" text-anchor="middle">context</text>
+      <text class="tx-s" x="220" y="180" text-anchor="middle">clima, eventos</text>
+
+      <rect class="bx" x="301" y="140" width="118" height="54" rx="3"/>
+      <text class="tx" x="360" y="163" text-anchor="middle">run_events</text>
+      <text class="tx-s" x="360" y="180" text-anchor="middle">errores por etapa</text>
+
+      <rect class="bx" x="441" y="140" width="118" height="54" rx="3"/>
+      <text class="tx" x="500" y="163" text-anchor="middle">drift_signals</text>
+      <text class="tx-s" x="500" y="180" text-anchor="middle">monitoreo</text>
+
+      <rect class="bx" x="581" y="140" width="118" height="54" rx="3"/>
+      <text class="tx" x="640" y="160" text-anchor="middle">retrain_</text>
+      <text class="tx" x="640" y="174" text-anchor="middle">decisions</text>
+      <text class="tx-s" x="640" y="189" text-anchor="middle">1:1 con la corrida</text>
+
+      <rect class="bx" x="721" y="140" width="118" height="54" rx="3"/>
+      <text class="tx" x="780" y="163" text-anchor="middle">predictions</text>
+      <text class="tx-s" x="780" y="180" text-anchor="middle">4 horizontes</text>
+
+      <rect class="bx-dim" x="861" y="140" width="118" height="54" rx="3"/>
+      <text class="tx" x="920" y="163" text-anchor="middle">models</text>
+      <text class="tx-s" x="920" y="180" text-anchor="middle">solo si reentrena</text>
+
+      <line class="ln" x1="21" y1="232" x2="979" y2="232"/>
+      <text class="tx-s" x="21" y="252">Trazo continuo: la corrida escribe una fila o más, siempre.</text>
+      <text class="tx-s" x="21" y="270">Trazo discontinuo: la corrida escribe solo cuando la política decide reentrenar — por eso el historial de modelos es corto y legible.</text>
+    </svg>
+    <figcaption>Figura 1 · El bus de trazabilidad. Reconstruir el estado del sistema en cualquier
+    instante pasado es filtrar por <code>run_id</code>.</figcaption>
+  </figure>
+</section>
+
+<section id="tiempos">
+  <span class="snum">02</span>
+  <h2>Los cuatro tiempos (aquí es donde se pierde el reto)</h2>
+  <p class="lede">La confusión entre estos cuatro campos es la causa número uno de fuga de información
+  en un pipeline de series temporales. Valen la pena nombres distintos y explícitos.</p>
+
+  <figure>
+    <svg viewBox="0 0 1000 270" role="img" aria-label="Línea de tiempo que distingue cutoff_at, issued_at, los cuatro target_at y la llegada posterior de observed_at">
+      <rect x="40" y="96" width="400" height="34" fill="var(--accent)" opacity=".10"/>
+      <text class="tx-s" x="240" y="88" text-anchor="middle">lo que el modelo puede mirar</text>
+
+      <line class="ln" x1="40" y1="130" x2="960" y2="130"/>
+      <polygon points="960,130 950,126 950,134" fill="currentColor"/>
+      <text class="tx-s" x="940" y="150" text-anchor="end">tiempo</text>
+
+      <line x1="440" y1="60" x2="440" y2="176" stroke="var(--crit)" stroke-width="2"/>
+      <text class="tx" x="440" y="52" text-anchor="middle" fill="var(--crit)">cutoff_at</text>
+      <text class="tx-s" x="440" y="192" text-anchor="middle" fill="var(--crit)">frontera de fuga</text>
+      <text class="tx-s" x="440" y="207" text-anchor="middle">último dato real disponible</text>
+
+      <line class="ln-a" x1="492" y1="104" x2="492" y2="156"/>
+      <circle cx="492" cy="130" r="5" fill="var(--accent)"/>
+      <text class="tx-a" x="492" y="96" text-anchor="middle">issued_at</text>
+      <text class="tx-s" x="492" y="172" text-anchor="middle">corre el pipeline</text>
+
+      <g>
+        <circle cx="600" cy="130" r="5" fill="var(--surface)" stroke="var(--accent)" stroke-width="2"/>
+        <circle cx="690" cy="130" r="5" fill="var(--surface)" stroke="var(--accent)" stroke-width="2"/>
+        <circle cx="780" cy="130" r="5" fill="var(--surface)" stroke="var(--accent)" stroke-width="2"/>
+        <circle cx="870" cy="130" r="5" fill="var(--surface)" stroke="var(--accent)" stroke-width="2"/>
+        <text class="tx-s" x="600" y="118" text-anchor="middle">h+1</text>
+        <text class="tx-s" x="690" y="118" text-anchor="middle">h+2</text>
+        <text class="tx-s" x="780" y="118" text-anchor="middle">h+3</text>
+        <text class="tx-s" x="870" y="118" text-anchor="middle">h+4</text>
+        <text class="tx-a" x="735" y="96" text-anchor="middle">target_at · los 4 horizontes</text>
+      </g>
+
+      <path class="ln-d" d="M600 176 L600 152 M690 176 L690 152 M780 176 L780 152 M870 176 L870 152"/>
+      <text class="tx-s" x="735" y="196" text-anchor="middle">más tarde llega observed_at para esos mismos instantes</text>
+      <text class="tx-s" x="735" y="212" text-anchor="middle">→ ahí, y solo ahí, se puede calificar la predicción</text>
+
+      <line class="ln" x1="40" y1="242" x2="960" y2="242"/>
+      <text class="tx-s" x="40" y="262">ingested_at / created_at: cuándo la fila entró a la base. Nunca se usa como feature — es tiempo de transacción, no tiempo del mundo.</text>
+    </svg>
+    <figcaption>Figura 2 · Cuatro instantes distintos. Una feature construida con cualquier dato a la
+    derecha de <code>cutoff_at</code> infla la validación y se derrumba en producción.</figcaption>
+  </figure>
+
+  <div class="scroller"><table>
+    <caption>Los cuatro tiempos, y el quinto que no es un tiempo del mundo</caption>
+    <thead><tr><th>Campo</th><th>Significa</th><th>Dónde vive</th><th>¿Sirve como feature?</th></tr></thead>
+    <tbody>
+      <tr><td><code>observed_at</code></td><td>El instante real que la fila describe</td><td><code>observations</code>, <code>context</code></td><td>Sí — es el eje del problema</td></tr>
+      <tr><td><code>cutoff_at</code></td><td>Hasta dónde había datos cuando corrió el pipeline</td><td><code>pipeline_runs</code>, <code>models.train_end</code></td><td>No, pero define qué es legal mirar</td></tr>
+      <tr><td><code>issued_at</code></td><td>Cuándo se emitió la predicción</td><td><code>predictions</code></td><td>No</td></tr>
+      <tr><td><code>target_at</code></td><td>Para qué instante pronostica</td><td><code>predictions</code></td><td>Sí — su calendario (slot, día)</td></tr>
+      <tr><td><code>ingested_at</code></td><td>Cuándo la fila entró a la base</td><td>casi todas</td><td><b>Nunca</b></td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="note warn">
+    <span class="hd">El error clásico, en una línea</span>
+    <p>Entrenar con <code>WHERE observed_at &lt;= now()</code> en vez de <code>&lt;= cutoff_at</code>.
+    Funciona perfecto en el backtest —porque la base ya tiene el futuro cargado— y falla en producción,
+    donde ese futuro todavía no existe. <code>cutoff_at</code> guardado en <code>models.train_end</code>
+    es lo que hace el entrenamiento reproducible seis semanas después.</p>
+  </div>
+</section>
+
+<section id="tablas">
+  <span class="snum">03</span>
+  <h2>Las diez tablas</h2>
+  <p class="lede">Agrupadas en cuatro capas. Cada tabla existe porque cubre un requisito explícito
+  del reto; ninguna está «por si acaso».</p>
+
+  <div class="scroller"><table>
+    <caption>Capa 1 · Datos — lo que viene de la API</caption>
+    <thead><tr><th>#</th><th>Tabla</th><th>Grano · una fila es…</th><th>Cubre</th></tr></thead>
+    <tbody>
+      <tr><td class="num">1</td><td><code>stations</code></td><td>una estación (12 filas, semilla única)</td><td>Dimensión. Enriquecida con vagones, accesos y tipo del ArcGIS oficial.</td></tr>
+      <tr><td class="num">2</td><td><code>observations</code></td><td>una estación × un periodo de 15 min</td><td>La verdad contra la que se califica todo. Es la tabla que crece: ~1.152 filas/día.</td></tr>
+      <tr><td class="num">3</td><td><code>context</code></td><td>un periodo de 15 min (común a la ciudad)</td><td>Clima y eventos. Se persiste porque el pronóstico cambia con el tiempo y hay que saber cuál se usó.</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="scroller"><table>
+    <caption>Capa 2 · Orquestación — qué pasó en cada ejecución</caption>
+    <thead><tr><th>#</th><th>Tabla</th><th>Grano · una fila es…</th><th>Cubre</th></tr></thead>
+    <tbody>
+      <tr><td class="num">4</td><td><code>pipeline_runs</code></td><td>una ejecución de GitHub Actions</td><td><b>«cutoff de datos usado»</b> y <b>«versión o commit del código»</b>. El hub de todo.</td></tr>
+      <tr><td class="num">5</td><td><code>run_events</code></td><td>un evento dentro de una etapa</td><td><b>«errores de ingesta o inferencia»</b>, con la etapa exacta y el payload.</td></tr>
+      <tr><td class="num">6</td><td><code>drift_signals</code></td><td>una señal × una corrida (× estación)</td><td><b>«monitoreo de datos y desempeño»</b>. Es el insumo de la decisión, no su resultado.</td></tr>
+      <tr><td class="num">7</td><td><code>retrain_decisions</code></td><td>una decisión por corrida (1:1)</td><td><b>«momento y razón de cada reentrenamiento»</b>. La tabla que más califica.</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="scroller"><table>
+    <caption>Capa 3 · Modelo — qué se entrenó y cuánto vale</caption>
+    <thead><tr><th>#</th><th>Tabla</th><th>Grano · una fila es…</th><th>Cubre</th></tr></thead>
+    <tbody>
+      <tr><td class="num">8</td><td><code>models</code></td><td>un modelo entrenado <i>o un baseline</i></td><td><b>«features y modelo entrenado»</b>, <b>«historial de modelos»</b>, «versión activa».</td></tr>
+      <tr><td class="num">9</td><td><code>model_metrics</code></td><td>una métrica × modelo × split × estación</td><td><b>«métricas de validación temporal y comparación contra baselines»</b>.</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="scroller"><table>
+    <caption>Capa 4 · Salida — lo que el sistema promete</caption>
+    <thead><tr><th>#</th><th>Tabla</th><th>Grano · una fila es…</th><th>Cubre</th></tr></thead>
+    <tbody>
+      <tr><td class="num">10</td><td><code>predictions</code></td><td>una estación × un <code>target_at</code> × una corrida</td><td><b>«historial de predicciones»</b> y «enviar la predicción con versión y commit».</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Y tres vistas, que no son tablas a propósito</h3>
+  <p>El <i>scoring</i> —comparar predicción contra realidad— es completamente derivable. Guardarlo en
+  una tabla crea una copia que se desincroniza en cuanto llega una observación tardía o se corrige una fila.
+  Por eso es una vista:</p>
+  <div class="scroller"><table>
+    <thead><tr><th>Vista</th><th>Qué resuelve</th></tr></thead>
+    <tbody>
+      <tr><td><code>v_prediction_scores</code></td><td>Une <code>predictions</code> con <code>observations</code> por <code>(station_id, target_at = observed_at)</code>. Solo aparecen las predicciones cuya verdad ya llegó.</td></tr>
+      <tr><td><code>v_accuracy_rolling</code></td><td>Accuracy 24 h y acumulada por estación. Alimenta el dashboard y el drift de desempeño.</td></tr>
+      <tr><td><code>v_active_model</code></td><td>El modelo vigente. Una sola fila, garantizada por un índice único parcial.</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section id="relaciones">
+  <span class="snum">04</span>
+  <h2>Las 15 relaciones</h2>
+  <p class="lede">Tres centros de gravedad: <code>stations</code> ancla el espacio,
+  <code>pipeline_runs</code> ancla el tiempo de ejecución, <code>models</code> ancla el linaje.</p>
+  <div class="scroller"><table>
+    <thead><tr><th>Desde</th><th>Hacia</th><th>Card.</th><th>Qué significa</th></tr></thead>
+    <tbody>
+      <tr><td><code>observations.station_id</code></td><td><code>stations</code></td><td>N:1</td><td>Toda observación pertenece a una estación del catálogo</td></tr>
+      <tr><td><code>predictions.station_id</code></td><td><code>stations</code></td><td>N:1</td><td>Solo se predice sobre estaciones conocidas</td></tr>
+      <tr><td><code>model_metrics.station_id</code></td><td><code>stations</code></td><td>N:1 · nulo</td><td><code>NULL</code> = métrica agregada, no por estación</td></tr>
+      <tr><td><code>drift_signals.station_id</code></td><td><code>stations</code></td><td>N:1 · nulo</td><td><code>NULL</code> = señal global del sistema</td></tr>
+      <tr><td><code>observations.run_id</code></td><td><code>pipeline_runs</code></td><td>N:1</td><td>Qué corrida trajo esta fila</td></tr>
+      <tr><td><code>context.run_id</code></td><td><code>pipeline_runs</code></td><td>N:1</td><td>Idem para el contexto</td></tr>
+      <tr><td><code>run_events.run_id</code></td><td><code>pipeline_runs</code></td><td>N:1</td><td>Log de la corrida</td></tr>
+      <tr><td><code>drift_signals.run_id</code></td><td><code>pipeline_runs</code></td><td>N:1</td><td>Señales medidas en esa corrida</td></tr>
+      <tr><td><code>predictions.run_id</code></td><td><code>pipeline_runs</code></td><td>N:1</td><td>Predicciones emitidas en esa corrida</td></tr>
+      <tr><td><code>models.trained_by_run_id</code></td><td><code>pipeline_runs</code></td><td>N:1</td><td>Qué corrida entrenó este modelo</td></tr>
+      <tr><td><code>retrain_decisions.run_id</code></td><td><code>pipeline_runs</code></td><td><b>1:1</b></td><td>Exactamente una decisión por corrida — el <code>run_id</code> es la PK</td></tr>
+      <tr><td><code>model_metrics.model_id</code></td><td><code>models</code></td><td>N:1</td><td>Todas las métricas de un modelo</td></tr>
+      <tr><td><code>predictions.model_id</code></td><td><code>models</code></td><td>N:1</td><td>Qué modelo produjo la predicción</td></tr>
+      <tr><td><code>models.parent_model_id</code></td><td><code>models</code></td><td>N:1 · reflexiva</td><td><b>El linaje.</b> A qué modelo reemplazó este</td></tr>
+      <tr><td><code>retrain_decisions.{incumbent,new}_model_id</code></td><td><code>models</code></td><td>N:1 · nulo</td><td>Qué modelo había y cuál quedó</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="note">
+    <span class="hd">La relación que no es una clave foránea</span>
+    <p><code>predictions</code> y <code>observations</code> se unen por
+    <code>(station_id, target_at = observed_at)</code>, pero <b>no</b> lleva FK: cuando se emite la
+    predicción, esa observación todavía no existe. Es una relación diferida en el tiempo, y por eso
+    el <i>scoring</i> es una vista y no una columna.</p>
+  </div>
+</section>
+
+<section id="flujo">
+  <span class="snum">05</span>
+  <h2>Qué escribe cada paso de una corrida</h2>
+  <p class="lede">Los siete pasos que exige el reto, mapeados uno a uno contra la tabla que tocan.</p>
+
+  <figure>
+    <svg viewBox="0 0 1000 250" role="img" aria-label="Los siete pasos de una corrida del pipeline y la tabla que escribe cada uno">
+      <defs><marker id="ar" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
+        <polygon points="0,0 7,3 0,6" fill="currentColor"/></marker></defs>
+      <g>
+        <rect class="bx" x="14"  y="40" width="118" height="46" rx="3"/><text class="tx" x="73"  y="68" text-anchor="middle">1 ingesta</text>
+        <rect class="bx" x="154" y="40" width="118" height="46" rx="3"/><text class="tx" x="213" y="68" text-anchor="middle">2 features</text>
+        <rect class="bx" x="294" y="40" width="118" height="46" rx="3"/><text class="tx" x="353" y="68" text-anchor="middle">3 monitoreo</text>
+        <rect class="bx-hub" x="434" y="40" width="118" height="46" rx="3"/><text class="tx" x="493" y="68" text-anchor="middle" font-weight="600">4 decisión</text>
+        <rect class="bx-dim" x="574" y="40" width="118" height="46" rx="3"/><text class="tx" x="633" y="68" text-anchor="middle">5 reentreno</text>
+        <rect class="bx" x="714" y="40" width="118" height="46" rx="3"/><text class="tx" x="773" y="68" text-anchor="middle">6 predicción</text>
+        <rect class="bx" x="854" y="40" width="118" height="46" rx="3"/><text class="tx" x="913" y="68" text-anchor="middle">7 envío</text>
+      </g>
+      <g stroke="currentColor" stroke-width="1.2" marker-end="url(#ar)" fill="none">
+        <line x1="132" y1="63" x2="148" y2="63"/><line x1="272" y1="63" x2="288" y2="63"/>
+        <line x1="412" y1="63" x2="428" y2="63"/><line x1="552" y1="63" x2="568" y2="63"/>
+        <line x1="692" y1="63" x2="708" y2="63"/><line x1="832" y1="63" x2="848" y2="63"/>
+      </g>
+      <path class="ln-d" d="M493 86 L493 106 L773 106 L773 86" marker-end="url(#ar)"/>
+      <text class="tx-s" x="633" y="122" text-anchor="middle">si la decisión es «keep», se salta el reentreno</text>
+
+      <g>
+        <line class="ln" x1="73"  y1="140" x2="73"  y2="158"/><text class="tx-a" x="73"  y="172" text-anchor="middle">observations</text><text class="tx-a" x="73" y="186" text-anchor="middle">context</text>
+        <line class="ln" x1="213" y1="140" x2="213" y2="158"/><text class="tx-s" x="213" y="172" text-anchor="middle">(nada: en memoria)</text>
+        <line class="ln" x1="353" y1="140" x2="353" y2="158"/><text class="tx-a" x="353" y="172" text-anchor="middle">drift_signals</text>
+        <line class="ln" x1="493" y1="140" x2="493" y2="158"/><text class="tx-a" x="493" y="172" text-anchor="middle">retrain_decisions</text>
+        <line class="ln" x1="633" y1="140" x2="633" y2="158"/><text class="tx-a" x="633" y="172" text-anchor="middle">models</text><text class="tx-a" x="633" y="186" text-anchor="middle">model_metrics</text>
+        <line class="ln" x1="773" y1="140" x2="773" y2="158"/><text class="tx-a" x="773" y="172" text-anchor="middle">predictions</text>
+        <line class="ln" x1="913" y1="140" x2="913" y2="158"/><text class="tx-a" x="913" y="172" text-anchor="middle">predictions.submitted</text>
+      </g>
+      <line class="ln" x1="14" y1="212" x2="972" y2="212"/>
+      <text class="tx-s" x="14" y="232">Toda etapa escribe además en run_events. El paso 7 cierra pipeline_runs con status, finished_at y, si algo falló, error_stage.</text>
+    </svg>
+    <figcaption>Figura 3 · Los siete pasos del enunciado y su destino en la base. El paso 5 es
+    condicional: esa es toda la diferencia entre un cron que reentrena siempre y un sistema que decide.</figcaption>
+  </figure>
+
+  <h3>La política de reentrenamiento, en concreto</h3>
+  <p>El EDA da los umbrales. La variación normal semana a semana por estación está entre −0,3 % y +5,5 %,
+  así que <b>±5 % es ruido, no señal</b>. Una política defendible:</p>
+  <ol class="steps">
+    <li><b>Mide</b><p>Por corrida y por estación: <code>wape_24h</code>, <code>wape_7d</code>, desplazamiento de nivel a 7 días, correlación del perfil de 96 slots contra el de entrenamiento, sesgo del residuo y huecos de ingesta.</p></li>
+    <li><b>Dispara solo fuera de la banda de ruido</b><p>Reentrena si el accuracy rolling de 7 días cae más de 3 puntos respecto al de validación del modelo activo, <i>o</i> si el desplazamiento de nivel supera el ±5 % medido, <i>o</i> si la correlación del perfil baja de 0,95.</p></li>
+    <li><b>Respeta un enfriamiento</b><p><code>cooldown_until</code> impide reentrenar dos veces en menos de 24 h. Sin esto, un día raro provoca una cascada de reentrenamientos que empeora el modelo.</p></li>
+    <li><b>Campeón contra retador</b><p>El modelo nuevo nace <code>candidate</code>. Solo pasa a <code>active</code> si supera al vigente <i>sobre la misma partición temporal</i>. Si no, queda <code>rejected</code> y el vigente sigue. El índice único parcial garantiza que nunca haya dos activos.</p></li>
+    <li><b>Ten un suelo</b><p>El baseline de perfil por slot vive en <code>models</code> con accuracy 88,11 registrada en <code>model_metrics</code>. Si el modelo activo cae por debajo, la decisión es <code>rollback</code> al baseline. Es un control negativo y un plan de contingencia a la vez.</p></li>
+  </ol>
+</section>
+
+<section id="ddl">
+  <span class="snum">06</span>
+  <h2>DDL completo</h2>
+  <p class="lede">PostgreSQL 15+ (lo que corre Supabase). El orden de creación respeta las dependencias
+  de clave foránea.</p>
+<pre><code><span class="cm">-- ============ CAPA 1 · DATOS ============</span>
+
+<span class="kw">create table</span> stations (
+  station_id    <span class="kw">text</span> <span class="kw">primary key</span>,           <span class="cm">-- text, NO integer: los ceros iniciales</span>
+  station_name  <span class="kw">text</span> <span class="kw">not null</span>,
+  corridor      <span class="kw">text</span> <span class="kw">not null</span>,
+  latitude      <span class="kw">double precision</span> <span class="kw">not null</span>,
+  longitude     <span class="kw">double precision</span> <span class="kw">not null</span>,
+  vagones       <span class="kw">smallint</span>,                    <span class="cm">-- enriquecido del ArcGIS oficial</span>
+  accesos       <span class="kw">smallint</span>,
+  tipo          <span class="kw">smallint</span>,                    <span class="cm">-- 1 = portal</span>
+  is_portal     <span class="kw">boolean</span> <span class="kw">generated always as</span> (station_name <span class="kw">like</span> <span class="st">'Portal%'</span>) <span class="kw">stored</span>,
+  seeded_at     <span class="kw">timestamptz</span> <span class="kw">not null default</span> now()
+);
+
+<span class="cm">-- ============ CAPA 2 · ORQUESTACIÓN (va antes: todo la referencia) ============</span>
+
+<span class="kw">create table</span> pipeline_runs (
+  run_id        <span class="kw">bigint</span> <span class="kw">primary key</span>,          <span class="cm">-- GITHUB_RUN_ID: ya es único y rastreable</span>
+  attempt       <span class="kw">smallint</span> <span class="kw">not null default</span> 1,  <span class="cm">-- GITHUB_RUN_ATTEMPT</span>
+  trigger       <span class="kw">text</span> <span class="kw">not null check</span> (trigger <span class="kw">in</span> (<span class="st">'schedule'</span>,<span class="st">'manual'</span>,<span class="st">'retry'</span>)),
+  git_commit    <span class="kw">text</span> <span class="kw">not null</span>,                <span class="cm">-- GITHUB_SHA</span>
+  git_ref       <span class="kw">text</span>,
+  run_url       <span class="kw">text</span>,
+  started_at    <span class="kw">timestamptz</span> <span class="kw">not null default</span> now(),
+  finished_at   <span class="kw">timestamptz</span>,
+  status        <span class="kw">text</span> <span class="kw">not null default</span> <span class="st">'running'</span>
+                <span class="kw">check</span> (status <span class="kw">in</span> (<span class="st">'running'</span>,<span class="st">'success'</span>,<span class="st">'failed'</span>,<span class="st">'partial'</span>)),
+  cutoff_at     <span class="kw">timestamptz</span>,                 <span class="cm">-- hasta dónde había datos al empezar</span>
+  rows_ingested <span class="kw">integer</span> <span class="kw">not null default</span> 0,
+  error_stage   <span class="kw">text</span>,
+  error_message <span class="kw">text</span>
+);
+
+<span class="kw">create table</span> run_events (
+  event_id  <span class="kw">bigserial</span> <span class="kw">primary key</span>,
+  run_id    <span class="kw">bigint</span> <span class="kw">not null references</span> pipeline_runs <span class="kw">on delete cascade</span>,
+  stage     <span class="kw">text</span> <span class="kw">not null check</span> (stage <span class="kw">in</span>
+            (<span class="st">'ingest'</span>,<span class="st">'features'</span>,<span class="st">'monitor'</span>,<span class="st">'decide'</span>,<span class="st">'train'</span>,<span class="st">'predict'</span>,<span class="st">'submit'</span>)),
+  level     <span class="kw">text</span> <span class="kw">not null check</span> (level <span class="kw">in</span> (<span class="st">'info'</span>,<span class="st">'warning'</span>,<span class="st">'error'</span>)),
+  message   <span class="kw">text</span> <span class="kw">not null</span>,
+  payload   <span class="kw">jsonb</span>,
+  at        <span class="kw">timestamptz</span> <span class="kw">not null default</span> now()
+);
+<span class="kw">create index on</span> run_events (run_id, at);
+<span class="kw">create index on</span> run_events (at <span class="kw">desc</span>) <span class="kw">where</span> level = <span class="st">'error'</span>;
+
+<span class="cm">-- ============ CAPA 1 · DATOS (continuación) ============</span>
+
+<span class="kw">create table</span> observations (
+  station_id  <span class="kw">text</span> <span class="kw">not null references</span> stations,
+  observed_at <span class="kw">timestamptz</span> <span class="kw">not null</span>,
+  demand      <span class="kw">integer</span> <span class="kw">not null check</span> (demand &gt;= 0),
+  run_id      <span class="kw">bigint</span> <span class="kw">not null references</span> pipeline_runs,
+  ingested_at <span class="kw">timestamptz</span> <span class="kw">not null default</span> now(),
+  <span class="kw">primary key</span> (station_id, observed_at)   <span class="cm">-- la clave natural = idempotencia gratis</span>
+);
+<span class="kw">create index on</span> observations (observed_at <span class="kw">desc</span>);
+
+<span class="kw">create table</span> context (
+  observed_at          <span class="kw">timestamptz</span> <span class="kw">primary key</span>,
+  rain_mm              <span class="kw">double precision</span>,
+  rain_forecast        <span class="kw">double precision</span>,
+  temperature_c        <span class="kw">double precision</span>,
+  temperature_forecast <span class="kw">double precision</span>,
+  event_intensity      <span class="kw">double precision</span>,
+  run_id               <span class="kw">bigint</span> <span class="kw">not null references</span> pipeline_runs,
+  ingested_at          <span class="kw">timestamptz</span> <span class="kw">not null default</span> now()
+);
+
+<span class="cm">-- ============ CAPA 3 · MODELO ============</span>
+
+<span class="kw">create table</span> models (
+  model_id          <span class="kw">uuid</span> <span class="kw">primary key default</span> gen_random_uuid(),
+  name              <span class="kw">text</span> <span class="kw">not null</span>,
+  kind              <span class="kw">text</span> <span class="kw">not null check</span> (kind <span class="kw">in</span> (<span class="st">'baseline'</span>,<span class="st">'ml'</span>)),
+  algorithm         <span class="kw">text</span> <span class="kw">not null</span>,          <span class="cm">-- 'profile_slot' | 'naive_week' | 'lightgbm'</span>
+  hyperparams       <span class="kw">jsonb</span> <span class="kw">not null default</span> <span class="st">'{}'</span>,
+  feature_set       <span class="kw">text</span> <span class="kw">not null</span>,          <span class="cm">-- 'fs-v3'</span>
+  feature_list      <span class="kw">text</span>[] <span class="kw">not null</span>,
+  train_start       <span class="kw">timestamptz</span>,
+  train_end         <span class="kw">timestamptz</span>,            <span class="cm">-- el cutoff con el que se entrenó</span>
+  n_train_rows      <span class="kw">integer</span>,
+  artifact_uri      <span class="kw">text</span>,                   <span class="cm">-- Supabase Storage o release asset</span>
+  artifact_sha256   <span class="kw">text</span>,
+  git_commit        <span class="kw">text</span> <span class="kw">not null</span>,
+  trained_by_run_id <span class="kw">bigint references</span> pipeline_runs,
+  parent_model_id   <span class="kw">uuid references</span> models,  <span class="cm">-- linaje: a quién reemplazó</span>
+  status            <span class="kw">text</span> <span class="kw">not null default</span> <span class="st">'candidate'</span>
+                    <span class="kw">check</span> (status <span class="kw">in</span> (<span class="st">'candidate'</span>,<span class="st">'active'</span>,<span class="st">'retired'</span>,<span class="st">'rejected'</span>)),
+  activated_at      <span class="kw">timestamptz</span>,
+  retired_at        <span class="kw">timestamptz</span>,
+  created_at        <span class="kw">timestamptz</span> <span class="kw">not null default</span> now()
+);
+<span class="cm">-- invariante en la base, no en el código: como máximo UN modelo activo</span>
+<span class="kw">create unique index</span> one_active_model <span class="kw">on</span> models (status) <span class="kw">where</span> status = <span class="st">'active'</span>;
+
+<span class="kw">create table</span> model_metrics (
+  model_id     <span class="kw">uuid</span> <span class="kw">not null references</span> models <span class="kw">on delete cascade</span>,
+  split        <span class="kw">text</span> <span class="kw">not null check</span> (split <span class="kw">in</span> (<span class="st">'train'</span>,<span class="st">'validation'</span>,<span class="st">'backtest'</span>,<span class="st">'production'</span>)),
+  fold         <span class="kw">smallint</span> <span class="kw">not null default</span> 0,
+  station_id   <span class="kw">text references</span> stations,     <span class="cm">-- NULL = métrica agregada</span>
+  metric       <span class="kw">text</span> <span class="kw">not null check</span> (metric <span class="kw">in</span> (<span class="st">'wape'</span>,<span class="st">'accuracy'</span>,<span class="st">'mae'</span>,<span class="st">'rmse'</span>,<span class="st">'bias'</span>)),
+  value        <span class="kw">double precision</span> <span class="kw">not null</span>,
+  window_start <span class="kw">timestamptz</span>,
+  window_end   <span class="kw">timestamptz</span>,
+  computed_at  <span class="kw">timestamptz</span> <span class="kw">not null default</span> now(),
+  <span class="kw">unique nulls not distinct</span> (model_id, split, fold, station_id, metric)
+);
+
+<span class="cm">-- ============ CAPA 4 · SALIDA Y MONITOREO ============</span>
+
+<span class="kw">create table</span> predictions (
+  run_id     <span class="kw">bigint</span> <span class="kw">not null references</span> pipeline_runs,
+  model_id   <span class="kw">uuid</span> <span class="kw">not null references</span> models,
+  station_id <span class="kw">text</span> <span class="kw">not null references</span> stations,
+  issued_at  <span class="kw">timestamptz</span> <span class="kw">not null</span>,
+  target_at  <span class="kw">timestamptz</span> <span class="kw">not null</span>,
+  horizon    <span class="kw">smallint</span> <span class="kw">not null check</span> (horizon <span class="kw">between</span> 1 <span class="kw">and</span> 4),
+  y_pred     <span class="kw">double precision</span> <span class="kw">not null check</span> (y_pred &gt;= 0),
+  submitted  <span class="kw">boolean</span> <span class="kw">not null default false</span>,
+  submit_response <span class="kw">jsonb</span>,
+  created_at <span class="kw">timestamptz</span> <span class="kw">not null default</span> now(),
+  <span class="kw">primary key</span> (run_id, station_id, target_at),
+  <span class="cm">-- el horizonte no puede contradecir a los timestamps</span>
+  <span class="kw">check</span> (target_at = issued_at + (horizon * <span class="kw">interval</span> <span class="st">'15 minutes'</span>))
+);
+<span class="kw">create index on</span> predictions (station_id, target_at);
+<span class="kw">create index on</span> predictions (target_at <span class="kw">desc</span>);
+
+<span class="kw">create table</span> drift_signals (
+  run_id      <span class="kw">bigint</span> <span class="kw">not null references</span> pipeline_runs <span class="kw">on delete cascade</span>,
+  station_id  <span class="kw">text references</span> stations,        <span class="cm">-- NULL = señal global</span>
+  signal      <span class="kw">text</span> <span class="kw">not null check</span> (signal <span class="kw">in</span>
+              (<span class="st">'wape_24h'</span>,<span class="st">'wape_7d'</span>,<span class="st">'level_shift_7d'</span>,<span class="st">'profile_corr'</span>,
+               <span class="st">'residual_bias'</span>,<span class="st">'ingest_gap'</span>)),
+  value       <span class="kw">double precision</span> <span class="kw">not null</span>,
+  threshold   <span class="kw">double precision</span> <span class="kw">not null</span>,   <span class="cm">-- se guarda el umbral vigente ese día</span>
+  breached    <span class="kw">boolean</span> <span class="kw">not null</span>,
+  computed_at <span class="kw">timestamptz</span> <span class="kw">not null default</span> now(),
+  <span class="kw">unique nulls not distinct</span> (run_id, station_id, signal)
+);
+
+<span class="kw">create table</span> retrain_decisions (
+  run_id             <span class="kw">bigint</span> <span class="kw">primary key references</span> pipeline_runs <span class="kw">on delete cascade</span>,
+  decision           <span class="kw">text</span> <span class="kw">not null check</span> (decision <span class="kw">in</span>
+                     (<span class="st">'keep'</span>,<span class="st">'retrain'</span>,<span class="st">'rollback'</span>,<span class="st">'blocked'</span>)),
+  reason             <span class="kw">text</span> <span class="kw">not null</span>,           <span class="cm">-- en prosa, para el evaluador humano</span>
+  breached_signals   <span class="kw">text</span>[] <span class="kw">not null default</span> <span class="st">'{}'</span>,
+  incumbent_model_id <span class="kw">uuid references</span> models,
+  new_model_id       <span class="kw">uuid references</span> models,
+  cooldown_until     <span class="kw">timestamptz</span>,
+  decided_at         <span class="kw">timestamptz</span> <span class="kw">not null default</span> now()
+);
+
+<span class="cm">-- ============ VISTAS ============</span>
+
+<span class="kw">create view</span> v_prediction_scores <span class="kw">as</span>
+<span class="kw">select</span> p.run_id, p.model_id, p.station_id, s.corridor,
+       p.issued_at, p.target_at, p.horizon, p.y_pred,
+       o.demand <span class="kw">as</span> y_true,
+       <span class="kw">abs</span>(o.demand - p.y_pred) <span class="kw">as</span> abs_error
+<span class="kw">from</span> predictions p
+<span class="kw">join</span> observations o
+  <span class="kw">on</span> o.station_id = p.station_id <span class="kw">and</span> o.observed_at = p.target_at
+<span class="kw">join</span> stations s <span class="kw">on</span> s.station_id = p.station_id;
+
+<span class="kw">create view</span> v_accuracy_rolling <span class="kw">as</span>
+<span class="kw">select</span> station_id, model_id,
+       100 * <span class="kw">greatest</span>(0, 1 - <span class="kw">sum</span>(abs_error) / <span class="kw">nullif</span>(<span class="kw">sum</span>(y_true), 0)) <span class="kw">as</span> accuracy_24h,
+       <span class="kw">count</span>(*) <span class="kw">as</span> n
+<span class="kw">from</span> v_prediction_scores
+<span class="kw">where</span> target_at &gt;= now() - <span class="kw">interval</span> <span class="st">'24 hours'</span>
+<span class="kw">group by</span> station_id, model_id;
+
+<span class="kw">create view</span> v_active_model <span class="kw">as</span>
+<span class="kw">select</span> * <span class="kw">from</span> models <span class="kw">where</span> status = <span class="st">'active'</span>;
+</code></pre>
+</section>
+
+<section id="decisiones">
+  <span class="snum">07</span>
+  <h2>Siete decisiones que no son obvias</h2>
+  <ol class="steps">
+    <li><b><code>station_id</code> es <code>text</code>, no <code>integer</code></b><p>Los IDs traen ceros iniciales: <code>03000</code>. Como entero se vuelve <code>3000</code> y el join devuelve vacío sin lanzar error. Es el fallo más silencioso de todo el dataset.</p></li>
+    <li><b>La clave primaria natural da idempotencia gratis</b><p><code>observations</code> tiene PK <code>(station_id, observed_at)</code>, así que un <code>on conflict do update</code> hace la ingesta reejecutable. GitHub Actions reintenta; una corrida repetida no puede duplicar filas.</p></li>
+    <li><b>El cursor se deriva, no se guarda aparte</b><p>El reto pide «persistir el cursor o último timestamp». Una tabla de estado mutable puede mentir si una corrida falla a medias. <code>max(observed_at)</code> sobre <code>observations</code> no puede: refleja exactamente lo que aterrizó. El <code>cutoff_at</code> se copia a <code>pipeline_runs</code> solo como registro de auditoría.</p></li>
+    <li><b>Los baselines viven en <code>models</code></b><p>Registrar el perfil por slot como un modelo más —con su accuracy 88,11 en <code>model_metrics</code>— hace que «comparar contra baselines» sea una consulta y no un apéndice del README. También permite hacerle <code>rollback</code> si el modelo entrenado se degrada.</p></li>
+    <li><b>Las métricas en formato largo</b><p>Una fila por (modelo, split, fold, estación, métrica) en vez de una columna por métrica. Añadir RMSE o una nueva estación no requiere migrar el esquema.</p></li>
+    <li><b>El umbral se guarda junto al valor</b><p><code>drift_signals.threshold</code> parece redundante. No lo es: los umbrales se ajustan durante la competencia, y sin guardar el vigente no se puede explicar por qué una corrida de octubre no disparó con un valor que en noviembre sí dispara.</p></li>
+    <li><b>La invariante vive en la base</b><p><code>create unique index ... where status = 'active'</code> hace imposible tener dos modelos activos, incluso con un bug en el código de promoción. Las reglas que importan se ponen donde no se pueden saltar.</p></li>
+  </ol>
+</section>
+
+<section id="arquitectura">
+  <span class="snum">08</span>
+  <h2>Cómo encaja con el repositorio</h2>
+  <p class="lede">La estructura que pide el reto, con el módulo orquestador que la plantilla
+  <code>pipeline.yml</code> invoca pero que el README no lista.</p>
+<pre><code>mi-pulso-transmi/
+├── src/
+│   ├── pipeline.py      <span class="cm"># orquestador: lo que ejecuta `python -m src.pipeline`</span>
+│   ├── db.py            <span class="cm"># cliente Postgres + upserts idempotentes</span>
+│   ├── ingest.py        <span class="cm"># paso 1  → observations, context</span>
+│   ├── features.py      <span class="cm"># paso 2  → en memoria, nada persiste</span>
+│   ├── monitor.py       <span class="cm"># paso 3  → drift_signals</span>
+│   ├── policy.py        <span class="cm"># paso 4  → retrain_decisions</span>
+│   ├── train.py         <span class="cm"># paso 5  → models, model_metrics</span>
+│   └── predict.py       <span class="cm"># pasos 6-7 → predictions</span>
+├── sql/
+│   ├── 001_schema.sql   <span class="cm"># el DDL de arriba</span>
+│   └── 002_seed.sql     <span class="cm"># las 12 estaciones</span>
+├── tests/
+└── .github/workflows/pipeline.yml</code></pre>
+
+  <div class="scroller"><table>
+    <caption>Dónde vive cada cosa</caption>
+    <thead><tr><th>Qué</th><th>Dónde</th><th>Por qué</th></tr></thead>
+    <tbody>
+      <tr><td>Estado del sistema</td><td>Postgres / Supabase</td><td>Actions es efímero: no hay disco entre corridas</td></tr>
+      <tr><td>Artefacto del modelo (<code>.pkl</code>)</td><td>Supabase Storage, con <code>sha256</code> en <code>models</code></td><td>Versionar binarios en git infla el repo y rompe la reproducibilidad</td></tr>
+      <tr><td>Credenciales del pipeline</td><td><code>secrets.SUPABASE_KEY</code> (service role)</td><td>Nunca en el código ni en el navegador</td></tr>
+      <tr><td>Credenciales del dashboard</td><td>Clave <code>anon</code> + RLS de solo lectura</td><td>El dashboard es público; la clave de servicio jamás sale al cliente</td></tr>
+      <tr><td>Identidad de la corrida</td><td><code>GITHUB_RUN_ID</code> y <code>GITHUB_SHA</code></td><td>Ya existen, ya son únicos y enlazan con la UI de Actions</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="note warn">
+    <span class="hd">Dos cosas que se olvidan y cuestan caro</span>
+    <p><b>Concurrencia:</b> añade <code>concurrency: {group: pipeline, cancel-in-progress: false}</code>
+    al workflow. Sin eso, un reintento solapado con la corrida programada produce dos entrenamientos
+    simultáneos compitiendo por el estado <code>active</code>.<br>
+    <b>Zona horaria:</b> el cron de GitHub Actions corre en <b>UTC</b>. Bogotá es UTC−5. Un
+    <code>cron: "0 6 * * *"</code> se ejecuta a la 1 de la madrugada hora local, no a las 6.</p>
+  </div>
+</section>
+
+<footer>
+  <p>Umbrales derivados del EDA del corte estático de 45 días: banda de ruido semanal de −0,3 % a +5,5 %
+  por estación, accuracy de referencia 88,11 del baseline de perfil (estación × slot × tipo de día)
+  sobre validación temporal de los últimos 7 días. El contrato de submissions aún no se publica:
+  <code>predictions</code> ya deja espacio para él en <code>submit_response</code>.</p>
+</footer>
+</div>
