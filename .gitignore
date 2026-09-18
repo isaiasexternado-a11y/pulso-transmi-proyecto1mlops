@@ -4,6 +4,10 @@ pulso-transmi-sdk/
 # Material académico del docente: no se redistribuye en un repo público
 docs/*.pdf
 
+# Los binarios de los modelos van a Supabase Storage, no a git.
+# La ficha .json de cada versión sí se versiona: es el registro del modelo.
+ml/artefactos/*.joblib
+
 # Entornos y artefactos
 .venv/
 __pycache__/
