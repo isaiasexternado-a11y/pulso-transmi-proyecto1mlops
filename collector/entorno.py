@@ -49,7 +49,7 @@ class Supabase:
     """Cliente mínimo sobre PostgREST. Sólo lo que el pipeline usa."""
 
     def __init__(self) -> None:
-        self.url, self.key = exigir("SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY")
+        self.url, self.key = exigir("SUPABASE_URL", "SUPABASE_SECRET_KEY")
 
     def _pedir(self, metodo: str, ruta: str, params: dict | None = None,
                cuerpo=None, prefer: str | None = None) -> list | dict:
