@@ -90,7 +90,10 @@ def champion(sb: Supabase) -> tuple[object, dict]:
             f"el artefacto no coincide con su huella registrada\n"
             f"  esperado: {ficha['artifact_sha256']}\n  obtenido: {sha}")
 
+    # El pickle referencia `models` como módulo de primer nivel, que es como
+    # lo importó empaquetar.py al crearlo. Sin esto, joblib no lo encuentra.
     import joblib
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "ml"))
     return joblib.load(io.BytesIO(crudo))["modelo"], ficha
 
 
