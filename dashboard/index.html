@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pulso TransMi — Operación</title>
+<meta name="description" content="Estado operativo, desempeño y drift del pipeline de pronóstico de demanda.">
+<style>
+  :root {
+    color-scheme: light;
+    --plano:      #f9f9f7;
+    --superficie: #fcfcfb;
+    --tinta:      #0b0b0b;
+    --tinta-2:    #52514e;
+    --tinta-mute: #898781;
+    --rejilla:    #e1e0d9;
+    --eje:        #c3c2b7;
+    --borde:      rgba(11,11,11,0.10);
+    --serie-1:    #2a78d6;
+    --serie-2:    #eb6834;
+    --serie-3:    #1baf7a;
+    /* Los colores de estado no cambian con el tema: significan, no decoran. */
+    --bien:       #0ca30c;
+    --aviso:      #fab219;
+    --serio:      #ec835a;
+    --critico:    #d03b3b;
+    --exito-texto:#006300;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:where(:not([data-theme="light"])) {
+      color-scheme: dark;
+      --plano:      #0d0d0d;
+      --superficie: #1a1a19;
+      --tinta:      #ffffff;
+      --tinta-2:    #c3c2b7;
+      --tinta-mute: #898781;
+      --rejilla:    #2c2c2a;
+      --eje:        #383835;
+      --borde:      rgba(255,255,255,0.10);
+      --serie-1:    #3987e5;
+      --serie-2:    #d95926;
+      --serie-3:    #199e70;
+      --exito-texto:#0ca30c;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --plano:#0d0d0d; --superficie:#1a1a19; --tinta:#ffffff; --tinta-2:#c3c2b7;
+    --tinta-mute:#898781; --rejilla:#2c2c2a; --eje:#383835;
+    --borde:rgba(255,255,255,0.10);
+    --serie-1:#3987e5; --serie-2:#d95926; --serie-3:#199e70; --exito-texto:#0ca30c;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--plano); color: var(--tinta);
+    font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  .envoltura { max-width: 1180px; margin: 0 auto; padding: 32px 16px 64px; }
+
+  header.cabecera { display: flex; flex-wrap: wrap; gap: 16px;
+    align-items: baseline; justify-content: space-between; margin-bottom: 8px; }
+  h1 { font-size: 22px; margin: 0; letter-spacing: -0.01em; }
+  .sub { color: var(--tinta-2); font-size: 14px; margin: 4px 0 28px; }
+  .controles { display: flex; gap: 8px; align-items: center; }
+  button {
+    font: inherit; font-size: 13px; color: var(--tinta-2); cursor: pointer;
+    background: var(--superficie); border: 1px solid var(--borde);
+    border-radius: 8px; padding: 6px 12px;
+  }
+  button:hover { color: var(--tinta); }
+
+  .tarjeta {
+    background: var(--superficie); border: 1px solid var(--borde);
+    border-radius: 12px; padding: 20px; margin-bottom: 16px;
+  }
+  .tarjeta h2 { font-size: 14px; margin: 0 0 4px; letter-spacing: 0.01em; }
+  .tarjeta .nota { color: var(--tinta-mute); font-size: 13px; margin: 0 0 18px; }
+
+  .kpis { display: grid; gap: 16px; margin-bottom: 16px;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); }
+  .kpi { background: var(--superficie); border: 1px solid var(--borde);
+    border-radius: 12px; padding: 18px 20px; }
+  .kpi .etiqueta { font-size: 13px; color: var(--tinta-2); margin-bottom: 8px; }
+  .kpi .cifra { font-size: 34px; line-height: 1.1; letter-spacing: -0.02em; }
+  .kpi .pie { font-size: 13px; color: var(--tinta-mute); margin-top: 6px; }
+
+  .rejilla-2 { display: grid; gap: 16px; grid-template-columns: 1fr 1fr; }
+  @media (max-width: 860px) { .rejilla-2 { grid-template-columns: 1fr; } }
+
+  /* Un estado nunca se comunica sólo con color: siempre marca + texto. */
+  .estado { display: inline-flex; align-items: center; gap: 6px;
+    font-size: 13px; font-weight: 500; }
+  .punto { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+  .fila-estado { display: flex; justify-content: space-between; gap: 12px;
+    padding: 11px 0; border-bottom: 1px solid var(--rejilla); }
+  .fila-estado:last-child { border-bottom: 0; }
+  .fila-estado .que { color: var(--tinta-2); font-size: 14px; }
+  .fila-estado .val { font-size: 14px; font-variant-numeric: tabular-nums; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { text-align: left; font-weight: 500; color: var(--tinta-mute);
+    padding: 6px 8px; border-bottom: 1px solid var(--eje); font-size: 12px; }
+  td { padding: 7px 8px; border-bottom: 1px solid var(--rejilla);
+    font-variant-numeric: tabular-nums; color: var(--tinta-2); }
+  td.texto { font-variant-numeric: normal; }
+  tr:last-child td { border-bottom: 0; }
+
+  .leyenda { display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 12px;
+    font-size: 13px; color: var(--tinta-2); }
+  .leyenda span { display: inline-flex; align-items: center; gap: 6px; }
+  .muestra { width: 10px; height: 10px; border-radius: 2px; }
+
+  svg { display: block; width: 100%; height: auto; overflow: visible; }
+  .tick { fill: var(--tinta-mute); font-size: 11px; font-variant-numeric: tabular-nums; }
+  .rotulo { fill: var(--tinta-2); font-size: 11px; font-variant-numeric: tabular-nums; }
+  .linea-rejilla { stroke: var(--rejilla); stroke-width: 1; }
+  .linea-eje { stroke: var(--eje); stroke-width: 1; }
+
+  #pista { position: fixed; pointer-events: none; opacity: 0; z-index: 20;
+    background: var(--superficie); border: 1px solid var(--borde);
+    border-radius: 8px; padding: 8px 11px; font-size: 12.5px;
+    color: var(--tinta); box-shadow: 0 6px 20px rgba(0,0,0,0.13);
+    transition: opacity .1s; max-width: 260px; }
+  #pista b { font-variant-numeric: tabular-nums; }
+
+  .vacio { color: var(--tinta-mute); font-size: 13px; padding: 20px 0;
+    text-align: center; }
+  .oculto { display: none; }
+  footer { color: var(--tinta-mute); font-size: 12.5px; margin-top: 28px;
+    line-height: 1.7; }
+  a { color: var(--serie-1); }
+</style>
+</head>
+<body>
+<div class="envoltura">
+
+  <header class="cabecera">
+    <div>
+      <h1>Pulso TransMi — Operación</h1>
+      <p class="sub" id="sub">Cargando…</p>
+    </div>
+    <div class="controles">
+      <button id="btn-tema" type="button">Tema</button>
+      <button id="btn-tabla" type="button">Ver tablas</button>
+      <button id="btn-recargar" type="button">Actualizar</button>
+    </div>
+  </header>
+
+  <div class="kpis" id="kpis"></div>
+
+  <div class="rejilla-2">
+    <section class="tarjeta">
+      <h2>Estado operativo</h2>
+      <p class="nota">Cuándo respiró cada pieza por última vez.</p>
+      <div id="operativo"></div>
+    </section>
+
+    <section class="tarjeta">
+      <h2>Señales de drift</h2>
+      <p class="nota">Valor contra umbral en la última evaluación.</p>
+      <div id="drift"></div>
+    </section>
+  </div>
+
+  <section class="tarjeta">
+    <h2>Accuracy por estación · últimas 24 h</h2>
+    <p class="nota">El promedio oficial no pondera por volumen: una estación
+      pequeña pesa igual que la grande. Por eso importa dónde cae, no sólo cuánto.</p>
+    <div id="estaciones"></div>
+    <div id="estaciones-tabla" class="oculto"></div>
+  </section>
+
+  <div class="rejilla-2">
+    <section class="tarjeta">
+      <h2>Accuracy por ciclo</h2>
+      <p class="nota">Cada punto es un ciclo entregado y ya evaluado.</p>
+      <div id="ciclos"></div>
+      <div id="ciclos-tabla" class="oculto"></div>
+    </section>
+
+    <section class="tarjeta">
+      <h2>Carrera del leaderboard</h2>
+      <p class="nota">Accuracy oficial acumulada. Los demás participantes van
+        agregados, sin nombres.</p>
+      <div id="carrera"></div>
+      <div id="carrera-tabla" class="oculto"></div>
+    </section>
+  </div>
+
+  <section class="tarjeta">
+    <h2>Decisiones de reentrenamiento</h2>
+    <p class="nota">Reentrenar es una consecuencia registrada, no un impulso.</p>
+    <div id="decisiones"></div>
+  </section>
+
+  <footer>
+    Datos leídos de Supabase con la llave publicable, que sólo lee: RLS bloquea
+    toda escritura. La llave de la API Pulso TransMi no vive aquí — el
+    leaderboard lo ingesta GitHub Actions y este tablero lo consume ya derivado.
+  </footer>
+</div>
+
+<div id="pista" role="status" aria-live="polite"></div>
+
+<script type="module">
+const SB  = "https://twjvjqyqxcfxbacewhdh.supabase.co/rest/v1";
+const KEY = "sb_publishable_Kt4UQx5jBJSJFViT71jSOg_NSIDGjBU";
+const UMBRAL_ACC = 87;   // el piso: por debajo, el champion pierde contra el perfil
+
+const $ = (s) => document.querySelector(s);
+const pista = $("#pista");
+
+async function pedir(ruta) {
+  const r = await fetch(`${SB}/${ruta}`, { headers: { apikey: KEY } });
+  if (!r.ok) throw new Error(`${ruta} -> ${r.status}`);
+  return r.json();
+}
+const num = (v, d = 2) => (v == null || Number.isNaN(v)) ? "—" : Number(v).toFixed(d);
+
+function hace(iso) {
+  if (!iso) return "nunca";
+  const m = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
+  if (m < 1) return "hace segundos";
+  if (m < 60) return `hace ${m} min`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `hace ${h} h`;
+  return `hace ${Math.floor(h / 24)} d`;
+}
+
+function marca(estado) {
+  const c = { bien: "var(--bien)", aviso: "var(--aviso)",
+              serio: "var(--serio)", critico: "var(--critico)" }[estado];
+  return `<span class="punto" style="background:${c}"></span>`;
+}
+
+// ---------------------------------------------------------------- tooltips
+function seguir(el, texto) {
+  el.addEventListener("mouseenter", (e) => {
+    pista.innerHTML = texto; pista.style.opacity = "1"; mover(e);
+  });
+  el.addEventListener("mousemove", mover);
+  el.addEventListener("mouseleave", () => { pista.style.opacity = "0"; });
+}
+function mover(e) {
+  const r = pista.getBoundingClientRect();
+  let x = e.clientX + 14, y = e.clientY - r.height - 10;
+  if (x + r.width > innerWidth - 8) x = e.clientX - r.width - 14;
+  if (y < 8) y = e.clientY + 18;
+  pista.style.left = x + "px"; pista.style.top = y + "px";
+}
+
+// ------------------------------------------------------- barras horizontales
+function barras(cont, filas, { umbral }) {
+  if (!filas.length) { cont.innerHTML = `<p class="vacio">Sin datos todavía.</p>`; return; }
+  const alto = 26, gap = 6, izq = 66, der = 54, sup = 26;
+  const H = sup + filas.length * (alto + gap), W = 760;
+  const max = Math.max(100, ...filas.map(f => f.valor));
+  const x = (v) => izq + (v / max) * (W - izq - der);
+
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Accuracy por estación">`;
+  // el umbral sí es una línea punteada legítima: marca un límite, no una rejilla
+  s += `<line x1="${x(umbral)}" y1="${sup - 12}" x2="${x(umbral)}" y2="${H}"
+         stroke="var(--critico)" stroke-width="1" stroke-dasharray="3 3"/>
+        <text x="${x(umbral)}" y="${sup - 16}" class="tick" text-anchor="middle"
+         fill="var(--critico)">piso ${umbral}%</text>`;
+  filas.forEach((f, i) => {
+    const y = sup + i * (alto + gap), an = Math.max(2, x(f.valor) - izq);
+    const bajo = f.valor < umbral;
+    s += `<text x="${izq - 10}" y="${y + alto / 2 + 4}" class="rotulo"
+           text-anchor="end">${f.etiqueta}</text>`;
+    // 2px de aire con la superficie en vez de borde, y punta redondeada de 4px
+    s += `<g data-t="${f.etiqueta}: ${num(f.valor)} %">
+            <rect x="${izq}" y="${y}" width="${an}" height="${alto}" rx="4"
+              fill="${bajo ? 'var(--critico)' : 'var(--serie-1)'}"
+              stroke="var(--superficie)" stroke-width="2"/>
+            <rect x="${izq}" y="${y}" width="${W - izq - der}" height="${alto}"
+              fill="transparent"/>
+          </g>`;
+    s += `<text x="${x(f.valor) + 8}" y="${y + alto / 2 + 4}" class="rotulo">${num(f.valor)}</text>`;
+  });
+  s += `</svg>`;
+  cont.innerHTML = s;
+  cont.querySelectorAll("g[data-t]").forEach(g => seguir(g, g.dataset.t));
+}
+
+// --------------------------------------------------------------- líneas
+function lineas(cont, series, { etiquetaX, minY, maxY, invertir = false }) {
+  const puntos = series.flatMap(s => s.datos);
+  if (puntos.length < 1) { cont.innerHTML = `<p class="vacio">Aún no hay suficientes puntos. Aparece solo.</p>`; return; }
+  const izq = 44, der = 58, sup = 16, inf = 34, W = 520, H = 250;
+  const n = Math.max(...series.map(s => s.datos.length));
+  const lo = minY ?? Math.min(...puntos.map(p => p.y));
+  const hi = maxY ?? Math.max(...puntos.map(p => p.y));
+  const rango = (hi - lo) || 1;
+  const x = (i) => izq + (n === 1 ? (W - izq - der) / 2 : (i / (n - 1)) * (W - izq - der));
+  const y = (v) => {
+    const t = (v - lo) / rango;
+    return invertir ? sup + t * (H - sup - inf) : H - inf - t * (H - sup - inf);
+  };
+
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${etiquetaX}">`;
+  for (let k = 0; k <= 4; k++) {
+    const v = lo + (rango * k) / 4, yy = y(v);
+    s += `<line x1="${izq}" y1="${yy}" x2="${W - der}" y2="${yy}" class="linea-rejilla"/>
+          <text x="${izq - 8}" y="${yy + 4}" class="tick" text-anchor="end">${num(v, 0)}</text>`;
+  }
+  s += `<line x1="${izq}" y1="${H - inf}" x2="${W - der}" y2="${H - inf}" class="linea-eje"/>`;
+
+  series.forEach((se) => {
+    const d = se.datos.map((p, i) => `${i ? "L" : "M"}${x(i)},${y(p.y)}`).join(" ");
+    s += `<path d="${d}" fill="none" stroke="${se.color}" stroke-width="2"
+            stroke-linejoin="round" stroke-linecap="round"/>`;
+    se.datos.forEach((p, i) => {
+      s += `<g data-t="${p.etiqueta}<br><b>${num(p.y)}</b> — ${se.nombre}">
+              <circle cx="${x(i)}" cy="${y(p.y)}" r="4.5" fill="${se.color}"
+                stroke="var(--superficie)" stroke-width="2"/>
+              <circle cx="${x(i)}" cy="${y(p.y)}" r="11" fill="transparent"/>
+            </g>`;
+    });
+    // sólo se rotula el extremo: un número por punto es ruido
+    const u = se.datos[se.datos.length - 1];
+    if (u) s += `<text x="${x(se.datos.length - 1) + 9}" y="${y(u.y) + 4}"
+                  class="rotulo">${num(u.y, 1)}</text>`;
+  });
+  s += `</svg>`;
+  cont.innerHTML = s;
+  cont.querySelectorAll("g[data-t]").forEach(g => seguir(g, g.dataset.t));
+}
+
+function leyenda(cont, series) {
+  cont.insertAdjacentHTML("afterbegin", `<div class="leyenda">` +
+    series.map(s => `<span><i class="muestra" style="background:${s.color}"></i>${s.nombre}</span>`).join("") +
+    `</div>`);
+}
+
+function tabla(cols, filas) {
+  return `<table><thead><tr>${cols.map(c => `<th>${c}</th>`).join("")}</tr></thead>
+    <tbody>${filas.map(f => `<tr>${f.map(c => `<td>${c}</td>`).join("")}</tr>`).join("")}</tbody></table>`;
+}
+
+// ----------------------------------------------------------------- pintar
+async function pintar() {
+  $("#sub").textContent = "Cargando…";
+  const [lb, metricas, senales, decisiones, runs, subs, champion, cursor, scores] =
+    await Promise.all([
+      pedir("leaderboard_snapshots?select=*&order=captured_at.asc"),
+      pedir("model_metrics?select=*&split=eq.production"),
+      pedir("drift_signals?select=*&order=computed_at.desc&limit=400"),
+      pedir("retrain_decisions?select=*&order=decided_at.desc&limit=8"),
+      pedir("pipeline_runs?select=*&order=run_id.desc&limit=40"),
+      pedir("submissions?select=cycle_id,is_official,attempt,http_status,submitted_at&order=submitted_at.desc"),
+      pedir("v_active_model?select=*"),
+      pedir("stream_cursor?select=*"),
+      pedir("v_prediction_scores?select=station_id,issued_at,y_pred,y_true,abs_error&order=issued_at.asc"),
+    ]);
+
+  const ult = lb[lb.length - 1] || null;
+  const glob = (fold, metric) => metricas.find(
+    m => m.fold === fold && m.station_id === null && m.metric === metric)?.value;
+  const acc24 = glob(1, "accuracy"), accAcum = glob(0, "accuracy");
+
+  // --- KPIs
+  const cobertura = ult ? ult.coverage * 100 : null;
+  $("#kpis").innerHTML = [
+    { etiqueta: "Accuracy oficial", cifra: ult ? num(ult.accuracy) + " %" : "—",
+      pie: ult ? `puesto ${ult.rank} de ${ult.participantes}` : "sin datos" },
+    { etiqueta: "Cobertura", cifra: cobertura != null ? num(cobertura, 0) + " %" : "—",
+      pie: "la guía pide ≥ 95 %" },
+    { etiqueta: "Accuracy del modelo · 24 h", cifra: acc24 != null ? num(acc24) + " %" : "—",
+      pie: `acumulada ${num(accAcum)} % · piso ${UMBRAL_ACC} %` },
+    { etiqueta: "Entregas aceptadas", cifra: String(subs.length),
+      pie: `${subs.filter(s => s.is_official).length} oficiales · intento máx. ${Math.max(0, ...subs.map(s => s.attempt || 0))}` },
+  ].map(k => `<div class="kpi"><div class="etiqueta">${k.etiqueta}</div>
+      <div class="cifra">${k.cifra}</div><div class="pie">${k.pie}</div></div>`).join("");
+
+  // --- estado operativo
+  const ultRun = (pred) => runs.find(pred);
+  const collector = ultRun(r => r.rows_ingested > 0);
+  const evaluacion = decisiones[0];
+  const gap = senales.find(s => s.signal === "ingest_gap");
+  const filas = [
+    ["Champion activo", champion[0]?.name ?? "—",
+      champion[0] ? "bien" : "critico",
+      champion[0]?.hyperparams?.version ?? ""],
+    ["Última ingesta", hace(collector?.finished_at), collector ? "bien" : "aviso",
+      `${collector?.rows_ingested ?? 0} filas`],
+    ["Última entrega", subs.length ? `ciclo ${subs[0].cycle_id.slice(-16)}` : "—",
+      subs.length ? "bien" : "critico", subs.length ? `HTTP ${subs[0].http_status}` : ""],
+    ["Última evaluación", hace(evaluacion?.decided_at), evaluacion ? "bien" : "aviso",
+      evaluacion ? evaluacion.decision : ""],
+    ["Atraso de ingesta", gap ? `${num(gap.value, 0)} min` : "—",
+      gap ? (gap.breached ? "critico" : "bien") : "aviso", gap ? `umbral ${num(gap.threshold,0)}` : ""],
+    ["Corridas fallidas", String(runs.filter(r => r.status === "failed").length),
+      runs.some(r => r.status === "failed") ? "aviso" : "bien", `de ${runs.length} recientes`],
+  ];
+  $("#operativo").innerHTML = filas.map(([q, v, e, extra]) =>
+    `<div class="fila-estado"><span class="que">${q}</span>
+      <span class="val"><span class="estado">${marca(e)}${v}</span>
+      ${extra ? `<span style="color:var(--tinta-mute)"> · ${extra}</span>` : ""}</span></div>`).join("");
+
+  // --- drift (última corrida, señales globales)
+  const ultimaEval = senales.length ? senales[0].run_id : null;
+  const globales = senales.filter(s => s.run_id === ultimaEval && s.station_id === null);
+  const porSenal = (sig) => senales.filter(s => s.run_id === ultimaEval && s.signal === sig && s.station_id);
+  $("#drift").innerHTML = globales.length ? globales.map(s => {
+    const rojas = porSenal(s.signal).filter(x => x.breached).length;
+    const tot = porSenal(s.signal).length;
+    return `<div class="fila-estado">
+      <span class="que">${s.signal}</span>
+      <span class="val"><span class="estado">${marca(s.breached ? "critico" : "bien")}
+        ${s.breached ? "roto" : "ok"}</span>
+        <span style="color:var(--tinta-mute)"> · ${num(s.value, 3)} / ${num(s.threshold, 2)}${
+          tot ? ` · ${rojas}/${tot} estaciones` : ""}</span></span></div>`;
+  }).join("") : `<p class="vacio">Sin evaluaciones todavía.</p>`;
+
+  // --- accuracy por estación (24 h)
+  const porEst = metricas
+    .filter(m => m.fold === 1 && m.station_id && m.metric === "accuracy")
+    .map(m => ({ etiqueta: m.station_id, valor: m.value }))
+    .sort((a, b) => a.valor - b.valor);
+  barras($("#estaciones"), porEst, { umbral: UMBRAL_ACC });
+  $("#estaciones-tabla").innerHTML = tabla(["Estación", "Accuracy 24 h (%)"],
+    porEst.map(f => [f.etiqueta, num(f.valor)]));
+
+  // --- accuracy por ciclo (desde la vista, agrupando por el corte del ciclo)
+  const ciclos = new Map();
+  for (const s of scores) {
+    if (!ciclos.has(s.issued_at)) ciclos.set(s.issued_at, new Map());
+    const est = ciclos.get(s.issued_at);
+    const a = est.get(s.station_id) || { err: 0, real: 0 };
+    a.err += s.abs_error; a.real += s.y_true; est.set(s.station_id, a);
+  }
+  const serieCiclos = [...ciclos.entries()].map(([iso, est]) => {
+    const accs = [...est.values()].filter(a => a.real > 0)
+      .map(a => 100 * Math.max(0, 1 - a.err / a.real));
+    return { etiqueta: new Date(iso).toISOString().slice(5, 16).replace("T", " "),
+             y: accs.reduce((p, c) => p + c, 0) / (accs.length || 1) };
+  });
+  lineas($("#ciclos"), [{ nombre: "Accuracy oficial", color: "var(--serie-1)", datos: serieCiclos }],
+    { etiquetaX: "Accuracy por ciclo", minY: Math.min(75, ...serieCiclos.map(p => p.y)) - 2, maxY: 100 });
+  $("#ciclos-tabla").innerHTML = tabla(["Corte del ciclo", "Accuracy (%)"],
+    serieCiclos.map(p => [p.etiqueta, num(p.y)]));
+
+  // --- carrera del leaderboard
+  const eje = lb.map(r => new Date(r.captured_at).toISOString().slice(5, 16).replace("T", " "));
+  const carrera = [
+    { nombre: "Nosotros", color: "var(--serie-1)",
+      datos: lb.map((r, i) => ({ etiqueta: eje[i], y: r.accuracy })) },
+    { nombre: "Líder", color: "var(--serie-2)",
+      datos: lb.map((r, i) => ({ etiqueta: eje[i], y: r.lider_accuracy })) },
+    { nombre: "Mediana", color: "var(--serie-3)",
+      datos: lb.map((r, i) => ({ etiqueta: eje[i], y: r.mediana_accuracy })) },
+  ].filter(s => s.datos.some(p => p.y != null));
+  // El gráfico primero: `lineas` reescribe innerHTML y se llevaría la leyenda
+  // por delante. Con tres series la identidad no puede quedar sólo en el color.
+  lineas($("#carrera"), carrera, { etiquetaX: "Carrera del leaderboard", minY: 0, maxY: 100 });
+  if (carrera.length > 1) leyenda($("#carrera"), carrera);
+  $("#carrera-tabla").innerHTML = tabla(["Momento", "Nosotros", "Líder", "Mediana", "Puesto"],
+    lb.map((r, i) => [eje[i], num(r.accuracy), num(r.lider_accuracy),
+                      num(r.mediana_accuracy), `${r.rank}/${r.participantes}`]));
+
+  // --- decisiones
+  const color = { keep: "bien", blocked: "aviso", retrain: "serio", rollback: "critico" };
+  $("#decisiones").innerHTML = decisiones.length ? tabla(
+    ["Cuándo", "Decisión", "Señales rotas", "Motivo"],
+    decisiones.map(d => [
+      hace(d.decided_at),
+      `<span class="estado">${marca(color[d.decision] || "aviso")}${d.decision}</span>`,
+      (d.breached_signals || []).join(", ") || "—",
+      `<span class="texto">${d.reason}</span>`,
+    ])) : `<p class="vacio">Sin decisiones todavía.</p>`;
+
+  $("#sub").textContent =
+    `Actualizado ${new Date().toLocaleTimeString("es-CO")} · ` +
+    `${subs.length} entregas · ${senales.length} señales · reloj virtual de la competencia`;
+}
+
+// ------------------------------------------------------------------ chrome
+$("#btn-tema").addEventListener("click", () => {
+  const oscuro = document.documentElement.getAttribute("data-theme") === "dark"
+    || (!document.documentElement.hasAttribute("data-theme")
+        && matchMedia("(prefers-color-scheme: dark)").matches);
+  document.documentElement.setAttribute("data-theme", oscuro ? "light" : "dark");
+});
+$("#btn-tabla").addEventListener("click", (e) => {
+  const ver = $("#estaciones-tabla").classList.toggle("oculto");
+  ["#ciclos-tabla", "#carrera-tabla"].forEach(s => $(s).classList.toggle("oculto", ver));
+  ["#estaciones", "#ciclos", "#carrera"].forEach(s => $(s).classList.toggle("oculto", !ver));
+  e.target.textContent = ver ? "Ver tablas" : "Ver gráficos";
+});
+$("#btn-recargar").addEventListener("click", () => pintar());
+
+pintar().catch(e => { $("#sub").textContent = "Error cargando: " + e.message; });
+setInterval(() => pintar().catch(() => {}), 120000);
+</script>
+</body>
+</html>
