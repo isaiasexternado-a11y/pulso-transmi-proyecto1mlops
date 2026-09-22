@@ -1,27 +1,41 @@
-# Vigilancia automática, entregas no multiplicadas.
+# Vigilancia continua, entregas no multiplicadas.
 #
-# Despierta cada 10 minutos. La ventana de entrega dura 25 minutos de cada
-# hora, así que la mayoría de las ejecuciones no hacen nada y terminan en
-# verde: eso es el comportamiento correcto, no un fallo.
+# El problema que este workflow resuelve no es "cada cuánto mirar" sino que
+# GitHub despierte. El cron de Actions se salta ejecuciones bajo carga: con
+# `*/10` disparó una sola vez en nueve horas y se perdieron ~18 ciclos.
 #
-# Despertar tres veces dentro de una ventana no significa entregar tres
-# veces. La protección contra duplicados está en el programa, que consulta
-# en Supabase si ese cycle_id ya tiene recibo para la versión del champion.
+# Por eso el reloj no es el cron. Cada corrida es un TURNO: entra, vigila la
+# API cada pocos minutos durante ~25, y encola su propio relevo. La cadena se
+# sostiene sola. El cron queda como red de seguridad, para reenganchar si la
+# cadena entera se rompe.
+#
+# Mirar muchas veces es gratis en intentos: antes de enviar, el programa
+# consulta en Supabase si ese cycle_id ya tiene recibo *aceptado*. Está
+# verificado en Actions: dos despertadas en la misma ventana dejaron
+# `attempt=1`, no 2.
 name: pulso-transmi-predict
 
 on:
   schedule:
-    - cron: "*/10 * * * *"   # GitHub interpreta el cron en UTC
-  workflow_dispatch:          # prueba manual sin tocar el cron
+    - cron: "*/30 * * * *"   # sólo red de seguridad; la cadena manda
+  workflow_dispatch:          # el relevo y las pruebas manuales entran por aquí
 
 concurrency:
   group: pulso-transmi-predict
   cancel-in-progress: false   # nunca abortar una entrega a medio camino
 
+permissions:
+  contents: read
+  actions: write              # para encolar el relevo y avisar al evaluador
+
+env:
+  TURNO_MIN: 25               # cuánto dura el turno
+  INTERVALO_SEG: 150          # cada cuánto se consulta el ciclo
+
 jobs:
   predict:
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 35       # holgura sobre TURNO_MIN, nunca al filo
     steps:
       - uses: actions/checkout@v4
 
@@ -32,10 +46,63 @@ jobs:
 
       - run: pip install -r requirements.txt
 
-      - name: Sincronizar, inferir y entregar
+      # El relevo se encola AL PRINCIPIO, no al final. Así, si este turno se
+      # cae a la mitad —runner muerto, timeout, lo que sea— el sucesor ya está
+      # esperando en la cola y arranca solo. `concurrency` impide que corran a
+      # la vez, así que esperar en cola es exactamente lo que queremos.
+      - name: Encolar el relevo
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          otros=$(gh run list --workflow predict.yml --limit 50 \
+                    --json databaseId,status \
+                    --jq "[.[] | select(.status != \"completed\")
+                               | select(.databaseId != ${{ github.run_id }})] | length")
+          if [ "$otros" -eq 0 ]; then
+            gh workflow run predict.yml --ref "${{ github.ref_name }}"
+            echo "relevo encolado"
+          else
+            # Puede ser el relevo de un turno anterior o una corrida del cron.
+            # Cualquiera de los dos sirve: lo que no queremos es multiplicar
+            # cadenas, que es lo que pasa si cada turno encola sin mirar.
+            echo "ya hay $otros corrida(s) en cola o en curso; no encolo otra"
+          fi
+
+      - name: Turno de vigilancia
         env:
           PULSO_API_BASE: ${{ vars.PULSO_API_BASE }}
           PULSO_API_KEY: ${{ secrets.PULSO_API_KEY }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
-        run: python -m pipeline.entregar
+        run: |
+          fin=$(( $(date +%s) + TURNO_MIN * 60 ))
+          intentos=0; malos=0
+          while [ "$(date +%s)" -lt "$fin" ]; do
+            intentos=$((intentos + 1))
+            if ! python -m pipeline.entregar; then
+              malos=$((malos + 1))
+              echo "::warning::intento $intentos falló"
+            fi
+            restante=$(( fin - $(date +%s) ))
+            [ "$restante" -le 0 ] && break
+            espera=$INTERVALO_SEG
+            [ "$restante" -lt "$espera" ] && espera=$restante
+            sleep "$espera"
+          done
+          echo "turno cerrado: $intentos intentos, $malos fallidos"
+          # Un fallo suelto es normal: el corte del ciclo puede no haber llegado
+          # todavía al histórico y la vuelta siguiente lo resuelve. Que fallen
+          # TODOS es otra cosa —credencial vencida, artefacto roto, API caída— y
+          # eso sí tiene que pintar el turno de rojo.
+          if [ "$intentos" -gt 0 ] && [ "$malos" -eq "$intentos" ]; then
+            echo "::error::ningún intento del turno prosperó"
+            exit 1
+          fi
+
+      # La evaluación es una rutina aparte, como pide la guía, pero no depende
+      # del cron: se la avisa desde aquí para que herede esta misma cadena.
+      - name: Avisar al evaluador
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run evaluate.yml --ref "${{ github.ref_name }}" || true

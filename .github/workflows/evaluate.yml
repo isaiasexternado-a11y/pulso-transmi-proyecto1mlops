@@ -1,0 +1,61 @@
+# Evalúa lo entregado, mide drift y decide si hay que reentrenar.
+#
+# Rutina separada de la inferencia, como pide la guía operativa: un fallo
+# midiendo no puede bloquear una entrega. Pero NO depende del cron para
+# despertar —ese es justo el mecanismo que falló— sino del aviso que le manda
+# `predict.yml` al cerrar cada turno. Así hereda la cadena que ya funciona.
+#
+# El cron queda como red de seguridad. Evaluar es idempotente y recupera
+# terreno solo: una corrida perdida no deja hueco, porque la siguiente
+# recalcula sobre toda la historia disponible.
+name: pulso-transmi-evaluate
+
+on:
+  workflow_dispatch:          # lo llama predict.yml al cerrar turno
+  schedule:
+    - cron: "40 * * * *"      # red de seguridad, una vez por hora
+
+concurrency:
+  group: pulso-transmi-evaluate
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  actions: write              # para llamar al entrenamiento cuando toque
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      - name: Medir, detectar drift y decidir
+        id: evaluar
+        env:
+          PULSO_API_BASE: ${{ vars.PULSO_API_BASE }}
+          PULSO_API_KEY: ${{ secrets.PULSO_API_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+        run: python -m pipeline.evaluar
+
+      # Reentrenar es consecuencia de una decisión registrada, nunca de un
+      # cron. `retrain_decisions` ya guardó el porqué antes de llegar aquí.
+      - name: Disparar entrenamiento si la decisión lo pide
+        if: steps.evaluar.outputs.decision == 'retrain'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh workflow view train.yml >/dev/null 2>&1; then
+            gh workflow run train.yml --ref "${{ github.ref_name }}"
+            echo "entrenamiento disparado"
+          else
+            echo "::warning::la decisión pide reentrenar pero train.yml todavía no existe"
+          fi
