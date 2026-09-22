@@ -1,0 +1,7 @@
+# Fijado contra el artefacto del champion: el pickle embebe sklearn 1.9.1 y
+# arreglos de numpy 2.x. Cargarlo con otra versión de scikit-learn produce
+# advertencias o falla silenciosamente, así que la versión es exacta.
+scikit-learn==1.9.1
+numpy>=2.0,<3
+pandas>=2.2,<3
+joblib>=1.4
