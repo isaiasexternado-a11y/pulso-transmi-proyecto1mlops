@@ -107,6 +107,22 @@ def cargar(origen: str | None = None) -> tuple[pd.DataFrame, pd.DataFrame, pd.Da
                       values="demand").sort_index()
     ctx = ctx.set_index("observed_at").sort_index().reindex(ancha.index)
 
+    # La API publica observaciones nuevas cada ciclo pero dejó el contexto
+    # congelado al final del histórico semilla. Sin relleno, las cinco
+    # features de contexto llegan como NaN y el modelo no puede predecir.
+    #
+    # Se arrastra el último valor conocido. Es un parche consciente y usa
+    # sólo información del pasado, así que no hay fuga temporal, pero el
+    # valor envejece: un "pronóstico" de lluvia de hace horas vale poco.
+    # Mientras el desfase crezca, hay que medir cuánto aporta el contexto
+    # y considerar un champion que no dependa de él.
+    sin_contexto = int(ctx.isna().all(axis=1).sum())
+    if sin_contexto:
+        ultimo = ctx.dropna(how="all").index.max()
+        print(f"[data] contexto congelado en {ultimo}: {sin_contexto} periodos "
+              f"sin clima. Se arrastra el último valor conocido.", file=sys.stderr)
+        ctx = ctx.ffill()
+
     esperado = pd.date_range(ancha.index[0], ancha.index[-1], freq="15min")
     if not ancha.index.equals(esperado):
         faltan = esperado.difference(ancha.index)
