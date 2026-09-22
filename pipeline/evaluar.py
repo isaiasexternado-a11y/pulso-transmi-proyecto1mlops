@@ -299,6 +299,58 @@ def senales(run_id: int, scores: pd.DataFrame, obs: pd.DataFrame,
     return filas
 
 
+# ----------------------------------------------------------------- leaderboard
+
+def ingestar_leaderboard(sb: Supabase, base: str, key: str) -> None:
+    """Guarda la posición propia y los agregados del pelotón.
+
+    El dashboard no puede pedirle esto a la API: haría falta PULSO_API_KEY y
+    esa llave no puede estar en variables públicas de Vercel. La trae quien ya
+    la tiene —este proceso, que corre en Actions— y la deja como dato derivado.
+
+    No se guardan nombres de terceros. La API los devuelve, pero el dashboard
+    es una página pública y republicar ahí el puntaje de los compañeros es otra
+    cosa que verlo dentro de la plataforma del curso. Con nuestra fila y los
+    agregados alcanza para el panel de "carrera".
+
+    Un fallo aquí no puede tumbar la evaluación: el leaderboard es un adorno
+    informativo, las métricas y el drift no.
+    """
+    try:
+        yo = api_get(base, key, "me")["display_name"]
+        datos = api_get(base, key, "leaderboard").get("data", [])
+    except Exception as e:
+        print(f"[leaderboard] no se pudo leer ({type(e).__name__}); se continúa")
+        return
+    if not datos:
+        return
+
+    mio = next((r for r in datos if r.get("display_name") == yo), None)
+    if mio is None:
+        print("[leaderboard] todavía no aparecemos en la tabla")
+        return
+
+    accs = sorted(r["accuracy"] for r in datos)
+    mediana = (accs[len(accs) // 2] if len(accs) % 2
+               else (accs[len(accs) // 2 - 1] + accs[len(accs) // 2]) / 2)
+    lider = min(datos, key=lambda r: r["rank"])
+
+    sb.upsert("leaderboard_snapshots", [{
+        "captured_at": mio.get("calculated_at"),
+        "rank": mio["rank"],
+        "participantes": len(datos),
+        "accuracy": mio["accuracy"],
+        "coverage": mio["coverage"],
+        "raw_wape": mio.get("raw_wape"),
+        "accuracy_at_20": mio.get("accuracy_at_20"),
+        "lider_accuracy": lider["accuracy"],
+        "lider_coverage": lider["coverage"],
+        "mediana_accuracy": mediana,
+    }], conflicto="captured_at")
+    print(f"leaderboard: puesto {mio['rank']}/{len(datos)}  "
+          f"accuracy {mio['accuracy']:.2f}  cobertura {mio['coverage']:.2f}")
+
+
 # --------------------------------------------------------------------- decisión
 
 def decidir(sb: Supabase, run_id: int, filas_senales: list[dict],
@@ -445,6 +497,7 @@ def main(dry_run: bool) -> None:
             sb.upsert("drift_signals", filas_s[i:i + 500],
                       conflicto="run_id,station_id,signal")
         sb.upsert("retrain_decisions", [decision], conflicto="run_id")
+        ingestar_leaderboard(sb, base, key)
         cerrar_run(sb, run_id, "success",
                    cutoff_at=scores["target_at"].max().isoformat())
         print(f"\nguardado: run_id {run_id}  ·  {len(filas_m)} métricas  ·  "
