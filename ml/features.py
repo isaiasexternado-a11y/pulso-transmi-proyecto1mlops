@@ -22,6 +22,16 @@ COLS_NUM = [
     "rain_origen", "temp_origen", "evento_origen",
 ]
 
+# La API dejó de publicar contexto el 2026-09-08 23:45 y `data.cargar` arrastra
+# el último valor conocido para que el modelo pueda seguir prediciendo. Es un
+# parche honesto, pero el valor envejece: a estas alturas son decenas de
+# periodos con el mismo "pronóstico" de lluvia. Un modelo que parte por esas
+# cinco variables está partiendo por una constante disfrazada de información,
+# y bajo drift eso es peor que ignorarlas.
+COLS_CONTEXTO = ["rain_forecast", "temp_forecast",
+                 "rain_origen", "temp_origen", "evento_origen"]
+COLS_SIN_CONTEXTO = [c for c in COLS_NUM if c not in COLS_CONTEXTO]
+
 
 def construir(ancha: pd.DataFrame, ctx: pd.DataFrame,
               origenes: np.ndarray, horizontes=(1, 2, 3, 4)) -> pd.DataFrame:

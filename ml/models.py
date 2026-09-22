@@ -91,16 +91,17 @@ class GBM(Modelo):
     """Gradient boosting sobre las variables de `features.COLS_NUM`."""
     nombre = "hist gradient boosting"
 
-    def __init__(self, nombre=None, **kw):
+    def __init__(self, nombre=None, cols=None, **kw):
         if nombre:
             self.nombre = nombre
+        self.cols = cols        # None = COLS_NUM completo
         self.kw = {"max_iter": 400, "learning_rate": 0.06,
                    "max_depth": None, "random_state": 20260916, **kw}
 
     def fit(self, train):
         from sklearn.ensemble import HistGradientBoostingRegressor
         from features import COLS_NUM
-        self.cols_ = COLS_NUM
+        self.cols_ = list(self.cols) if self.cols else COLS_NUM
         self.est_ = HistGradientBoostingRegressor(**self.kw)
         self.est_.fit(train[self.cols_], train["y"])
         return self
@@ -120,10 +121,11 @@ class GBMconPerfil(Modelo):
     """
     nombre = "gbm + perfil (mae)"
 
-    def __init__(self, nombre=None, por_estacion=False, **kw):
+    def __init__(self, nombre=None, por_estacion=False, cols=None, **kw):
         if nombre:
             self.nombre = nombre
         self.por_estacion = por_estacion
+        self.cols = cols        # None = COLS_NUM completo
         self.kw = {"max_iter": 500, "learning_rate": 0.06,
                    "loss": "absolute_error", "random_state": 20260916, **kw}
 
@@ -137,7 +139,14 @@ class GBMconPerfil(Modelo):
         self.claves_ = ["station_id", "slot", "es_finde"]
         self.tabla_ = train.groupby(self.claves_)["y"].mean().rename("p")
         self.global_ = float(train["y"].mean())
-        self.cols_ = COLS_NUM + ["perfil"]
+        # `cols_` es atributo de instancia, no de clase, y ahí está la gracia:
+        # al deserializar se restaura tal cual, así que un artefacto entrenado
+        # con menos columnas predice bien aunque el `main` que lo carga tenga
+        # una definición de clase más vieja. Por eso la lista de features se
+        # parametriza en vez de crear una clase nueva: una clase que main no
+        # conoce rompe la inferencia; unos atributos distintos, no.
+        base = list(self.cols) if getattr(self, "cols", None) else COLS_NUM
+        self.cols_ = base + ["perfil"]
 
         t = self._con_perfil(train)
         if self.por_estacion:
