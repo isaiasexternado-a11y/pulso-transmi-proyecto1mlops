@@ -1,0 +1,71 @@
+{
+  "version": "20260918T202534Z",
+  "name": "gbm + perfil (mae)",
+  "kind": "ml",
+  "algorithm": "GBMconPerfil",
+  "feature_set": "fs-v1",
+  "feature_list": [
+    "horizon",
+    "lag0",
+    "lag1",
+    "lag2",
+    "lag3",
+    "lag4",
+    "lag_dia",
+    "lag_sem",
+    "roll1h",
+    "roll24h",
+    "roll7d",
+    "slot",
+    "dow",
+    "es_finde",
+    "rain_forecast",
+    "temp_forecast",
+    "rain_origen",
+    "temp_origen",
+    "evento_origen",
+    "perfil"
+  ],
+  "train_start": "2026-07-26 00:00:00-05:00",
+  "train_end": "2026-09-08 23:45:00-05:00",
+  "n_train_rows": 43728,
+  "git_commit": "ea98bac9a69883f32f00efb5306258f40204ebfe",
+  "artifact_uri": "ml/artefactos/champion_20260918T202534Z.joblib",
+  "artifact_sha256": "5e14a9b138730ba0457e8a74f4100912e4618bedda5d315d932b3960ba7231d6",
+  "artifact_bytes": 322574,
+  "sklearn": "1.9.1",
+  "status": "candidate",
+  "validacion": {
+    "accuracy": 88.15,
+    "peor_estacion": 86.91,
+    "mejor_estacion": 89.19,
+    "mae": 42.79,
+    "sesgo": -7.07,
+    "por_horizonte": {
+      "1": 88.1,
+      "2": 88.4,
+      "3": 88.07,
+      "4": 88.04
+    },
+    "por_estacion": {
+      "02300": 86.91,
+      "03000": 88.59,
+      "05000": 88.85,
+      "05100": 89.19,
+      "06000": 87.77,
+      "06111": 88.07,
+      "07105": 87.97,
+      "07107": 88.58,
+      "07111": 88.67,
+      "09000": 87.82,
+      "09122": 88.42,
+      "10009": 86.99
+    },
+    "n": 8016
+  },
+  "inferencia_prueba": {
+    "n": 48,
+    "ok": true
+  },
+  "created_at": "2026-09-18T20:25:34.744730+00:00"
+}

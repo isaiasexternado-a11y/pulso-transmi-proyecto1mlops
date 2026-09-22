@@ -1,7 +1,9 @@
 # Pulso TransMi — contexto del proyecto
 
 Reto MLOps del curso de Ciencia de Datos, Universidad Externado (docente: Julián Zuluaga).
-Guía metodológica oficial v1.0: [`docs/pulso-transmi-guia-metodologica-v1.0.pdf`](docs/pulso-transmi-guia-metodologica-v1.0.pdf) — leerla antes de decisiones de diseño.
+Guías oficiales (no se versionan; se bajan de [uexternadojz/pulso-transmi](https://github.com/uexternadojz/pulso-transmi) en `docs/guides/`):
+- Metodológica v1.0 — `docs/pulso-transmi-guia-metodologica-v1.0.pdf`
+- **Operativa v2.0** (2026-09-21) — `docs/pulso-transmi-guia-operativa-v2.0.pdf` y su `.md`. Manda sobre submissions y Actions.
 
 ## El reto
 
@@ -22,11 +24,25 @@ El estado vive en Supabase, **nunca** en el disco del runner.
 
 ## Reloj operativo
 
-- Granularidad del dato: **15 min** · Publicación de datos: **30 min** · Ciclo de predicción: **60 min**
-- Ventana de entrega: **25 min** desde que abre el ciclo · máximo **3 intentos válidos** por ciclo
+- Granularidad del dato: **15 min virtuales** · Publicación: **2 timestamps cada 30 min reales**
+- **Un ciclo por hora real.** Los ticks de datos son cada 30 min, pero sólo uno de cada dos abre ciclo.
+- Ventana de entrega: **25 min** desde que abre · máximo **3 intentos *aceptados*** por ciclo
 - Cada ciclo pide **48 valores** = 12 estaciones × 4 horizontes (`+15`, `+30`, `+45`, `+60`)
 - Un solo envío cubre los 4 horizontes. No son 4 submissions.
 - La API acepta el batch **completo** o lo rechaza completo.
+- **Un rechazo por ciclo, corte, esquema o targets no consume intento**: los guardrails corren
+  antes de contar el intento. Se corrige la causa y se reintenta dentro de la misma ventana.
+- El último intento válido reemplaza al anterior como entrega oficial.
+
+### Cómo se automatiza
+
+El cron **no** calcula cuándo entregar: sólo despierta. Actions corre **cada 10 minutos**, consulta
+si hay ciclo abierto y actúa sólo si corresponde. `404 no_open_cycle` termina en verde.
+Despertar tres veces en una ventana no es entregar tres veces: antes de enviar se consulta en
+Supabase si ese `cycle_id` ya tiene recibo para la versión del champion.
+
+Dos workflows separados: inferencia (frecuente, liviana) y entrenamiento (deliberado). Un fallo
+entrenando no puede bloquear una entrega.
 
 ## Métrica
 
@@ -63,8 +79,13 @@ Para que la comparación signifique algo, todos los candidatos se miden igual:
 
 ## Estado actual
 
-Fase actual: la competencia **no ha empezado** (el reloj responde `waiting`, el stream incremental está vacío).
-Histórico fijo disponible: 45 días, 12 estaciones, 51.840 observaciones (2026-07-26 → 2026-09-08).
+**La competencia está corriendo** desde el 2026-09-21 15:30Z (reloj `official-20260921`, estado `running`).
+El histórico semilla (45 días, 51.840 obs, 2026-07-26 → 2026-09-08) se extiende ahora por el stream.
+
+- El collector ingesta el stream a Supabase de forma idempotente, con cursor en `stream_cursor`.
+- El champion está en Supabase Storage (`modelos/champion/`) y registrado en `models` con `status=active`.
+- **El contexto de la API está congelado** en 2026-09-08 23:45-05 mientras las observaciones avanzan.
+  `ml/data.py` arrastra el último valor conocido. Pendiente: medir cuánto aporta el contexto.
 
 - `pulso-transmi-sdk/` — SDK del profesor con los datos semilla (`data/*.csv`)
 - `eda/` — análisis exploratorio. Mejor baseline: naive s-1 (misma hora, semana pasada), accuracy 83,11 %
@@ -74,9 +95,23 @@ Histórico fijo disponible: 45 días, 12 estaciones, 51.840 observaciones (2026-
 
 ## Pendientes conocidos
 
-1. **Modelar ciclos y submissions** — faltan `cycle_id`, `submission_id` y llave de idempotencia.
-   Sin eso, los hasta 3 intentos de un mismo ciclo cuentan el mismo target varias veces en el accuracy.
-2. Collector incremental, workflows de GitHub Actions, modelo champion, submissions.
+1. Workflow de entrenamiento y promoción, separado del de inferencia.
+2. Evaluación, drift y decisión de reentrenamiento (`model_metrics`, `drift_signals`, `retrain_decisions` siguen vacías).
+3. El champion (88,15 %) apenas supera al baseline de perfil (88,11 %) y depende de 5 features de
+   contexto que ya no se publican. Vale la pena un candidato sin contexto.
+4. Dashboard en Vercel (bono).
+
+### Vocabularios que impone el esquema
+
+Antes de insertar, consultar los `CHECK`: el esquema ya define los valores válidos y no coinciden
+con los nombres obvios.
+
+| Tabla | Columna | Valores |
+|---|---|---|
+| `pipeline_runs` | `trigger` | `schedule` · `manual` · `retry` |
+| `pipeline_runs` | `status` | `running` · `success` · `failed` · `partial` |
+| `models` | `status` | `candidate` · `active` · `retired` · `rejected` (el champion es `active`) |
+| `models` | `kind` | `baseline` · `ml` |
 
 RLS ya está activo (solo lectura para `anon`, escritura con `service_role`) y el repositorio
 público del equipo ya existe: `isaiasexternado-a11y/pulso-transmi-proyecto1mlops`.

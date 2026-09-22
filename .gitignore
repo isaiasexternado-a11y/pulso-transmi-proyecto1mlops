@@ -1,8 +1,14 @@
 # El SDK del profesor es un repositorio aparte, no se vendoriza aquí
 pulso-transmi-sdk/
 
-# Material académico del docente: no se redistribuye en un repo público
+# Material académico del docente: no se redistribuye en un repo público.
+# Se descarga de https://github.com/uexternadojz/pulso-transmi (docs/guides/).
 docs/*.pdf
+docs/pulso-transmi-guia-*.md
+
+# Los binarios de los modelos van a Supabase Storage, no a git.
+# La ficha .json de cada versión sí se versiona: es el registro del modelo.
+ml/artefactos/*.joblib
 
 # Entornos y artefactos
 .venv/

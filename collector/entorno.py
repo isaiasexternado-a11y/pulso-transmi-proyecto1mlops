@@ -93,3 +93,20 @@ class Supabase:
     def actualizar(self, tabla: str, filtro: dict, cambios: dict) -> None:
         self._pedir("PATCH", tabla, params=filtro, cuerpo=cambios,
                     prefer="return=minimal")
+
+    def descargar(self, bucket: str, ruta: str) -> bytes:
+        """Baja un objeto de Storage.
+
+        Storage exige la cabecera `apikey` además del Bearer: intenta decodificar
+        el Authorization como JWT y las llaves nuevas (sb_secret_...) no lo son.
+        """
+        req = urllib.request.Request(
+            f"{self.url}/storage/v1/object/{bucket}/{ruta}",
+            headers={"apikey": self.key, "Authorization": f"Bearer {self.key}"})
+        try:
+            with urllib.request.urlopen(req, timeout=120) as r:
+                return r.read()
+        except urllib.error.HTTPError as e:
+            detalle = e.read().decode(errors="replace")[:300]
+            raise RuntimeError(
+                f"Storage GET {bucket}/{ruta} -> {e.code}: {detalle}") from None

@@ -1,0 +1,41 @@
+# Vigilancia automática, entregas no multiplicadas.
+#
+# Despierta cada 10 minutos. La ventana de entrega dura 25 minutos de cada
+# hora, así que la mayoría de las ejecuciones no hacen nada y terminan en
+# verde: eso es el comportamiento correcto, no un fallo.
+#
+# Despertar tres veces dentro de una ventana no significa entregar tres
+# veces. La protección contra duplicados está en el programa, que consulta
+# en Supabase si ese cycle_id ya tiene recibo para la versión del champion.
+name: pulso-transmi-predict
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"   # GitHub interpreta el cron en UTC
+  workflow_dispatch:          # prueba manual sin tocar el cron
+
+concurrency:
+  group: pulso-transmi-predict
+  cancel-in-progress: false   # nunca abortar una entrega a medio camino
+
+jobs:
+  predict:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      - name: Sincronizar, inferir y entregar
+        env:
+          PULSO_API_BASE: ${{ vars.PULSO_API_BASE }}
+          PULSO_API_KEY: ${{ secrets.PULSO_API_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+        run: python -m pipeline.entregar
