@@ -172,15 +172,18 @@ def guardar_recibo(sb: Supabase, ciclo: dict, ficha: dict, llave: str,
         "run_id": run_id,
     }], conflicto="submission_id")
 
-    emitido = datetime.now(timezone.utc).isoformat()
+    # issued_at no es "ahora": el esquema exige
+    #   target_at = issued_at + horizon * 15min
+    # así que es el instante desde el que se proyecta, o sea el corte.
     origen = ciclo["data_cutoff"]
+    emitido = origen
     sb.upsert("predictions", [{
         "run_id": run_id,
         "station_id": p["station_id"],
         "target_at": p["target_at"],
         "model_id": ficha["model_id"],
         "issued_at": emitido,
-        "horizon": t["horizon_minutes"],
+        "horizon": t["horizon_minutes"] // 15,   # el esquema los cuenta en pasos, 1..4
         "y_pred": p["value"],
         "submitted": respuesta["status"] in (200, 201),
         "submit_response": {"http": respuesta["status"]},
