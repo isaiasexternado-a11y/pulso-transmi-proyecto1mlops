@@ -1,0 +1,77 @@
+# Entrenamiento y promoción. Deliberado, no reflejo.
+#
+# Separado de la inferencia a propósito: un fallo entrenando no puede bloquear
+# una entrega. Lo dispara `evaluate.yml` cuando `retrain_decisions` dice
+# `retrain`, o una programación diaria, o una mano humana.
+#
+# Dos jobs y dos ramas, y eso es el punto:
+#
+#   entrenar  -> hace checkout de `experimentos-ml`, donde vive el código de ML
+#   promover  -> hace checkout de `main`, y carga el candidato con el MISMO
+#                código que usa la inferencia en producción
+#
+# Verificar el artefacto con el cargador de la rama que lo entrenó probaría la
+# cosa equivocada. El pickle viaja entre ramas; quien lo abre todos los días es
+# `main`. Si no abre ahí, no sirve, por buenas que sean sus métricas.
+name: pulso-transmi-train
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "15 6 * * *"    # un entrenamiento diario, aunque no haya drift
+
+concurrency:
+  group: pulso-transmi-train
+  cancel-in-progress: false   # nunca abortar un entrenamiento a medias
+
+permissions:
+  contents: read
+
+jobs:
+  entrenar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    outputs:
+      model_id: ${{ steps.entrenar.outputs.model_id }}
+      version: ${{ steps.entrenar.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: experimentos-ml     # el trabajo de ML no vive en main
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      - name: Entrenar candidatos y comparar temporalmente
+        id: entrenar
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+        run: python -m ml.entrenar
+
+  promover:
+    needs: entrenar
+    # Sin candidato no hay nada que promover, y eso es un final normal:
+    # significa que ninguno le ganó al champion con margen suficiente.
+    if: needs.entrenar.outputs.model_id != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4   # main: el código que corre en producción
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      - name: Verificar con el código de producción y promover
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+        run: python -m pipeline.promover --model-id "${{ needs.entrenar.outputs.model_id }}"

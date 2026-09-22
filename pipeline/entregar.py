@@ -72,14 +72,13 @@ def registrar_ciclo(sb: Supabase, ciclo: dict) -> None:
 
 # ------------------------------------------------------------------ el modelo
 
-def champion(sb: Supabase) -> tuple[object, dict]:
-    """Carga la versión promovida, nunca "el último archivo entrenado"."""
-    filas = sb.seleccionar("models", select="*", status="eq.active",
-                           order="activated_at.desc", limit=1)
-    if not filas:
-        raise SystemExit("no hay modelo con status=active en la tabla models")
-    ficha = filas[0]
+def cargar_artefacto(sb: Supabase, ficha: dict) -> object:
+    """Baja, verifica y deserializa el artefacto de una ficha de `models`.
 
+    Es el ÚNICO camino por el que un modelo entra en producción. La promoción
+    lo reusa a propósito: verificar un candidato con un cargador distinto al
+    de la inferencia probaría la cosa equivocada.
+    """
     uri = ficha["artifact_uri"]
     if not uri.startswith(f"supabase://{BUCKET}/"):
         raise SystemExit(f"artifact_uri inesperado: {uri}")
@@ -95,7 +94,17 @@ def champion(sb: Supabase) -> tuple[object, dict]:
     # lo importó empaquetar.py al crearlo. Sin esto, joblib no lo encuentra.
     import joblib
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "ml"))
-    return joblib.load(io.BytesIO(crudo))["modelo"], ficha
+    return joblib.load(io.BytesIO(crudo))["modelo"]
+
+
+def champion(sb: Supabase) -> tuple[object, dict]:
+    """Carga la versión promovida, nunca "el último archivo entrenado"."""
+    filas = sb.seleccionar("models", select="*", status="eq.active",
+                           order="activated_at.desc", limit=1)
+    if not filas:
+        raise SystemExit("no hay modelo con status=active en la tabla models")
+    ficha = filas[0]
+    return cargar_artefacto(sb, ficha), ficha
 
 
 def ya_entregado(sb: Supabase, cycle_id: str, version: str) -> dict | None:
