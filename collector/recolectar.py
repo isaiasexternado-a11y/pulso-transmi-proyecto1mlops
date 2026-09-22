@@ -19,6 +19,7 @@ Uso:
 from __future__ import annotations
 
 import argparse
+import base64
 import json
 import os
 import subprocess
@@ -49,19 +50,47 @@ def api_get(base: str, key: str, ruta: str, **params) -> dict:
         return json.loads(r.read() or b"{}")
 
 
+def cursor_de(fila: dict) -> str:
+    """Reconstruye el cursor opaco del stream a partir de una fila.
+
+    Hace falta porque la API devuelve `next_cursor` nulo en toda página
+    parcial, y en régimen todas lo son: son 48 filas por ciclo, nunca 500.
+    Sin esto el cursor se quedaría clavado en la última página llena y cada
+    corrida releería el stream entero, que sólo crece.
+
+    El formato se verifica contra un `next_cursor` real cada vez que la API
+    da uno (ver `paginar`). Si el profesor lo cambia, la corrida falla de
+    frente en lugar de seguir leyendo desde el lugar equivocado.
+    """
+    partes = [fila["released_at"], fila["observed_at"], fila["station_id"]]
+    crudo = json.dumps([p.replace("Z", "+00:00") for p in partes],
+                       separators=(",", ":")).encode()
+    return base64.urlsafe_b64encode(crudo).decode().rstrip("=")
+
+
 def paginar(base: str, key: str, ruta: str, cursor: str | None, **extra):
     """Recorre un endpoint paginado y devuelve (filas, último cursor)."""
+    es_stream = ruta.startswith("stream/")
     filas, ultimo = [], cursor
     while True:
         pagina = api_get(base, key, ruta, cursor=ultimo, limit=LOTE, **extra)
         lote = pagina.get("data", [])
-        filas.extend(lote)
-        siguiente = pagina.get("next_cursor")
-        if not lote or not siguiente or len(lote) < LOTE:
-            if siguiente and lote:
-                ultimo = siguiente
+        if not lote:
             break
-        ultimo = siguiente
+        filas.extend(lote)
+
+        dado = pagina.get("next_cursor")
+        if dado:
+            if es_stream and cursor_de(lote[-1]) != dado.rstrip("="):
+                raise RuntimeError(
+                    "el formato del cursor del stream cambió; hay que revisar "
+                    "cursor_de() antes de seguir ingiriendo")
+            ultimo = dado
+        elif es_stream:
+            ultimo = cursor_de(lote[-1])
+
+        if len(lote) < LOTE:
+            break
     return filas, ultimo
 
 
@@ -75,13 +104,20 @@ def git(*args: str) -> str:
         return ""
 
 
+# El esquema restringe el vocabulario (pipeline_runs_trigger_check): el
+# evento de GitHub no entra crudo, se traduce.
+TRIGGER = {"schedule": "schedule", "workflow_dispatch": "manual",
+           "workflow_run": "retry", "repository_dispatch": "manual"}
+
+
 def procedencia() -> dict:
     """De dónde viene esta corrida. En Actions lo dice el propio runner."""
     en_actions = os.environ.get("GITHUB_ACTIONS") == "true"
     repo = os.environ.get("GITHUB_REPOSITORY", "")
     run = os.environ.get("GITHUB_RUN_ID", "")
+    evento = os.environ.get("GITHUB_EVENT_NAME", "")
     return {
-        "trigger": os.environ.get("GITHUB_EVENT_NAME", "local") if en_actions else "local",
+        "trigger": TRIGGER.get(evento, "manual") if en_actions else "manual",
         "git_commit": os.environ.get("GITHUB_SHA") or git("rev-parse", "HEAD") or "desconocido",
         "git_ref": os.environ.get("GITHUB_REF") or git("rev-parse", "--abbrev-ref", "HEAD") or None,
         "run_url": f"https://github.com/{repo}/actions/runs/{run}" if en_actions and repo and run else None,
@@ -123,7 +159,7 @@ def main(dry_run: bool) -> None:
     print(f"cursor previo : {(cursor or '(ninguno: primera corrida)')[:48]}")
 
     obs, cursor_nuevo = paginar(base, key, "stream/observations", cursor)
-    print(f"observaciones : {len(obs)} filas nuevas en el stream")
+    print(f"observaciones : {len(obs)} filas leídas del stream")
 
     # El contexto no tiene stream propio: se pide desde el último minuto que
     # ya tenemos en la base hacia adelante.
@@ -174,7 +210,7 @@ def main(dry_run: bool) -> None:
 
         corte = max(o["observed_at"] for o in obs) if obs else None
         sb.actualizar("pipeline_runs", {"run_id": f"eq.{run_id}"}, {
-            "status": "ok",
+            "status": "success",
             "finished_at": datetime.now(timezone.utc).isoformat(),
             "rows_ingested": len(obs) + len(ctx),
             "cutoff_at": corte,
@@ -184,7 +220,7 @@ def main(dry_run: bool) -> None:
 
     except Exception as e:
         sb.actualizar("pipeline_runs", {"run_id": f"eq.{run_id}"}, {
-            "status": "error",
+            "status": "failed",
             "finished_at": datetime.now(timezone.utc).isoformat(),
             "error_stage": "upsert",
             "error_message": str(e)[:1000],
