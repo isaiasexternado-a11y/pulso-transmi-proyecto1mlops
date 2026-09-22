@@ -25,7 +25,10 @@ PERIODOS_DIA = 96      # 24 h / 15 min
 PERIODOS_SEMANA = 672  # 7 d
 
 TZ = "America/Bogota"
-PAGINA = 10_000        # PostgREST pagina; esto acota el número de requests
+# PostgREST recorta toda respuesta a 1000 filas (max-rows del servidor). Pedir
+# más no trae más: sólo hace creer que la página estaba incompleta y corta la
+# lectura antes de tiempo.
+PAGINA = 1000
 
 
 def data_dir() -> str:
@@ -50,9 +53,9 @@ def _traer_todo(sb, tabla: str, columnas: str, orden: str) -> list[dict]:
         lote = sb.seleccionar(tabla, select=columnas, order=orden,
                               limit=PAGINA, offset=desplazamiento)
         filas.extend(lote)
-        if len(lote) < PAGINA:
+        if not lote or len(lote) < PAGINA:
             return filas
-        desplazamiento += PAGINA
+        desplazamiento += len(lote)
 
 
 def _leer_supabase() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
