@@ -376,9 +376,17 @@ def decidir(sb: Supabase, run_id: int, filas_senales: list[dict],
 
     nuevas = int((obs["observed_at"] > pd.Timestamp(ficha["train_end"])).sum())
 
+    # El enfriamiento se busca por la última fila QUE TENGA uno, no por la
+    # última fila a secas. Sólo las decisiones `retrain` escriben
+    # `cooldown_until`; si se mira la más reciente sin filtrar, la primera
+    # `blocked` que caiga encima —con el campo en NULL— borra la memoria del
+    # enfriamiento y habilita un reentrenamiento a los pocos minutos. Pasó:
+    # run 18 enfrió hasta las 20:29, run 22 bloqueó bien, y run 23 volvió a
+    # decidir `retrain` a los nueve minutos.
     ult = sb.seleccionar("retrain_decisions",
                          select="decision,cooldown_until,decided_at",
-                         order="decided_at.desc", limit=1)
+                         cooldown_until="not.is.null",
+                         order="cooldown_until.desc", limit=1)
     ahora_dt = pd.Timestamp(datetime.now(timezone.utc))
     enfriando = bool(ult and ult[0]["cooldown_until"]
                      and pd.Timestamp(ult[0]["cooldown_until"]) > ahora_dt)
