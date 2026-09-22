@@ -1,8 +1,9 @@
 """Despierta, consulta el ciclo vigente, infiere y entrega.
 
-Lo ejecuta GitHub Actions cada 10 minutos. La mayoría de las veces no hace
-nada, y eso es correcto: la ventana dura 25 minutos de cada hora y despertar
-tres veces dentro de ella no significa entregar tres veces.
+Lo ejecuta GitHub Actions en bucle, cada pocos minutos durante todo el turno.
+La mayoría de las veces no hace nada, y eso es correcto: la ventana dura 25
+minutos de cada hora y mirar veinte veces dentro de ella no significa entregar
+veinte veces. Quien impide el duplicado es `ya_entregado`, no el reloj.
 
 Termina en verde (código 0) cuando no hay ciclo abierto o cuando ese ciclo ya
 tiene recibo. Sólo falla cuando algo está realmente mal: credencial inválida,
@@ -71,14 +72,13 @@ def registrar_ciclo(sb: Supabase, ciclo: dict) -> None:
 
 # ------------------------------------------------------------------ el modelo
 
-def champion(sb: Supabase) -> tuple[object, dict]:
-    """Carga la versión promovida, nunca "el último archivo entrenado"."""
-    filas = sb.seleccionar("models", select="*", status="eq.active",
-                           order="activated_at.desc", limit=1)
-    if not filas:
-        raise SystemExit("no hay modelo con status=active en la tabla models")
-    ficha = filas[0]
+def cargar_artefacto(sb: Supabase, ficha: dict) -> object:
+    """Baja, verifica y deserializa el artefacto de una ficha de `models`.
 
+    Es el ÚNICO camino por el que un modelo entra en producción. La promoción
+    lo reusa a propósito: verificar un candidato con un cargador distinto al
+    de la inferencia probaría la cosa equivocada.
+    """
     uri = ficha["artifact_uri"]
     if not uri.startswith(f"supabase://{BUCKET}/"):
         raise SystemExit(f"artifact_uri inesperado: {uri}")
@@ -94,13 +94,32 @@ def champion(sb: Supabase) -> tuple[object, dict]:
     # lo importó empaquetar.py al crearlo. Sin esto, joblib no lo encuentra.
     import joblib
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "ml"))
-    return joblib.load(io.BytesIO(crudo))["modelo"], ficha
+    return joblib.load(io.BytesIO(crudo))["modelo"]
+
+
+def champion(sb: Supabase) -> tuple[object, dict]:
+    """Carga la versión promovida, nunca "el último archivo entrenado"."""
+    filas = sb.seleccionar("models", select="*", status="eq.active",
+                           order="activated_at.desc", limit=1)
+    if not filas:
+        raise SystemExit("no hay modelo con status=active en la tabla models")
+    ficha = filas[0]
+    return cargar_artefacto(sb, ficha), ficha
 
 
 def ya_entregado(sb: Supabase, cycle_id: str, version: str) -> dict | None:
+    """Sólo una entrega *aceptada* cierra el ciclo.
+
+    Un 409 o un 422 también dejan recibo —queda constancia de que se intentó—
+    pero no consumen intento, así que no pueden bloquear el reintento dentro
+    de la misma ventana. Filtrar por `http_status` es lo que separa "ya
+    entregué" de "ya fallé", y sin ese filtro un rechazo corregible costaba
+    la ventana entera.
+    """
     filas = sb.seleccionar("submissions", select="submission_id,http_status",
                            cycle_id=f"eq.{cycle_id}",
-                           model_version=f"eq.{version}", limit=1)
+                           model_version=f"eq.{version}",
+                           http_status="in.(200,201)", limit=1)
     return filas[0] if filas else None
 
 
@@ -127,6 +146,18 @@ def validar(predicciones: list[dict], ciclo: dict) -> None:
             raise SystemExit(f"valor no finito en {p['station_id']} {p['target_at']}")
         if v < 0:
             raise SystemExit(f"valor negativo en {p['station_id']} {p['target_at']}")
+
+    # No entregues lo que después no vas a poder guardar. `predictions.horizon`
+    # se cuenta en pasos de 15 min (1..4) y el esquema lo hace cumplir: si el
+    # horizonte viene raro, esto revienta *antes* del POST. El orden importa —
+    # ya pasó una vez al revés (HTTP 201 y luego error al guardar), y el ciclo
+    # quedó entregado pero inevaluable para siempre.
+    for t in ciclo["targets"]:
+        minutos = t["horizon_minutes"]
+        if minutos % 15 or not 1 <= minutos // 15 <= 4:
+            raise SystemExit(
+                f"horizonte fuera de contrato: {minutos} min en "
+                f"{t['station_id']} {t['target_at']} (se esperan 15, 30, 45 o 60)")
 
 
 def llave_estable(cycle_id: str, version: str, predicciones: list[dict]) -> str:

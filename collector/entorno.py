@@ -94,6 +94,27 @@ class Supabase:
         self._pedir("PATCH", tabla, params=filtro, cuerpo=cambios,
                     prefer="return=minimal")
 
+    def subir(self, bucket: str, ruta: str, datos: bytes) -> None:
+        """Sube un objeto a Storage, pisando si ya existe.
+
+        `x-upsert` hace la operación idempotente: reintentar una promoción a
+        medias no falla por "el archivo ya está". El nombre lleva versión, así
+        que pisar sólo puede ocurrir reintentando la misma versión.
+        """
+        req = urllib.request.Request(
+            f"{self.url}/storage/v1/object/{bucket}/{ruta}",
+            data=datos, method="POST",
+            headers={"apikey": self.key, "Authorization": f"Bearer {self.key}",
+                     "Content-Type": "application/octet-stream",
+                     "x-upsert": "true"})
+        try:
+            with urllib.request.urlopen(req, timeout=300) as r:
+                r.read()
+        except urllib.error.HTTPError as e:
+            detalle = e.read().decode(errors="replace")[:300]
+            raise RuntimeError(
+                f"Storage POST {bucket}/{ruta} -> {e.code}: {detalle}") from None
+
     def descargar(self, bucket: str, ruta: str) -> bytes:
         """Baja un objeto de Storage.
 
