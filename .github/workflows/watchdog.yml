@@ -40,8 +40,14 @@ jobs:
       - name: Reenganchar la cadena si murió
         env:
           GH_TOKEN: ${{ github.token }}
+          # Este job no hace checkout —es deliberado, para que dure segundos—
+          # así que no hay remoto de git del que `gh` pueda deducir el repo.
+          # Sin esto, `gh workflow run` muere con "not a git repository" y el
+          # vigilante queda decorativo: detecta la caída, anuncia el reenganche
+          # y no reengancha. Pasó al ejercitarlo por primera vez.
+          GH_REPO: ${{ github.repository }}
         run: |
-          vivos=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow predict.yml \
+          vivos=$(gh run list --workflow predict.yml \
                     --limit 20 --json status \
                     --jq '[.[] | select(.status != "completed")] | length')
           echo "corridas de predict vivas: $vivos"
