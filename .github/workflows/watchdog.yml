@@ -23,6 +23,11 @@ on:
     - cron: "*/15 * * * *"   # el cron de GitHub se salta ejecuciones; pedir
                              # muchas oportunidades es la forma de tener algunas
   workflow_dispatch:
+    inputs:
+      forzar:
+        description: "Reenganchar aunque la cadena parezca viva"
+        type: boolean
+        default: false
 
 permissions:
   actions: write             # sólo para poder disparar predict.yml
@@ -39,9 +44,20 @@ jobs:
           vivos=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow predict.yml \
                     --limit 20 --json status \
                     --jq '[.[] | select(.status != "completed")] | length')
-          if [ "$vivos" -eq 0 ]; then
-            echo "::warning::la cadena de entrega estaba muerta; reenganchando"
+          echo "corridas de predict vivas: $vivos"
+
+          # `forzar` no es andamiaje de prueba: es el botón para reenganchar a
+          # mano sin abrir la terminal. Sirve además para ejercitar esta rama,
+          # que de otro modo sólo se ejecutaría el día que todo esté roto — y
+          # ése es el peor momento para descubrir que no funcionaba.
+          if [ "$vivos" -eq 0 ] || [ "${{ inputs.forzar }}" = "true" ]; then
+            if [ "$vivos" -eq 0 ]; then
+              echo "::warning::la cadena de entrega estaba muerta; reenganchando"
+            else
+              echo "reenganche forzado a mano (había $vivos viva(s))"
+            fi
             gh workflow run predict.yml --ref main
+            echo "predict.yml disparado"
           else
-            echo "cadena viva ($vivos corrida(s) en curso o en cola)"
+            echo "cadena viva; no hago nada"
           fi
