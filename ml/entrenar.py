@@ -62,7 +62,8 @@ from data import cargar                                      # noqa: E402
 from features import (COLS_NUM, COLS_SIN_CONTEXTO,           # noqa: E402
                       construir, origenes_por_hora)
 from metrics import resumen                                  # noqa: E402
-from models import Columna, GBMconPerfil, Perfil             # noqa: E402
+from models import (Columna, GBMconPerfil, Perfil,          # noqa: E402
+                    PerfilMasTendencia)
 
 BUCKET = "modelos"
 DIAS_VALIDACION = 7
@@ -85,6 +86,18 @@ class Receta:
         self.crear = crear
         self.dias = dias                 # None = todo el histórico
         self.es_champion = es_champion
+
+
+def nombrar(m, nombre: str):
+    """Renombra una instancia sin subclasear.
+
+    `nombre` es atributo de clase en algunos modelos; al fijarlo en la
+    instancia se distinguen dos ventanas de la misma familia en `models.name`
+    sin introducir una clase que `main` no conozca, que rompería la carga del
+    artefacto en producción.
+    """
+    m.nombre = nombre
+    return m
 
 
 def recetas() -> list[Receta]:
@@ -113,6 +126,27 @@ def recetas() -> list[Receta]:
         Receta("perfil", lambda: Perfil(), None),
         Receta("perfil · 14d", lambda: Perfil(), 14),
         Receta("naive s-1", lambda: Columna("naive s-1", "lag_sem"), None),
+
+        # El perfil corregido por nivel reciente: toma lo que el perfil
+        # esperaba para la hora del origen, lo compara con lo que de verdad
+        # está pasando, y escala. Perdió por casi 5 puntos en el backtest
+        # original —pero ese backtest corrió sobre un periodo SIN drift, donde
+        # no había nivel que corregir. Entra ahora porque el problema que se
+        # observa es exactamente el suyo: `profile_corr` en 0,98 (la forma del
+        # día intacta) con estaciones subestimadas en ~20 % (el nivel movido).
+        # Que haya perdido antes no dice nada sobre cómo se comporta ahora;
+        # descartarla por eso fue prejuzgar con datos de otro régimen.
+        Receta("perfil x ajuste reciente",
+               lambda: PerfilMasTendencia(), None),
+        Receta("perfil x ajuste reciente · 14d",
+               lambda: nombrar(PerfilMasTendencia(),
+                               "perfil x ajuste reciente (14d)"), 14),
+
+        # Un modelo por estación. Quedó a 0,24 del champion, lo bastante cerca
+        # como para que un cambio de régimen pueda darle la vuelta.
+        Receta("gbm + perfil por estacion",
+               lambda: GBMconPerfil("gbm + perfil por estacion (mae)",
+                                    por_estacion=True), None),
     ]
 
 
