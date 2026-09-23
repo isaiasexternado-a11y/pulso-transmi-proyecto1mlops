@@ -129,6 +129,14 @@ def construir_para_objetivos(ancha: pd.DataFrame, ctx: pd.DataFrame,
             "rain_origen": ctx_en(o, "rain_mm"),
             "temp_origen": ctx_en(o, "temperature_c"),
             "evento_origen": ctx_en(o, "event_intensity"),
+            # Calendario del ORIGEN, no del objetivo. `construir` ya las emitía
+            # y aquí faltaban, así que cualquier modelo que las use —el perfil
+            # con ajuste por nivel reciente, por ejemplo— entrenaba bien y
+            # reventaba al predecir. La compuerta de promoción lo habría
+            # atrapado, pero costando el candidato: mejor que el camino de
+            # inferencia ofrezca las mismas columnas que el de entrenamiento.
+            "slot_origen": origen.hour * 4 + origen.minute // 15,
+            "finde_origen": int(origen.dayofweek >= 5),
         })
     return pd.DataFrame(filas)
 
