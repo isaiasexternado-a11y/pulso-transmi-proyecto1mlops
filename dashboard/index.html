@@ -433,15 +433,32 @@ async function pintar() {
   const collector = ultRun(r => r.rows_ingested > 0);
   const evaluacion = decisiones[0];
   const gap = senales.find(s => s.signal === "ingest_gap");
+  // Cuánto hace, en minutos, para poder semaforizar por antigüedad.
+  const minutos = (iso) => iso
+    ? (Date.now() - new Date(iso).getTime()) / 60000 : Infinity;
+  // Los ciclos son horarios: pasados ~70 min sin entregar, algo falla. Y cada
+  // tick de datos son 30 min, así que 45 sin ingerir ya es atraso. Estos dos
+  // umbrales son los que convierten el panel en algo que se lee de un vistazo
+  // en vez de una lista de datos que hay que interpretar.
+  const semaforo = (iso, aviso, critico) => {
+    const m = minutos(iso);
+    return m > critico ? "critico" : m > aviso ? "aviso" : "bien";
+  };
+
   const filas = [
+    // La entrega va de primera: es la única fila que decide la cobertura, y
+    // la cobertura es casi toda la nota.
+    ["Última entrega", hace(subs[0]?.submitted_at),
+      semaforo(subs[0]?.submitted_at, 70, 120),
+      subs.length ? `ciclo ${subs[0].cycle_id.slice(-14)} · HTTP ${subs[0].http_status}` : "sin entregas"],
     ["Champion activo", champion[0]?.name ?? "—",
       champion[0] ? "bien" : "critico",
       champion[0]?.hyperparams?.version ?? ""],
-    ["Última ingesta", hace(collector?.finished_at), collector ? "bien" : "aviso",
+    ["Última ingesta", hace(collector?.finished_at),
+      semaforo(collector?.finished_at, 45, 90),
       `${collector?.rows_ingested ?? 0} filas`],
-    ["Última entrega", subs.length ? `ciclo ${subs[0].cycle_id.slice(-16)}` : "—",
-      subs.length ? "bien" : "critico", subs.length ? `HTTP ${subs[0].http_status}` : ""],
-    ["Última evaluación", hace(evaluacion?.decided_at), evaluacion ? "bien" : "aviso",
+    ["Última evaluación", hace(evaluacion?.decided_at),
+      semaforo(evaluacion?.decided_at, 90, 180),
       evaluacion ? evaluacion.decision : ""],
     ["Atraso de ingesta", gap ? `${num(gap.value, 0)} min` : "—",
       gap ? (gap.breached ? "critico" : "bien") : "aviso", gap ? `umbral ${num(gap.threshold,0)}` : ""],
