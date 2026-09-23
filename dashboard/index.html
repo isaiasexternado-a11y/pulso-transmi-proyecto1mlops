@@ -248,8 +248,13 @@ function hace(iso) {
   const m = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
   if (m < 1) return "hace segundos";
   if (m < 60) return `hace ${m} min`;
-  const h = Math.floor(m / 60);
-  if (h < 24) return `hace ${h} h`;
+  const h = Math.floor(m / 60), r = m % 60;
+  // Los minutos se conservan dentro del día. Redondear a "hace 1 h" borraba
+  // justo la distinción que este panel existe para mostrar: 65 minutos es un
+  // ciclo normal a punto de entregarse y 110 es un ciclo perdido, y con el
+  // redondeo se leían igual. El color lo distinguía, pero el color es el
+  // respaldo del texto, no su reemplazo.
+  if (h < 24) return r ? `hace ${h} h ${r} min` : `hace ${h} h`;
   return `hace ${Math.floor(h / 24)} d`;
 }
 
