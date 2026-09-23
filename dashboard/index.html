@@ -126,6 +126,11 @@
 
   .vacio { color: var(--tinta-mute); font-size: 13px; padding: 20px 0;
     text-align: center; }
+  .pie-nota { color: var(--tinta-mute); font-size: 12.5px; line-height: 1.6;
+    margin: 14px 0 0; display: flex; gap: 8px; align-items: flex-start; }
+  .muestra-hueca { width: 9px; height: 9px; border-radius: 50%; flex: none;
+    margin-top: 5px; background: var(--superficie);
+    border: 2px solid var(--tinta-mute); }
   .oculto { display: none; }
   footer { color: var(--tinta-mute); font-size: 12.5px; margin-top: 28px;
     line-height: 1.7; }
@@ -211,10 +216,30 @@ const UMBRAL_ACC = 87;   // el piso: por debajo, el champion pierde contra el pe
 const $ = (s) => document.querySelector(s);
 const pista = $("#pista");
 
+const PAGINA = 1000;   // tope duro de PostgREST: pedir más no trae más
+
 async function pedir(ruta) {
-  const r = await fetch(`${SB}/${ruta}`, { headers: { apikey: KEY } });
-  if (!r.ok) throw new Error(`${ruta} -> ${r.status}`);
-  return r.json();
+  // Las consultas que ya traen su propio `limit` piden una página a propósito
+  // (las últimas N decisiones, las últimas N corridas) y no se paginan.
+  const r0 = await fetch(`${SB}/${ruta}`, { headers: { apikey: KEY } });
+  if (!r0.ok) throw new Error(`${ruta} -> ${r0.status}`);
+  const primera = await r0.json();
+  if (/[?&]limit=/.test(ruta) || primera.length < PAGINA) return primera;
+
+  // El resto sí: `v_prediction_scores` crece 48 filas por ciclo y pasa las
+  // 1000 en un par de días. Sin esto el gráfico se cortaría en silencio, que
+  // es peor que fallar: seguiría dibujando algo con pinta de correcto.
+  let filas = primera, desde = primera.length;
+  for (;;) {
+    const sep = ruta.includes("?") ? "&" : "?";
+    const r = await fetch(`${SB}/${ruta}${sep}limit=${PAGINA}&offset=${desde}`,
+                          { headers: { apikey: KEY } });
+    if (!r.ok) throw new Error(`${ruta} -> ${r.status}`);
+    const lote = await r.json();
+    filas = filas.concat(lote);
+    if (lote.length < PAGINA) return filas;
+    desde += lote.length;
+  }
 }
 const num = (v, d = 2) => (v == null || Number.isNaN(v)) ? "—" : Number(v).toFixed(d);
 
@@ -223,8 +248,13 @@ function hace(iso) {
   const m = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
   if (m < 1) return "hace segundos";
   if (m < 60) return `hace ${m} min`;
-  const h = Math.floor(m / 60);
-  if (h < 24) return `hace ${h} h`;
+  const h = Math.floor(m / 60), r = m % 60;
+  // Los minutos se conservan dentro del día. Redondear a "hace 1 h" borraba
+  // justo la distinción que este panel existe para mostrar: 65 minutos es un
+  // ciclo normal a punto de entregarse y 110 es un ciclo perdido, y con el
+  // redondeo se leían igual. El color lo distinguía, pero el color es el
+  // respaldo del texto, no su reemplazo.
+  if (h < 24) return r ? `hace ${h} h ${r} min` : `hace ${h} h`;
   return `hace ${Math.floor(h / 24)} d`;
 }
 
@@ -308,20 +338,49 @@ function lineas(cont, series, { etiquetaX, minY, maxY, invertir = false }) {
   s += `<line x1="${izq}" y1="${H - inf}" x2="${W - der}" y2="${H - inf}" class="linea-eje"/>`;
 
   series.forEach((se) => {
-    const d = se.datos.map((p, i) => `${i ? "L" : "M"}${x(i)},${y(p.y)}`).join(" ");
-    s += `<path d="${d}" fill="none" stroke="${se.color}" stroke-width="2"
-            stroke-linejoin="round" stroke-linecap="round"/>`;
+    // Un ciclo en curso todavía no tiene toda su realidad observada: su
+    // accuracy está calculada con la mitad de las mediciones y no es
+    // comparable con las demás. Se dibuja, porque existe, pero hueco y en
+    // gris — dibujarlo igual que los otros hace creer que el desempeño cayó
+    // cuando lo único que pasa es que el futuro no ha ocurrido todavía.
+    const firmes = se.datos.map((p, i) => ({ p, i })).filter(o => !o.p.parcial);
+
+    const d = firmes.map((o, k) => `${k ? "L" : "M"}${x(o.i)},${y(o.p.y)}`).join(" ");
+    if (d) s += `<path d="${d}" fill="none" stroke="${se.color}" stroke-width="2"
+                   stroke-linejoin="round" stroke-linecap="round"/>`;
+
+    // El tramo hacia lo provisional va punteado: aquí el guion sí significa
+    // algo —"esto todavía se está midiendo"— y no es adorno de rejilla.
+    const ult = firmes[firmes.length - 1];
     se.datos.forEach((p, i) => {
-      s += `<g data-t="${p.etiqueta}<br><b>${num(p.y)}</b> — ${se.nombre}">
-              <circle cx="${x(i)}" cy="${y(p.y)}" r="4.5" fill="${se.color}"
-                stroke="var(--superficie)" stroke-width="2"/>
+      if (p.parcial && ult && i === ult.i + 1) {
+        s += `<path d="M${x(ult.i)},${y(ult.p.y)} L${x(i)},${y(p.y)}" fill="none"
+                stroke="var(--tinta-mute)" stroke-width="2" stroke-dasharray="4 4"
+                stroke-linecap="round"/>`;
+      }
+    });
+
+    se.datos.forEach((p, i) => {
+      const nota = p.parcial
+        ? `<br><i>en curso · ${p.medidos} de ${p.esperados} mediciones</i>` : "";
+      s += `<g data-t="${p.etiqueta}<br><b>${num(p.y)}</b> — ${se.nombre}${nota}">
+              <circle cx="${x(i)}" cy="${y(p.y)}" r="4.5"
+                fill="${p.parcial ? "var(--superficie)" : se.color}"
+                stroke="${p.parcial ? "var(--tinta-mute)" : "var(--superficie)"}"
+                stroke-width="2"/>
               <circle cx="${x(i)}" cy="${y(p.y)}" r="11" fill="transparent"/>
             </g>`;
     });
-    // sólo se rotula el extremo: un número por punto es ruido
-    const u = se.datos[se.datos.length - 1];
-    if (u) s += `<text x="${x(se.datos.length - 1) + 9}" y="${y(u.y) + 4}"
-                  class="rotulo">${num(u.y, 1)}</text>`;
+
+    // Se rotula el último punto FIRME, no el provisional: poner el número del
+    // parcial ahí lo convierte en la cifra que uno se lleva de la vista.
+    if (ult) {
+      const alFinal = ult.i === se.datos.length - 1;
+      s += alFinal
+        ? `<text x="${x(ult.i) + 9}" y="${y(ult.p.y) + 4}" class="rotulo">${num(ult.p.y, 1)}</text>`
+        : `<text x="${x(ult.i)}" y="${y(ult.p.y) - 11}" class="rotulo"
+             text-anchor="middle">${num(ult.p.y, 1)}</text>`;
+    }
   });
   s += `</svg>`;
   cont.innerHTML = s;
@@ -379,15 +438,32 @@ async function pintar() {
   const collector = ultRun(r => r.rows_ingested > 0);
   const evaluacion = decisiones[0];
   const gap = senales.find(s => s.signal === "ingest_gap");
+  // Cuánto hace, en minutos, para poder semaforizar por antigüedad.
+  const minutos = (iso) => iso
+    ? (Date.now() - new Date(iso).getTime()) / 60000 : Infinity;
+  // Los ciclos son horarios: pasados ~70 min sin entregar, algo falla. Y cada
+  // tick de datos son 30 min, así que 45 sin ingerir ya es atraso. Estos dos
+  // umbrales son los que convierten el panel en algo que se lee de un vistazo
+  // en vez de una lista de datos que hay que interpretar.
+  const semaforo = (iso, aviso, critico) => {
+    const m = minutos(iso);
+    return m > critico ? "critico" : m > aviso ? "aviso" : "bien";
+  };
+
   const filas = [
+    // La entrega va de primera: es la única fila que decide la cobertura, y
+    // la cobertura es casi toda la nota.
+    ["Última entrega", hace(subs[0]?.submitted_at),
+      semaforo(subs[0]?.submitted_at, 70, 120),
+      subs.length ? `ciclo ${subs[0].cycle_id.slice(-14)} · HTTP ${subs[0].http_status}` : "sin entregas"],
     ["Champion activo", champion[0]?.name ?? "—",
       champion[0] ? "bien" : "critico",
       champion[0]?.hyperparams?.version ?? ""],
-    ["Última ingesta", hace(collector?.finished_at), collector ? "bien" : "aviso",
+    ["Última ingesta", hace(collector?.finished_at),
+      semaforo(collector?.finished_at, 45, 90),
       `${collector?.rows_ingested ?? 0} filas`],
-    ["Última entrega", subs.length ? `ciclo ${subs[0].cycle_id.slice(-16)}` : "—",
-      subs.length ? "bien" : "critico", subs.length ? `HTTP ${subs[0].http_status}` : ""],
-    ["Última evaluación", hace(evaluacion?.decided_at), evaluacion ? "bien" : "aviso",
+    ["Última evaluación", hace(evaluacion?.decided_at),
+      semaforo(evaluacion?.decided_at, 90, 180),
       evaluacion ? evaluacion.decision : ""],
     ["Atraso de ingesta", gap ? `${num(gap.value, 0)} min` : "—",
       gap ? (gap.breached ? "critico" : "bien") : "aviso", gap ? `umbral ${num(gap.threshold,0)}` : ""],
@@ -426,21 +502,38 @@ async function pintar() {
   // --- accuracy por ciclo (desde la vista, agrupando por el corte del ciclo)
   const ciclos = new Map();
   for (const s of scores) {
-    if (!ciclos.has(s.issued_at)) ciclos.set(s.issued_at, new Map());
-    const est = ciclos.get(s.issued_at);
-    const a = est.get(s.station_id) || { err: 0, real: 0 };
-    a.err += s.abs_error; a.real += s.y_true; est.set(s.station_id, a);
+    if (!ciclos.has(s.issued_at)) ciclos.set(s.issued_at, { est: new Map(), n: 0 });
+    const c = ciclos.get(s.issued_at);
+    c.n++;
+    const a = c.est.get(s.station_id) || { err: 0, real: 0 };
+    a.err += s.abs_error; a.real += s.y_true; c.est.set(s.station_id, a);
   }
-  const serieCiclos = [...ciclos.entries()].map(([iso, est]) => {
-    const accs = [...est.values()].filter(a => a.real > 0)
+  // Un ciclo completo tiene una medición por estación y horizonte. El tamaño
+  // no se cablea a 48: se toma del ciclo más grande observado, para que esto
+  // siga funcionando si algún día cambia el número de estaciones.
+  const esperados = Math.max(0, ...[...ciclos.values()].map(c => c.n));
+  const serieCiclos = [...ciclos.entries()].map(([iso, c]) => {
+    const accs = [...c.est.values()].filter(a => a.real > 0)
       .map(a => 100 * Math.max(0, 1 - a.err / a.real));
     return { etiqueta: new Date(iso).toISOString().slice(5, 16).replace("T", " "),
-             y: accs.reduce((p, c) => p + c, 0) / (accs.length || 1) };
+             y: accs.reduce((p, x) => p + x, 0) / (accs.length || 1),
+             parcial: c.n < esperados, medidos: c.n, esperados };
   });
+  const enCurso = serieCiclos.filter(p => p.parcial).length;
   lineas($("#ciclos"), [{ nombre: "Accuracy oficial", color: "var(--serie-1)", datos: serieCiclos }],
     { etiquetaX: "Accuracy por ciclo", minY: Math.min(75, ...serieCiclos.map(p => p.y)) - 2, maxY: 100 });
-  $("#ciclos-tabla").innerHTML = tabla(["Corte del ciclo", "Accuracy (%)"],
-    serieCiclos.map(p => [p.etiqueta, num(p.y)]));
+  if (enCurso) {
+    $("#ciclos").insertAdjacentHTML("beforeend",
+      `<p class="pie-nota"><span class="muestra-hueca"></span>
+        ${enCurso === 1 ? "El último ciclo aún se está evaluando" :
+                          `${enCurso} ciclos aún se están evaluando`}: la realidad
+        de los horizontes más lejanos todavía no ocurre. Se dibuja hueco porque
+        su accuracy no es comparable con la de los ciclos completos.</p>`);
+  }
+  $("#ciclos-tabla").innerHTML = tabla(["Corte del ciclo", "Accuracy (%)", "Estado"],
+    serieCiclos.map(p => [p.etiqueta, num(p.y),
+      p.parcial ? `<span class="texto">en curso · ${p.medidos}/${p.esperados}</span>`
+                : `<span class="texto">completo</span>`]));
 
   // --- carrera del leaderboard
   const eje = lb.map(r => new Date(r.captured_at).toISOString().slice(5, 16).replace("T", " "));
