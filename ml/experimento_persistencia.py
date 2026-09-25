@@ -109,8 +109,8 @@ def registrar(sb: Supabase, pesos: dict[int, float], evidencia: dict) -> str:
     """Candidato = el mismo artefacto del champion con la mezcla en la ficha."""
     padre = sb.seleccionar("models", select="*", status="eq.active",
                            order="activated_at.desc", limit=1)[0]
-    version = padre["hyperparams"]["version"] + "+pers-" + \
-        "-".join(f"{pesos[h]:g}" for h in sorted(pesos))
+    version = padre["hyperparams"]["version"] + "-pers-" + \
+        "-".join(f"{round(pesos[h] * 10):02d}" for h in sorted(pesos))
     ya = sb.seleccionar("models", select="model_id",
                         **{"hyperparams->>version": f"eq.{version}"})
     if ya:
