@@ -36,7 +36,8 @@ sys.path.insert(0, str(RAIZ))
 sys.path.insert(0, str(RAIZ / "ml"))
 
 from collector.entorno import Supabase        # noqa: E402
-from pipeline.entregar import cargar_artefacto, predecir  # noqa: E402
+from pipeline.entregar import (cargar_artefacto, predecir,  # noqa: E402
+                               version_en_contrato)
 
 HORIZONTES = (1, 2, 3, 4)
 
@@ -75,6 +76,8 @@ def inferencia_de_prueba(sb: Supabase, ficha: dict) -> tuple[bool, str]:
     esperados = len(ancha.columns) * len(HORIZONTES)
     serie = pd.Series(pred, dtype="float64")
     problemas = []
+    if not version_en_contrato(ficha["hyperparams"]["version"]):
+        problemas.append(f"versión {ficha['hyperparams']['version']!r} fuera de contrato")
     if len(serie) != esperados:
         problemas.append(f"{len(serie)} valores en vez de {esperados}")
     if not serie.notna().all():

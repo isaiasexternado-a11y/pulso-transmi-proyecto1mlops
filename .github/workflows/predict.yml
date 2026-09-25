@@ -37,7 +37,13 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 65       # holgura sobre TURNO_MIN, nunca al filo
     steps:
+      # La punta de la rama, no el commit con el que se encoló el turno. Un
+      # relevo pasa hasta una hora en cola; con el SHA fijo, un arreglo
+      # publicado en ese lapso no entraba y la ficha nueva corría con código
+      # viejo. Pasó el 2026-09-25 a las 19:42.
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
 
       - uses: actions/setup-python@v5
         with:

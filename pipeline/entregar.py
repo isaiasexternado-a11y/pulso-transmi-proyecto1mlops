@@ -24,6 +24,7 @@ import argparse
 import hashlib
 import io
 import json
+import re
 import sys
 import urllib.error
 import urllib.request
@@ -152,9 +153,19 @@ def ya_entregado(sb: Supabase, cycle_id: str, version: str) -> dict | None:
 
 # ---------------------------------------------------------------- validación
 
-def validar(predicciones: list[dict], ciclo: dict) -> None:
+def version_en_contrato(version: str) -> bool:
+    """Mismo patrón que `SAFE_VERSION` en app/contracts.py de la API. Un `+`
+    en la versión costó un 422 y casi la ventana del 2026-09-25 19:42."""
+    return len(version) <= 64 and bool(
+        re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._:/-]*", version))
+
+
+def validar(predicciones: list[dict], ciclo: dict, version: str) -> None:
     """El checklist previo al POST. Un rechazo por contrato no gasta intento,
     pero tampoco tiene por qué salir de aquí."""
+    if not version_en_contrato(version):
+        raise SystemExit(f"versión fuera de contrato: {version!r}")
+
     esperados = {(t["station_id"], t["target_at"]) for t in ciclo["targets"]}
     recibidos = [(p["station_id"], p["target_at"]) for p in predicciones]
 
@@ -308,7 +319,7 @@ def main(dry_run: bool) -> None:
          "value": round(float(v), 2)}
         for t, v in zip(ciclo["targets"], valores)]
 
-    validar(predicciones, ciclo)
+    validar(predicciones, ciclo, version)
     llave = llave_estable(ciclo["cycle_id"], version, predicciones)
     print(f"predice : {len(predicciones)} valores  ·  llave {llave}")
 
