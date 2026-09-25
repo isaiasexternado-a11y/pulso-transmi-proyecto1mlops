@@ -79,12 +79,23 @@ jobs:
           SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
         run: |
           fin=$(( $(date +%s) + TURNO_MIN * 60 ))
-          intentos=0; malos=0
+          intentos=0; malos=0; seguidos=0
           while [ "$(date +%s)" -lt "$fin" ]; do
             intentos=$((intentos + 1))
             if ! python -m pipeline.entregar; then
-              malos=$((malos + 1))
+              malos=$((malos + 1)); seguidos=$((seguidos + 1))
               echo "::warning::intento $intentos falló"
+            else
+              seguidos=0
+            fi
+            # Tres fallos seguidos casi siempre son esta máquina, no la API:
+            # el 2026-09-25 un runner pasó 50 min con timeout al conectar
+            # mientras la API respondía desde fuera, y se perdió la ventana de
+            # las 19:42. Cortar el turno deja entrar al relevo, que ya está en
+            # cola y corre en otra máquina.
+            if [ "$seguidos" -ge 3 ]; then
+              echo "::error::$seguidos fallos seguidos; se cede el turno a otro runner"
+              break
             fi
             restante=$(( fin - $(date +%s) ))
             [ "$restante" -le 0 ] && break
