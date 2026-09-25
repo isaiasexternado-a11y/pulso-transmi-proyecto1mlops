@@ -1,0 +1,37 @@
+{
+  "calculado": "2026-09-25T19:39:04.385814+00:00",
+  "inicio_corte": "2026-09-24 05:00:00+00:00",
+  "particion": "2026-09-25 00:00:00+00:00",
+  "pesos": {
+    "1": 0.6,
+    "2": 0.4,
+    "3": 0.2,
+    "4": 0.2
+  },
+  "tramos": {
+    "calibracion": {
+      "ciclos": 19,
+      "n": 912,
+      "champion": 81.18,
+      "mezcla": 84.28
+    },
+    "prueba": {
+      "ciclos": 19,
+      "n": 888,
+      "champion": 81.38,
+      "mezcla": 84.44
+    },
+    "control_sin_drift": {
+      "ciclos": 41,
+      "n": 1968,
+      "champion": 85.68,
+      "mezcla": 85.52
+    },
+    "corte_completo": {
+      "ciclos": 38,
+      "n": 1800,
+      "champion": 81.48,
+      "mezcla": 84.48
+    }
+  }
+}
