@@ -82,10 +82,30 @@ Para que la comparación signifique algo, todos los candidatos se miden igual:
 **La competencia está corriendo** desde el 2026-09-21 15:30Z (reloj `official-20260921`, estado `running`).
 El histórico semilla (45 días, 51.840 obs, 2026-07-26 → 2026-09-08) se extiende ahora por el stream.
 
+- **Corte 1 en curso** desde 2026-09-24 05:00Z (00:00 Bogotá), inicio fijo. Cuenta ciclos resueltos
+  abiertos desde ahí; una ausencia es predicción cero. Evidencia para la nota, no nota oficial.
+  Definición: `docs/primer-corte-evaluacion.md` del repo del profe. **La fase de drift arranca el 2026-09-25 en la noche.**
 - El collector ingesta el stream a Supabase de forma idempotente, con cursor en `stream_cursor`.
 - El champion está en Supabase Storage (`modelos/champion/`) y registrado en `models` con `status=active`.
+  Desde el 2026-09-25 es `gbm + perfil (mae) x persistencia`: el mismo artefacto GBM más una mezcla
+  con el último observado en `data_cutoff`, con pesos por horizonte en `hyperparams.mezcla_persistencia`
+  (+15→0,6 · +30→0,4 · +45/+60→0,2). La aplica `pipeline/entregar.py::predecir`. Evidencia en
+  `ml/experimento_persistencia.py` (rama ML): 81,41 → 84,44 % bajo drift, −0,16 sin drift.
 - **El contexto de la API está congelado** en 2026-09-08 23:45-05 mientras las observaciones avanzan.
-  `ml/data.py` arrastra el último valor conocido. Pendiente: medir cuánto aporta el contexto.
+  `ml/data.py` arrastra el último valor conocido.
+- El monitoreo corre: `evaluate.yml` llena `model_metrics`, `drift_signals` (wape_24h, wape_7d,
+  residual_bias, level_shift_7d, profile_corr, ingest_gap) y `retrain_decisions` (retrain · blocked · keep),
+  y dispara `train.yml`, que registra candidatos. `promover` los activa tras la inferencia de prueba.
+- Desde el viernes 11 virtual (stream), 05000, 07107, 07111 y 09122 subieron 13–29 % y alargaron el pico.
+
+### Trampas ya pisadas
+
+- `model.version` debe cumplir `^[A-Za-z0-9][A-Za-z0-9._:/-]*$` (máx. 64). Un `+` da 422.
+- La mezcla vive en la ficha, no en el pickle: un modelo nuevo la hereda en `ml/entrenar.py::registrar`.
+  Si se registra un candidato por otro camino, hay que copiarla o se apaga al promover.
+- Un runner de Actions puede quedarse sin red hacia la API mientras la API responde desde fuera.
+  `predict.yml` cede el turno tras 3 fallos seguidos.
+- En SQL, `observations.demand` es `integer`: castear antes de dividir o el WAPE sale 0.
 
 - `pulso-transmi-sdk/` — SDK del profesor con los datos semilla (`data/*.csv`)
 - `eda/` — análisis exploratorio. Mejor baseline: naive s-1 (misma hora, semana pasada), accuracy 83,11 %
@@ -95,10 +115,10 @@ El histórico semilla (45 días, 51.840 obs, 2026-07-26 → 2026-09-08) se extie
 
 ## Pendientes conocidos
 
-1. Workflow de entrenamiento y promoción, separado del de inferencia.
-2. Evaluación, drift y decisión de reentrenamiento (`model_metrics`, `drift_signals`, `retrain_decisions` siguen vacías).
-3. El champion (88,15 %) apenas supera al baseline de perfil (88,11 %) y depende de 5 features de
-   contexto que ya no se publican. Vale la pena un candidato sin contexto.
+1. Medir la mezcla con persistencia en vivo durante la fase de drift y recalibrar los pesos si cambia
+   el régimen (`python3 -m ml.experimento_persistencia --particion <ts>`).
+2. El backtest de `ml/entrenar.py` compara recetas crudas: un ganador podría rendir distinto con la mezcla.
+3. El GBM depende de 5 features de contexto que ya no se publican. Vale la pena un candidato sin contexto.
 4. Dashboard en Vercel (bono).
 
 ### Vocabularios que impone el esquema
