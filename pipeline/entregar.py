@@ -107,6 +107,33 @@ def champion(sb: Supabase) -> tuple[object, dict]:
     return cargar_artefacto(sb, ficha), ficha
 
 
+def predecir(modelo: object, ficha: dict, ancha, ctx, origen, objetivos) -> list[float]:
+    """Predicción del champion más la mezcla con persistencia de su ficha.
+
+    `hyperparams.mezcla_persistencia` es {horizonte en pasos: peso}. Cada valor
+    queda en `(1 - w) · modelo + w · último observado en el corte`. Vive en la
+    ficha y no en el pickle para que una versión nueva no traiga una clase que
+    `main` no conozca, y para que el rollback la apague sin tocar el artefacto.
+    Sin la llave, el modelo sale tal cual.
+
+    La promoción la reusa por la misma razón que `cargar_artefacto`.
+    """
+    from ml.features import construir_para_objetivos
+
+    valores = [float(v) for v in
+               modelo.predict(construir_para_objetivos(ancha, ctx, origen, objetivos))]
+    pesos = (ficha.get("hyperparams") or {}).get("mezcla_persistencia")
+    if not pesos:
+        return valores
+
+    paso = ancha.index[1] - ancha.index[0]
+    mezclados = []
+    for (est, target), v in zip(objetivos, valores):
+        w = float(pesos[str(round((target - origen) / paso))])
+        mezclados.append((1 - w) * v + w * float(ancha.at[origen, est]))
+    return mezclados
+
+
 def ya_entregado(sb: Supabase, cycle_id: str, version: str) -> dict | None:
     """Sólo una entrega *aceptada* cierra el ciclo.
 
@@ -265,7 +292,6 @@ def main(dry_run: bool) -> None:
     # 4. Inferir exactamente lo que la API pidió.
     import pandas as pd
     from ml.data import cargar
-    from ml.features import construir_para_objetivos
 
     ancha, ctx, _ = cargar(origen="supabase")
     origen = pd.Timestamp(ciclo["data_cutoff"]).tz_convert(ancha.index.tz)
@@ -276,7 +302,7 @@ def main(dry_run: bool) -> None:
 
     objetivos = [(t["station_id"], pd.Timestamp(t["target_at"]))
                  for t in ciclo["targets"]]
-    valores = modelo.predict(construir_para_objetivos(ancha, ctx, origen, objetivos))
+    valores = predecir(modelo, ficha, ancha, ctx, origen, objetivos)
     predicciones = [
         {"station_id": t["station_id"], "target_at": t["target_at"],
          "value": round(float(v), 2)}

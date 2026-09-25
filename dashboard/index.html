@@ -8,194 +8,379 @@
 <style>
   :root {
     color-scheme: light;
-    --plano:      #f9f9f7;
+    --plano:      #f4f4f1;
     --superficie: #fcfcfb;
+    --superficie-2:#f3f2ee;
     --tinta:      #0b0b0b;
     --tinta-2:    #52514e;
     --tinta-mute: #898781;
     --rejilla:    #e1e0d9;
     --eje:        #c3c2b7;
-    --borde:      rgba(11,11,11,0.10);
+    --borde:      rgba(11,11,11,0.09);
+    --sombra:     0 1px 2px rgba(11,11,11,0.04), 0 8px 24px -12px rgba(11,11,11,0.10);
     --serie-1:    #2a78d6;
     --serie-2:    #eb6834;
     --serie-3:    #1baf7a;
+    /* Polos del divergente: sobre el piso (azul) / bajo el piso (rojo). */
+    --polo-alto:  #2a78d6;
+    --polo-bajo:  #e34948;
     /* Los colores de estado no cambian con el tema: significan, no decoran. */
     --bien:       #0ca30c;
     --aviso:      #fab219;
     --serio:      #ec835a;
     --critico:    #d03b3b;
-    --exito-texto:#006300;
+    --exito-texto:  #006300;
+    --critico-texto:#b52a2a;
   }
   @media (prefers-color-scheme: dark) {
     :root:where(:not([data-theme="light"])) {
       color-scheme: dark;
       --plano:      #0d0d0d;
       --superficie: #1a1a19;
+      --superficie-2:#232321;
       --tinta:      #ffffff;
       --tinta-2:    #c3c2b7;
       --tinta-mute: #898781;
       --rejilla:    #2c2c2a;
       --eje:        #383835;
-      --borde:      rgba(255,255,255,0.10);
+      --borde:      rgba(255,255,255,0.09);
+      --sombra:     0 1px 2px rgba(0,0,0,0.3);
       --serie-1:    #3987e5;
       --serie-2:    #d95926;
       --serie-3:    #199e70;
-      --exito-texto:#0ca30c;
+      --polo-alto:  #3987e5;
+      --polo-bajo:  #e66767;
+      --exito-texto:  #0ca30c;
+      --critico-texto:#f07a7a;
     }
   }
   :root[data-theme="dark"] {
     color-scheme: dark;
-    --plano:#0d0d0d; --superficie:#1a1a19; --tinta:#ffffff; --tinta-2:#c3c2b7;
-    --tinta-mute:#898781; --rejilla:#2c2c2a; --eje:#383835;
-    --borde:rgba(255,255,255,0.10);
-    --serie-1:#3987e5; --serie-2:#d95926; --serie-3:#199e70; --exito-texto:#0ca30c;
+    --plano:#0d0d0d; --superficie:#1a1a19; --superficie-2:#232321; --tinta:#ffffff;
+    --tinta-2:#c3c2b7; --tinta-mute:#898781; --rejilla:#2c2c2a; --eje:#383835;
+    --borde:rgba(255,255,255,0.09); --sombra:0 1px 2px rgba(0,0,0,0.3);
+    --serie-1:#3987e5; --serie-2:#d95926; --serie-3:#199e70;
+    --polo-alto:#3987e5; --polo-bajo:#e66767;
+    --exito-texto:#0ca30c; --critico-texto:#f07a7a;
   }
 
   * { box-sizing: border-box; }
   body {
     margin: 0; background: var(--plano); color: var(--tinta);
     font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+    -webkit-font-smoothing: antialiased;
   }
-  .envoltura { max-width: 1180px; margin: 0 auto; padding: 32px 16px 64px; }
+  .envoltura { max-width: 1240px; margin: 0 auto; padding: 0 16px; }
+  main.envoltura { padding-top: 24px; padding-bottom: 64px; transition: opacity .2s; }
+  main.recargando { opacity: .55; }
 
-  header.cabecera { display: flex; flex-wrap: wrap; gap: 16px;
-    align-items: baseline; justify-content: space-between; margin-bottom: 8px; }
-  h1 { font-size: 22px; margin: 0; letter-spacing: -0.01em; }
-  .sub { color: var(--tinta-2); font-size: 14px; margin: 4px 0 28px; }
-  .controles { display: flex; gap: 8px; align-items: center; }
+  /* ------------------------------------------------ banda (isla oscura) */
+  /* La banda es siempre oscura: le da identidad a la página y separa la cifra
+     que manda del resto. Por eso redefine los tokens con los pasos del modo
+     oscuro, que son los validados contra una superficie oscura. */
+  .banda {
+    --superficie: #1a1a19; --tinta: #ffffff; --tinta-2: #c3c2b7;
+    --tinta-mute: #8f8d86; --borde: rgba(255,255,255,0.10); --rejilla: #2c2c2a;
+    --serie-1: #3987e5; --exito-texto: #3fcf5a; --critico-texto: #f07a7a;
+    color: var(--tinta);
+    background:
+      radial-gradient(900px 320px at 85% -10%, rgba(57,135,229,0.22), transparent 70%),
+      radial-gradient(600px 260px at 0% 120%, rgba(27,175,122,0.10), transparent 70%),
+      #111110;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .barra-sup { display: flex; flex-wrap: wrap; gap: 16px; align-items: center;
+    justify-content: space-between; padding: 20px 0 8px; }
+  .marca { display: flex; align-items: center; gap: 12px; }
+  .marca svg { width: 34px; height: 34px; flex: none; }
+  .marca .nombre { font-weight: 650; font-size: 17px; letter-spacing: -0.01em; }
+  .marca .ceja { font-size: 12.5px; color: var(--tinta-mute); }
+  .controles { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
   button {
     font: inherit; font-size: 13px; color: var(--tinta-2); cursor: pointer;
     background: var(--superficie); border: 1px solid var(--borde);
-    border-radius: 8px; padding: 6px 12px;
+    border-radius: 999px; padding: 6px 14px; transition: color .15s, border-color .15s;
   }
-  button:hover { color: var(--tinta); }
+  button:hover { color: var(--tinta); border-color: var(--tinta-mute); }
+  button:focus-visible, svg:focus-visible { outline: 2px solid var(--serie-1); outline-offset: 2px; }
+  .banda button { background: rgba(255,255,255,0.05); }
 
+  .pildora { display: inline-flex; align-items: center; gap: 8px; font-size: 13px;
+    font-weight: 550; padding: 6px 12px 6px 10px; border-radius: 999px;
+    background: rgba(255,255,255,0.06); border: 1px solid var(--borde); }
+  .latido { position: relative; width: 9px; height: 9px; border-radius: 50%; flex: none; }
+  .latido::after { content: ""; position: absolute; inset: 0; border-radius: 50%;
+    background: inherit; animation: latir 2s ease-out infinite; }
+  @keyframes latir { from { transform: scale(1); opacity: .7; } to { transform: scale(2.8); opacity: 0; } }
+  @media (prefers-reduced-motion: reduce) { .latido::after { animation: none; } }
+
+  .heroe { display: grid; gap: 20px; padding: 28px 0 36px;
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr) minmax(0, 1fr); align-items: stretch; }
+  @media (max-width: 900px) { .heroe { grid-template-columns: 1fr; } }
+  .heroe .bloque { padding: 4px 0; }
+  .heroe .bloque + .bloque { border-left: 1px solid var(--borde); padding-left: 24px; }
+  @media (max-width: 900px) { .heroe .bloque + .bloque { border-left: 0; padding-left: 0;
+    border-top: 1px solid var(--borde); padding-top: 20px; } }
+  .etq { font-size: 12.5px; color: var(--tinta-2); letter-spacing: 0.02em; }
+  .cifra-heroe { font-size: clamp(52px, 7vw, 76px); font-weight: 650; line-height: 1;
+    letter-spacing: -0.035em; margin: 10px 0 12px; }
+  .cifra-heroe small { font-size: 0.42em; font-weight: 500; color: var(--tinta-2);
+    letter-spacing: 0; margin-left: 4px; }
+  .contexto { font-size: 13.5px; color: var(--tinta-2); display: flex; flex-wrap: wrap; gap: 6px 14px; }
+  .delta { font-weight: 600; font-size: 13.5px; }
+  .delta.sube { color: var(--exito-texto); }
+  .delta.baja { color: var(--critico-texto); }
+  .cifra-media { font-size: 40px; font-weight: 650; letter-spacing: -0.03em; line-height: 1.05;
+    margin: 10px 0 10px; }
+  .cifra-media small { font-size: 16px; font-weight: 500; color: var(--tinta-2); letter-spacing: 0; }
+
+  /* medidor: la pista es un paso más claro de la misma rampa del relleno */
+  .medidor { position: relative; height: 10px; border-radius: 999px; margin: 14px 0 26px;
+    background: rgba(255,255,255,0.10); }
+  .medidor .relleno { position: absolute; inset: 0 auto 0 0; border-radius: 999px; }
+  .medidor .meta { position: absolute; top: -5px; bottom: -5px; width: 2px;
+    background: var(--tinta); border-radius: 1px; }
+  .medidor .meta span { position: absolute; top: 22px; transform: translateX(-50%);
+    font-size: 11.5px; color: var(--tinta-2); white-space: nowrap; }
+
+  /* ------------------------------------------------------------ tarjetas */
   .tarjeta {
     background: var(--superficie); border: 1px solid var(--borde);
-    border-radius: 12px; padding: 20px; margin-bottom: 16px;
+    border-radius: 16px; padding: 22px 22px 20px; box-shadow: var(--sombra);
+    min-width: 0;
   }
-  .tarjeta h2 { font-size: 14px; margin: 0 0 4px; letter-spacing: 0.01em; }
-  .tarjeta .nota { color: var(--tinta-mute); font-size: 13px; margin: 0 0 18px; }
+  .tarjeta h2 { font-size: 15px; font-weight: 620; margin: 0 0 4px; letter-spacing: -0.005em; }
+  .tarjeta .nota { color: var(--tinta-mute); font-size: 13px; margin: 0 0 18px; max-width: 70ch; }
+  .cab-tarjeta { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start;
+    flex-wrap: wrap; }
+  .seccion { margin-top: 20px; }
 
-  .kpis { display: grid; gap: 16px; margin-bottom: 16px;
-    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); }
-  .kpi { background: var(--superficie); border: 1px solid var(--borde);
-    border-radius: 12px; padding: 18px 20px; }
-  .kpi .etiqueta { font-size: 13px; color: var(--tinta-2); margin-bottom: 8px; }
-  .kpi .cifra { font-size: 34px; line-height: 1.1; letter-spacing: -0.02em; }
-  .kpi .pie { font-size: 13px; color: var(--tinta-mute); margin-top: 6px; }
+  .rejilla { display: grid; gap: 20px; margin-top: 20px; }
+  .r-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .r-est { grid-template-columns: minmax(0, 1.75fr) minmax(0, 1fr); }
+  .r-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  @media (max-width: 1000px) { .r-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 860px) { .r-2, .r-est { grid-template-columns: 1fr; } }
+  @media (max-width: 520px) { .r-4 { grid-template-columns: 1fr; } }
 
-  .rejilla-2 { display: grid; gap: 16px; grid-template-columns: 1fr 1fr; }
-  @media (max-width: 860px) { .rejilla-2 { grid-template-columns: 1fr; } }
+  /* ------------------------------------------------------------ pipeline */
+  .flujo { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; }
+  @media (max-width: 860px) { .flujo { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 22px; } }
+  .nodo { position: relative; padding-right: 20px; }
+  .nodo .cab { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .nodo .icono { width: 34px; height: 34px; border-radius: 10px; flex: none;
+    display: grid; place-items: center; background: var(--superficie-2);
+    border: 1px solid var(--borde); color: var(--tinta-2); }
+  .nodo .icono svg { width: 18px; height: 18px; }
+  /* el conector une nodos: es cromo, así que va en la tinta de la rejilla */
+  .nodo:not(:last-child) .cab::after { content: ""; flex: 1; height: 1px;
+    background: var(--eje); margin-left: 4px; }
+  @media (max-width: 860px) { .nodo:nth-child(2n) .cab::after { display: none; } }
+  .nodo .titulo { font-size: 12.5px; color: var(--tinta-mute); letter-spacing: 0.02em; }
+  .nodo .valor { font-size: 19px; font-weight: 620; letter-spacing: -0.01em; }
+  .nodo .detalle { font-size: 12.5px; color: var(--tinta-mute); margin-top: 2px;
+    overflow-wrap: anywhere; }
+  .pie-flujo { display: flex; flex-wrap: wrap; gap: 8px 22px; margin-top: 18px; padding-top: 14px;
+    border-top: 1px solid var(--rejilla); font-size: 13px; color: var(--tinta-2); }
 
   /* Un estado nunca se comunica sólo con color: siempre marca + texto. */
-  .estado { display: inline-flex; align-items: center; gap: 6px;
-    font-size: 13px; font-weight: 500; }
-  .punto { width: 9px; height: 9px; border-radius: 50%; flex: none; }
-  .fila-estado { display: flex; justify-content: space-between; gap: 12px;
-    padding: 11px 0; border-bottom: 1px solid var(--rejilla); }
-  .fila-estado:last-child { border-bottom: 0; }
-  .fila-estado .que { color: var(--tinta-2); font-size: 14px; }
-  .fila-estado .val { font-size: 14px; font-variant-numeric: tabular-nums; }
+  .estado { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 550; }
+  .punto { width: 8px; height: 8px; border-radius: 50%; flex: none; }
 
+  /* --------------------------------------------------------- stat tiles */
+  .tile .etq { color: var(--tinta-2); }
+  .tile .cifra { font-size: 34px; font-weight: 650; letter-spacing: -0.03em; line-height: 1.1; margin: 8px 0 4px; }
+  .tile .cifra small { font-size: 15px; font-weight: 500; color: var(--tinta-2); letter-spacing: 0; }
+  .tile .pie { font-size: 12.5px; color: var(--tinta-mute); }
+  .tile .spark { margin-top: 12px; height: 38px; }
+  .unidades { display: grid; grid-template-columns: repeat(12, 1fr); gap: 3px; margin-top: 14px; }
+  .unidades i { height: 20px; border-radius: 4px; }
+
+  /* --------------------------------------------------------------- tablas */
   table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  th { text-align: left; font-weight: 500; color: var(--tinta-mute);
+  th { text-align: left; font-weight: 550; color: var(--tinta-mute);
     padding: 6px 8px; border-bottom: 1px solid var(--eje); font-size: 12px; }
   td { padding: 7px 8px; border-bottom: 1px solid var(--rejilla);
     font-variant-numeric: tabular-nums; color: var(--tinta-2); }
-  td.texto { font-variant-numeric: normal; }
   tr:last-child td { border-bottom: 0; }
 
-  .leyenda { display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 12px;
-    font-size: 13px; color: var(--tinta-2); }
+  /* ---------------------------------------------------------- calor drift */
+  .calor { overflow-x: auto; }
+  .calor table { border-collapse: separate; border-spacing: 3px; font-size: 12px; }
+  .calor th { border: 0; padding: 4px 6px; text-align: center; white-space: nowrap; }
+  .calor th.fila { text-align: left; color: var(--tinta-2); font-weight: 500; }
+  .calor th small { display: block; font-weight: 400; color: var(--tinta-mute); font-size: 11px; }
+  .calor table { width: 100%; }
+  .calor td { border: 0; text-align: center; border-radius: 6px; padding: 6px 4px;
+    background: var(--superficie-2); color: var(--tinta-mute); white-space: nowrap; }
+  .calor td.roto { background: color-mix(in srgb, var(--critico) 18%, var(--superficie));
+    color: var(--tinta); font-weight: 600; }
+  .calor td.roto::before { content: "▲ "; color: var(--critico); font-size: 9px; vertical-align: 1px; }
+  .calor tr.global th, .calor tr.global td { border-bottom: 1px solid var(--eje); }
+  .calor tr.global td { background: transparent; color: var(--tinta-2); font-weight: 600; }
+  .calor tr.global td.roto { background: color-mix(in srgb, var(--critico) 18%, var(--superficie)); }
+
+  /* ------------------------------------------------------------ decisiones */
+  .linea-tiempo { list-style: none; margin: 0; padding: 0; }
+  .linea-tiempo li { position: relative; padding: 0 0 18px 26px; }
+  .linea-tiempo li::before { content: ""; position: absolute; left: 4px; top: 16px; bottom: -2px;
+    width: 1px; background: var(--rejilla); }
+  .linea-tiempo li:last-child::before { display: none; }
+  .linea-tiempo .hito { position: absolute; left: 0; top: 5px; width: 9px; height: 9px;
+    border-radius: 50%; box-shadow: 0 0 0 3px var(--superficie); }
+  .linea-tiempo .cab-hito { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; }
+  .linea-tiempo .decision { font-weight: 620; font-size: 14px; }
+  .linea-tiempo .veces { font-size: 12px; color: var(--tinta-2); background: var(--superficie-2);
+    border-radius: 999px; padding: 1px 8px; }
+  .linea-tiempo .cuando { font-size: 12.5px; color: var(--tinta-mute); }
+  .linea-tiempo .motivo { font-size: 13px; color: var(--tinta-2); margin-top: 3px; max-width: 90ch; }
+  .chips { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+  .chip { font-size: 11.5px; padding: 1px 8px; border-radius: 6px; color: var(--tinta-2);
+    border: 1px solid var(--borde); background: var(--superficie-2);
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+
+  /* ------------------------------------------------------------ gráficos */
+  .leyenda { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 12.5px; color: var(--tinta-2); }
   .leyenda span { display: inline-flex; align-items: center; gap: 6px; }
-  .muestra { width: 10px; height: 10px; border-radius: 2px; }
+  .clave-linea { width: 14px; height: 2px; border-radius: 1px; }
+  .clave-barra { width: 10px; height: 10px; border-radius: 3px; }
 
   svg { display: block; width: 100%; height: auto; overflow: visible; }
   .tick { fill: var(--tinta-mute); font-size: 11px; font-variant-numeric: tabular-nums; }
-  .rotulo { fill: var(--tinta-2); font-size: 11px; font-variant-numeric: tabular-nums; }
+  .rotulo { fill: var(--tinta-2); font-size: 11.5px; font-variant-numeric: tabular-nums; }
+  .rotulo-fuerte { fill: var(--tinta); font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .nombre-est { fill: var(--tinta); font-size: 12.5px; }
   .linea-rejilla { stroke: var(--rejilla); stroke-width: 1; }
   .linea-eje { stroke: var(--eje); stroke-width: 1; }
+  .marca-hover { transition: opacity .12s; }
+  .fila-barra:hover .marca-hover { opacity: .78; }
+  .punto-mapa { transition: r .12s; }
+  .grupo-mapa:hover .punto-mapa { r: 9; }
 
   #pista { position: fixed; pointer-events: none; opacity: 0; z-index: 20;
     background: var(--superficie); border: 1px solid var(--borde);
-    border-radius: 8px; padding: 8px 11px; font-size: 12.5px;
-    color: var(--tinta); box-shadow: 0 6px 20px rgba(0,0,0,0.13);
-    transition: opacity .1s; max-width: 260px; }
-  #pista b { font-variant-numeric: tabular-nums; }
+    border-radius: 10px; padding: 9px 12px; font-size: 12.5px; min-width: 150px;
+    color: var(--tinta-2); box-shadow: 0 10px 30px rgba(0,0,0,0.16);
+    transition: opacity .1s; max-width: 280px; }
+  #pista .t { color: var(--tinta-mute); font-size: 12px; margin-bottom: 5px; }
+  #pista .f { display: flex; align-items: center; gap: 8px; margin-top: 3px; }
+  #pista .f b { color: var(--tinta); font-variant-numeric: tabular-nums; font-weight: 650; }
+  #pista .k { width: 12px; height: 2px; border-radius: 1px; flex: none; }
+  #pista .n { color: var(--tinta-mute); font-size: 12px; margin-top: 5px; font-style: italic; }
 
-  .vacio { color: var(--tinta-mute); font-size: 13px; padding: 20px 0;
-    text-align: center; }
+  .vacio { color: var(--tinta-mute); font-size: 13px; padding: 24px 0; text-align: center; }
   .pie-nota { color: var(--tinta-mute); font-size: 12.5px; line-height: 1.6;
-    margin: 14px 0 0; display: flex; gap: 8px; align-items: flex-start; }
+    margin: 12px 0 0; display: flex; gap: 8px; align-items: flex-start; }
   .muestra-hueca { width: 9px; height: 9px; border-radius: 50%; flex: none;
-    margin-top: 5px; background: var(--superficie);
-    border: 2px solid var(--tinta-mute); }
-  .oculto { display: none; }
-  footer { color: var(--tinta-mute); font-size: 12.5px; margin-top: 28px;
-    line-height: 1.7; }
-  a { color: var(--serie-1); }
+    margin-top: 5px; background: var(--superficie); border: 2px solid var(--tinta-mute); }
+  .oculto { display: none !important; }
+  footer { color: var(--tinta-mute); font-size: 12.5px; margin-top: 32px; line-height: 1.7;
+    padding-top: 18px; border-top: 1px solid var(--rejilla); }
 </style>
 </head>
 <body>
-<div class="envoltura">
 
-  <header class="cabecera">
-    <div>
-      <h1>Pulso TransMi — Operación</h1>
-      <p class="sub" id="sub">Cargando…</p>
+<header class="banda">
+  <div class="envoltura">
+    <div class="barra-sup">
+      <div class="marca">
+        <svg viewBox="0 0 34 34" aria-hidden="true">
+          <rect width="34" height="34" rx="9" fill="#2a78d6"/>
+          <path d="M6 18h5l3-7 5 13 3-8h6" fill="none" stroke="#fff" stroke-width="2.2"
+                stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <div>
+          <div class="nombre">Pulso TransMi</div>
+          <div class="ceja">Centro de operación · pronóstico de demanda en 12 estaciones</div>
+        </div>
+      </div>
+      <div class="controles">
+        <span class="pildora" id="salud"><span class="latido" style="background:var(--tinta-mute)"></span>Cargando…</span>
+        <button id="btn-tema" type="button">Tema</button>
+        <button id="btn-tabla" type="button">Ver tablas</button>
+        <button id="btn-recargar" type="button">Actualizar</button>
+      </div>
     </div>
-    <div class="controles">
-      <button id="btn-tema" type="button">Tema</button>
-      <button id="btn-tabla" type="button">Ver tablas</button>
-      <button id="btn-recargar" type="button">Actualizar</button>
+
+    <div class="heroe" id="heroe">
+      <div class="bloque">
+        <div class="etq">Accuracy oficial en el leaderboard</div>
+        <div class="cifra-heroe">—</div>
+      </div>
     </div>
-  </header>
+  </div>
+</header>
 
-  <div class="kpis" id="kpis"></div>
+<main class="envoltura" id="principal">
 
-  <div class="rejilla-2">
+  <section class="tarjeta">
+    <div class="cab-tarjeta">
+      <div>
+        <h2>Pipeline en vivo</h2>
+        <p class="nota">Cuándo respiró cada pieza por última vez. Un ciclo por hora real: pasados
+          70 minutos sin entregar, algo falla.</p>
+      </div>
+    </div>
+    <div class="flujo" id="flujo"></div>
+    <div class="pie-flujo" id="pie-flujo"></div>
+  </section>
+
+  <div class="rejilla r-4" id="tiles"></div>
+
+  <div class="rejilla r-est">
     <section class="tarjeta">
-      <h2>Estado operativo</h2>
-      <p class="nota">Cuándo respiró cada pieza por última vez.</p>
-      <div id="operativo"></div>
+      <div class="cab-tarjeta">
+        <div>
+          <h2>Accuracy por estación · últimas 24 h</h2>
+          <p class="nota">Distancia de cada estación al piso de 87 %. El promedio oficial no
+            pondera por volumen: una estación pequeña pesa igual que un portal.</p>
+        </div>
+        <div class="leyenda">
+          <span><i class="clave-barra" style="background:var(--polo-alto)"></i>Sobre el piso</span>
+          <span><i class="clave-barra" style="background:var(--polo-bajo)"></i>Bajo el piso</span>
+        </div>
+      </div>
+      <div id="estaciones"></div>
+      <div id="estaciones-tabla" class="oculto"></div>
     </section>
 
     <section class="tarjeta">
-      <h2>Señales de drift</h2>
-      <p class="nota">Valor contra umbral en la última evaluación.</p>
-      <div id="drift"></div>
+      <h2>Mapa de la red</h2>
+      <p class="nota">Las 12 estaciones en su ubicación real, con el mismo color que las barras.</p>
+      <div id="mapa"></div>
     </section>
   </div>
 
-  <section class="tarjeta">
-    <h2>Accuracy por estación · últimas 24 h</h2>
-    <p class="nota">El promedio oficial no pondera por volumen: una estación
-      pequeña pesa igual que la grande. Por eso importa dónde cae, no sólo cuánto.</p>
-    <div id="estaciones"></div>
-    <div id="estaciones-tabla" class="oculto"></div>
-  </section>
-
-  <div class="rejilla-2">
+  <div class="rejilla r-2">
     <section class="tarjeta">
       <h2>Accuracy por ciclo</h2>
-      <p class="nota">Cada punto es un ciclo entregado y ya evaluado.</p>
+      <p class="nota">Promedio no ponderado de las 12 estaciones en cada ciclo entregado.</p>
       <div id="ciclos"></div>
       <div id="ciclos-tabla" class="oculto"></div>
     </section>
 
     <section class="tarjeta">
-      <h2>Carrera del leaderboard</h2>
-      <p class="nota">Accuracy oficial acumulada. Los demás participantes van
-        agregados, sin nombres.</p>
+      <div class="cab-tarjeta">
+        <div>
+          <h2>Carrera del leaderboard</h2>
+          <p class="nota">Accuracy oficial acumulada. Los demás participantes van agregados, sin nombres.</p>
+        </div>
+      </div>
       <div id="carrera"></div>
       <div id="carrera-tabla" class="oculto"></div>
     </section>
   </div>
 
-  <section class="tarjeta">
+  <section class="tarjeta seccion">
+    <h2>Mapa de drift</h2>
+    <p class="nota" id="nota-drift">Cada señal contra su umbral en la última evaluación, por estación.</p>
+    <div id="drift" class="calor"></div>
+  </section>
+
+  <section class="tarjeta seccion">
     <h2>Decisiones de reentrenamiento</h2>
-    <p class="nota">Reentrenar es una consecuencia registrada, no un impulso.</p>
+    <p class="nota">Reentrenar es una consecuencia registrada, no un impulso. Las decisiones
+      idénticas seguidas se agrupan.</p>
     <div id="decisiones"></div>
   </section>
 
@@ -203,8 +388,9 @@
     Datos leídos de Supabase con la llave publicable, que sólo lee: RLS bloquea
     toda escritura. La llave de la API Pulso TransMi no vive aquí — el
     leaderboard lo ingesta GitHub Actions y este tablero lo consume ya derivado.
+    <span id="sub"></span>
   </footer>
-</div>
+</main>
 
 <div id="pista" role="status" aria-live="polite"></div>
 
@@ -212,6 +398,7 @@
 const SB  = "https://twjvjqyqxcfxbacewhdh.supabase.co/rest/v1";
 const KEY = "sb_publishable_Kt4UQx5jBJSJFViT71jSOg_NSIDGjBU";
 const UMBRAL_ACC = 87;   // el piso: por debajo, el champion pierde contra el perfil
+const META_COBERTURA = 95;
 
 const $ = (s) => document.querySelector(s);
 const pista = $("#pista");
@@ -241,7 +428,21 @@ async function pedir(ruta) {
     desde += lote.length;
   }
 }
-const num = (v, d = 2) => (v == null || Number.isNaN(v)) ? "—" : Number(v).toFixed(d);
+
+const num = (v, d = 2) => (v == null || Number.isNaN(v)) ? "—"
+  : Number(v).toLocaleString("es-CO", { minimumFractionDigits: d, maximumFractionDigits: d });
+const signo = (v, d = 2) => (v > 0 ? "+" : v < 0 ? "−" : "±") + num(Math.abs(v), d);
+// Los nombres vienen de la base: se escapan antes de ir a cualquier innerHTML.
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g,
+  (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+// "Calle 100 - Marketmedios" -> "Calle 100": el nombre completo va en el tooltip.
+const corto = (s) => String(s ?? "").split(/\s[–-]\s/)[0];
+
+const TZ = "America/Bogota";
+const fechaHora = (iso) => new Date(iso).toLocaleString("es-CO",
+  { timeZone: TZ, day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", hour12: false });
+const hora = (iso) => new Date(iso).toLocaleTimeString("es-CO",
+  { timeZone: TZ, hour: "2-digit", minute: "2-digit", hour12: false });
 
 function hace(iso) {
   if (!iso) return "nunca";
@@ -258,246 +459,462 @@ function hace(iso) {
   return `hace ${Math.floor(h / 24)} d`;
 }
 
-function marca(estado) {
-  const c = { bien: "var(--bien)", aviso: "var(--aviso)",
-              serio: "var(--serio)", critico: "var(--critico)" }[estado];
-  return `<span class="punto" style="background:${c}"></span>`;
-}
+const COLOR_ESTADO = { bien: "var(--bien)", aviso: "var(--aviso)",
+                       serio: "var(--serio)", critico: "var(--critico)" };
+const TEXTO_ESTADO = { bien: "al día", aviso: "atrasado", serio: "atención", critico: "detenido" };
+const GRAVEDAD = { bien: 0, aviso: 1, serio: 2, critico: 3 };
+const marca = (e) => `<span class="punto" style="background:${COLOR_ESTADO[e]}"></span>`;
+const estadoHTML = (e, texto = TEXTO_ESTADO[e]) =>
+  `<span class="estado">${marca(e)}${esc(texto)}</span>`;
 
 // ---------------------------------------------------------------- tooltips
-function seguir(el, texto) {
-  el.addEventListener("mouseenter", (e) => {
-    pista.innerHTML = texto; pista.style.opacity = "1"; mover(e);
-  });
-  el.addEventListener("mousemove", mover);
-  el.addEventListener("mouseleave", () => { pista.style.opacity = "0"; });
+// El contenido se arma con nodos y textContent: los nombres de estación y de
+// señal vienen de la base y no deben interpretarse como HTML.
+function nodosPista({ titulo, filas = [], nota }) {
+  const out = [];
+  if (titulo) { const t = document.createElement("div"); t.className = "t"; t.textContent = titulo; out.push(t); }
+  for (const f of filas) {
+    const d = document.createElement("div"); d.className = "f";
+    if (f.color) {
+      const k = document.createElement("span"); k.className = "k";
+      k.style.background = f.color; d.append(k);
+    }
+    const b = document.createElement("b"); b.textContent = f.valor;
+    const n = document.createElement("span"); n.textContent = f.nombre ?? "";
+    d.append(b, n); out.push(d);
+  }
+  if (nota) { const n = document.createElement("div"); n.className = "n"; n.textContent = nota; out.push(n); }
+  return out;
 }
-function mover(e) {
+function mostrar(contenido, x, y) {
+  pista.replaceChildren(...nodosPista(contenido));
+  pista.style.opacity = "1";
   const r = pista.getBoundingClientRect();
-  let x = e.clientX + 14, y = e.clientY - r.height - 10;
-  if (x + r.width > innerWidth - 8) x = e.clientX - r.width - 14;
-  if (y < 8) y = e.clientY + 18;
-  pista.style.left = x + "px"; pista.style.top = y + "px";
+  let px = x + 14, py = y - r.height - 12;
+  if (px + r.width > innerWidth - 8) px = x - r.width - 14;
+  if (py < 8) py = y + 18;
+  pista.style.left = px + "px"; pista.style.top = py + "px";
+}
+const ocultar = () => { pista.style.opacity = "0"; };
+function seguir(el, contenido) {
+  el.addEventListener("pointermove", (e) => mostrar(contenido, e.clientX, e.clientY));
+  el.addEventListener("pointerleave", ocultar);
+  el.addEventListener("focus", () => {
+    const r = el.getBoundingClientRect(); mostrar(contenido, r.right, r.top);
+  });
+  el.addEventListener("blur", ocultar);
 }
 
-// ------------------------------------------------------- barras horizontales
-function barras(cont, filas, { umbral }) {
-  if (!filas.length) { cont.innerHTML = `<p class="vacio">Sin datos todavía.</p>`; return; }
-  const alto = 26, gap = 6, izq = 66, der = 54, sup = 26;
-  const H = sup + filas.length * (alto + gap), W = 760;
-  const max = Math.max(100, ...filas.map(f => f.valor));
-  const x = (v) => izq + (v / max) * (W - izq - der);
+// Paso "limpio" para las marcas del eje: 1, 2, 5, 10, 20, 25, 50…
+function pasoLimpio(rango, marcas = 4) {
+  const bruto = rango / marcas, mag = 10 ** Math.floor(Math.log10(bruto));
+  return [1, 2, 2.5, 5, 10].map(m => m * mag).find(p => p >= bruto) ?? 10 * mag;
+}
 
-  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Accuracy por estación">`;
-  // el umbral sí es una línea punteada legítima: marca un límite, no una rejilla
-  s += `<line x1="${x(umbral)}" y1="${sup - 12}" x2="${x(umbral)}" y2="${H}"
-         stroke="var(--critico)" stroke-width="1" stroke-dasharray="3 3"/>
-        <text x="${x(umbral)}" y="${sup - 16}" class="tick" text-anchor="middle"
-         fill="var(--critico)">piso ${umbral}%</text>`;
+// ------------------------------------------------- barras divergentes
+// Las barras nacen en el piso, no en cero. Contra cero, 83 y 88 se ven casi
+// iguales y todo el gráfico parecía "rojo o azul" sin matices; lo que importa
+// operativamente es a qué distancia del piso está cada estación.
+function barraPath(x0, x1, y, h, r = 4) {
+  const w = Math.abs(x1 - x0);
+  if (w < r + 1) return `M${Math.min(x0, x1)},${y}h${Math.max(1.5, w)}v${h}h${-Math.max(1.5, w)}Z`;
+  const s = x1 > x0 ? 1 : -1;   // punta redondeada del lado del dato, cuadrada en la base
+  return `M${x0},${y} H${x1 - s * r} Q${x1},${y} ${x1},${y + r} V${y + h - r}
+          Q${x1},${y + h} ${x1 - s * r},${y + h} H${x0} Z`;
+}
+
+function divergentes(cont, filas, { piso }) {
+  if (!filas.length) { cont.innerHTML = `<p class="vacio">Sin datos todavía.</p>`; return; }
+  const alto = 20, fila = 34, izq = 150, der = 70, sup = 30, inf = 26, W = 660;
+  const H = sup + filas.length * fila + inf;
+  const deltas = filas.map(f => f.valor - piso);
+  const dmin = Math.min(-1, Math.floor(Math.min(...deltas)) - 1);
+  const dmax = Math.max(1, Math.ceil(Math.max(...deltas)) + 1);
+  const x = (d) => izq + ((d - dmin) / (dmax - dmin)) * (W - izq - der);
+  const paso = pasoLimpio(dmax - dmin, 6);
+
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Accuracy por estación frente al piso de ${piso} %">`;
+  for (let d = Math.ceil(dmin / paso) * paso; d <= dmax + 1e-9; d += paso) {
+    if (Math.abs(d) < 1e-9) continue;
+    s += `<line x1="${x(d)}" y1="${sup - 6}" x2="${x(d)}" y2="${H - inf}" class="linea-rejilla"/>
+          <text x="${x(d)}" y="${H - inf + 16}" class="tick" text-anchor="middle">${num(piso + d, paso < 1 ? 1 : 0)}</text>`;
+  }
+  // La base del divergente es el piso: línea sólida y rotulada.
+  s += `<line x1="${x(0)}" y1="${sup - 10}" x2="${x(0)}" y2="${H - inf}" stroke="var(--tinta-mute)" stroke-width="1.5"/>
+        <text x="${x(0)}" y="${sup - 16}" class="rotulo-fuerte" text-anchor="middle">piso ${piso} %</text>`;
+
   filas.forEach((f, i) => {
-    const y = sup + i * (alto + gap), an = Math.max(2, x(f.valor) - izq);
-    const bajo = f.valor < umbral;
-    s += `<text x="${izq - 10}" y="${y + alto / 2 + 4}" class="rotulo"
-           text-anchor="end">${f.etiqueta}</text>`;
-    // 2px de aire con la superficie en vez de borde, y punta redondeada de 4px
-    s += `<g data-t="${f.etiqueta}: ${num(f.valor)} %">
-            <rect x="${izq}" y="${y}" width="${an}" height="${alto}" rx="4"
-              fill="${bajo ? 'var(--critico)' : 'var(--serie-1)'}"
-              stroke="var(--superficie)" stroke-width="2"/>
-            <rect x="${izq}" y="${y}" width="${W - izq - der}" height="${alto}"
-              fill="transparent"/>
+    const y = sup + i * fila + (fila - alto) / 2, d = f.valor - piso;
+    const color = d >= 0 ? "var(--polo-alto)" : "var(--polo-bajo)";
+    const xe = x(d);
+    s += `<g class="fila-barra" data-i="${i}" tabindex="0">
+            <rect x="0" y="${y - (fila - alto) / 2}" width="${W}" height="${fila}" fill="transparent"/>
+            <text x="12" y="${y + alto / 2 + 4.5}" class="nombre-est">${esc(corto(f.nombre))}</text>
+            <path class="marca-hover" d="${barraPath(x(0), xe, y, alto)}" fill="${color}"/>
+            <text x="${d >= 0 ? xe + 8 : xe - 8}" y="${y + alto / 2 + 4}" class="rotulo"
+              text-anchor="${d >= 0 ? "start" : "end"}">${num(f.valor)}</text>
           </g>`;
-    s += `<text x="${x(f.valor) + 8}" y="${y + alto / 2 + 4}" class="rotulo">${num(f.valor)}</text>`;
   });
   s += `</svg>`;
   cont.innerHTML = s;
-  cont.querySelectorAll("g[data-t]").forEach(g => seguir(g, g.dataset.t));
+  cont.querySelectorAll("g[data-i]").forEach(g => {
+    const f = filas[+g.dataset.i], d = f.valor - piso;
+    seguir(g, { titulo: `${f.nombre} · ${f.corredor ?? ""}`,
+      filas: [{ color: d >= 0 ? "var(--polo-alto)" : "var(--polo-bajo)", valor: `${num(f.valor)} %`, nombre: "accuracy 24 h" },
+              { valor: `${signo(d)} pts`, nombre: d >= 0 ? "sobre el piso" : "bajo el piso" }] });
+  });
+}
+
+// ---------------------------------------------------------------- mapa
+function mapa(cont, filas, { piso }) {
+  const pts = filas.filter(f => f.lat != null && f.lon != null);
+  if (!pts.length) { cont.innerHTML = `<p class="vacio">Sin coordenadas.</p>`; return; }
+  const W = 360, H = 470, pad = 34;
+  const lats = pts.map(p => p.lat), lons = pts.map(p => p.lon);
+  const [la0, la1, lo0, lo1] = [Math.min(...lats), Math.max(...lats), Math.min(...lons), Math.max(...lons)];
+  const cos = Math.cos(((la0 + la1) / 2) * Math.PI / 180);
+  const k = Math.min((W - 2 * pad - 120) / ((lo1 - lo0) * cos || 1), (H - 2 * pad) / ((la1 - la0) || 1));
+  const px = (lon) => W / 2 + (lon - (lo0 + lo1) / 2) * cos * k;
+  const py = (lat) => H / 2 - (lat - (la0 + la1) / 2) * k;
+
+  // Rótulos: se prueba derecha, izquierda, arriba y abajo, y se queda el
+  // primero que no pisa otro punto ni otro rótulo ni se sale del lienzo.
+  const cajas = pts.map(p => ({ x0: px(p.lon) - 9, x1: px(p.lon) + 9, y0: py(p.lat) - 9, y1: py(p.lat) + 9 }));
+  const choca = (a) => a.x0 < 2 || a.x1 > W - 2 || a.y0 < 2 || a.y1 > H - 2 ||
+    cajas.some(b => a.x0 < b.x1 && a.x1 > b.x0 && a.y0 < b.y1 && a.y1 > b.y0);
+  const rotulos = pts.map(p => {
+    const cx = px(p.lon), cy = py(p.lat), texto = corto(p.nombre), w = texto.length * 6.1;
+    const opciones = [
+      { x: cx + 12, y: cy + 4, a: "start", c: { x0: cx + 11, x1: cx + 12 + w, y0: cy - 7, y1: cy + 7 } },
+      { x: cx - 12, y: cy + 4, a: "end",   c: { x0: cx - 12 - w, x1: cx - 11, y0: cy - 7, y1: cy + 7 } },
+      { x: cx, y: cy - 14, a: "middle",    c: { x0: cx - w / 2, x1: cx + w / 2, y0: cy - 25, y1: cy - 10 } },
+      { x: cx, y: cy + 23, a: "middle",    c: { x0: cx - w / 2, x1: cx + w / 2, y0: cy + 11, y1: cy + 26 } },
+    ];
+    const elegida = opciones.find(o => !choca(o.c)) ?? opciones[0];
+    cajas.push(elegida.c);
+    return { ...elegida, texto };
+  });
+
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Mapa de estaciones coloreado por accuracy">`;
+  // retícula geográfica tenue: da escala sin fingir un mapa base que no hay
+  for (let g = 1; g < 6; g++) {
+    s += `<line x1="0" y1="${(H * g) / 6}" x2="${W}" y2="${(H * g) / 6}" class="linea-rejilla" opacity=".6"/>`;
+  }
+  for (let g = 1; g < 4; g++) {
+    s += `<line x1="${(W * g) / 4}" y1="0" x2="${(W * g) / 4}" y2="${H}" class="linea-rejilla" opacity=".6"/>`;
+  }
+  s += `<g transform="translate(${W - 20},24)" class="tick">
+          <path d="M0,-10 L5,4 L0,1 L-5,4 Z" fill="var(--tinta-mute)"/>
+          <text y="18" text-anchor="middle">N</text></g>`;
+  pts.forEach((p, i) => {
+    const d = p.valor - piso, color = d >= 0 ? "var(--polo-alto)" : "var(--polo-bajo)";
+    const r = rotulos[i];
+    s += `<g class="grupo-mapa" data-i="${i}" tabindex="0">
+            <circle cx="${px(p.lon)}" cy="${py(p.lat)}" r="16" fill="transparent"/>
+            <circle cx="${px(p.lon)}" cy="${py(p.lat)}" r="13" fill="${color}" opacity=".14"/>
+            <circle class="punto-mapa" cx="${px(p.lon)}" cy="${py(p.lat)}" r="${p.portal ? 7.5 : 6}"
+              fill="${color}" stroke="var(--superficie)" stroke-width="2"/>
+            <text x="${r.x}" y="${r.y}" text-anchor="${r.a}" class="rotulo">${esc(r.texto)}</text>
+          </g>`;
+  });
+  s += `</svg>`;
+  cont.innerHTML = s;
+  cont.querySelectorAll("g[data-i]").forEach(g => {
+    const p = pts[+g.dataset.i], d = p.valor - piso;
+    seguir(g, { titulo: `${p.nombre} · ${p.corredor ?? ""}`,
+      filas: [{ color: d >= 0 ? "var(--polo-alto)" : "var(--polo-bajo)", valor: `${num(p.valor)} %`, nombre: "accuracy 24 h" },
+              { valor: `${signo(d)} pts`, nombre: d >= 0 ? "sobre el piso" : "bajo el piso" }],
+      nota: p.portal ? "Portal (punto más grande)" : undefined });
+  });
 }
 
 // --------------------------------------------------------------- líneas
-function lineas(cont, series, { etiquetaX, minY, maxY, invertir = false }) {
-  const puntos = series.flatMap(s => s.datos);
+// Todas las series comparten el índice x. El crosshair busca la x más
+// cercana: el lector apunta a un momento, no a una línea de 2 px.
+function lineas(cont, series, { minY, maxY, umbral, area = [], rotuloNombre = true, fmtY = (v) => num(v, 0) }) {
+  const puntos = series.flatMap(s => s.datos).filter(p => p.y != null);
   if (puntos.length < 1) { cont.innerHTML = `<p class="vacio">Aún no hay suficientes puntos. Aparece solo.</p>`; return; }
-  const izq = 44, der = 58, sup = 16, inf = 34, W = 520, H = 250;
+  const izq = 34, der = rotuloNombre ? 104 : 50, sup = 14, inf = 30, W = 580, H = 270;
   const n = Math.max(...series.map(s => s.datos.length));
   const lo = minY ?? Math.min(...puntos.map(p => p.y));
   const hi = maxY ?? Math.max(...puntos.map(p => p.y));
   const rango = (hi - lo) || 1;
   const x = (i) => izq + (n === 1 ? (W - izq - der) / 2 : (i / (n - 1)) * (W - izq - der));
-  const y = (v) => {
-    const t = (v - lo) / rango;
-    return invertir ? sup + t * (H - sup - inf) : H - inf - t * (H - sup - inf);
-  };
+  const y = (v) => H - inf - ((v - lo) / rango) * (H - sup - inf);
 
-  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${etiquetaX}">`;
-  for (let k = 0; k <= 4; k++) {
-    const v = lo + (rango * k) / 4, yy = y(v);
-    s += `<line x1="${izq}" y1="${yy}" x2="${W - der}" y2="${yy}" class="linea-rejilla"/>
-          <text x="${izq - 8}" y="${yy + 4}" class="tick" text-anchor="end">${num(v, 0)}</text>`;
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" tabindex="0"
+             aria-label="${esc(series.map(s => s.nombre).join(", "))}. Flechas para recorrer.">`;
+  const paso = pasoLimpio(rango, 4);
+  for (let v = Math.ceil(lo / paso) * paso; v <= hi + 1e-9; v += paso) {
+    s += `<line x1="${izq}" y1="${y(v)}" x2="${W - der}" y2="${y(v)}" class="linea-rejilla"/>
+          <text x="${izq - 8}" y="${y(v) + 4}" class="tick" text-anchor="end">${fmtY(v)}</text>`;
   }
   s += `<line x1="${izq}" y1="${H - inf}" x2="${W - der}" y2="${H - inf}" class="linea-eje"/>`;
 
+  // tres marcas de tiempo bastan: el tooltip da el momento exacto
+  const base = series[0].datos;
+  [...new Set([0, Math.floor((n - 1) / 2), n - 1])].forEach((i, k, arr) => {
+    if (!base[i]) return;
+    const anc = arr.length > 1 && k === 0 ? "start" : k === arr.length - 1 && arr.length > 1 ? "end" : "middle";
+    s += `<text x="${x(i)}" y="${H - inf + 18}" class="tick" text-anchor="${anc}">${esc(base[i].corto)}</text>`;
+  });
+
+  if (umbral != null && umbral >= lo && umbral <= hi) {
+    // el umbral sí es una línea punteada legítima: marca un límite, no una rejilla
+    s += `<line x1="${izq}" y1="${y(umbral)}" x2="${W - der}" y2="${y(umbral)}"
+            stroke="var(--critico)" stroke-width="1" stroke-dasharray="4 4" opacity=".85"/>
+          <text x="${W - der + 6}" y="${y(umbral) + 4}" class="tick">piso ${umbral}</text>`;
+  }
+
+  const finales = [];
   series.forEach((se) => {
     // Un ciclo en curso todavía no tiene toda su realidad observada: su
     // accuracy está calculada con la mitad de las mediciones y no es
     // comparable con las demás. Se dibuja, porque existe, pero hueco y en
     // gris — dibujarlo igual que los otros hace creer que el desempeño cayó
     // cuando lo único que pasa es que el futuro no ha ocurrido todavía.
-    const firmes = se.datos.map((p, i) => ({ p, i })).filter(o => !o.p.parcial);
-
+    const firmes = se.datos.map((p, i) => ({ p, i })).filter(o => !o.p.parcial && o.p.y != null);
     const d = firmes.map((o, k) => `${k ? "L" : "M"}${x(o.i)},${y(o.p.y)}`).join(" ");
+    if (d && area.includes(se.nombre) && firmes.length > 1) {
+      s += `<path d="${d} L${x(firmes.at(-1).i)},${H - inf} L${x(firmes[0].i)},${H - inf} Z"
+              fill="${se.color}" opacity=".10"/>`;
+    }
     if (d) s += `<path d="${d}" fill="none" stroke="${se.color}" stroke-width="2"
                    stroke-linejoin="round" stroke-linecap="round"/>`;
 
     // El tramo hacia lo provisional va punteado: aquí el guion sí significa
     // algo —"esto todavía se está midiendo"— y no es adorno de rejilla.
-    const ult = firmes[firmes.length - 1];
+    const ult = firmes.at(-1);
     se.datos.forEach((p, i) => {
-      if (p.parcial && ult && i === ult.i + 1) {
+      if (!p.parcial || p.y == null) return;
+      if (ult && i === ult.i + 1) {
         s += `<path d="M${x(ult.i)},${y(ult.p.y)} L${x(i)},${y(p.y)}" fill="none"
-                stroke="var(--tinta-mute)" stroke-width="2" stroke-dasharray="4 4"
-                stroke-linecap="round"/>`;
+                stroke="var(--tinta-mute)" stroke-width="2" stroke-dasharray="4 4" stroke-linecap="round"/>`;
       }
+      s += `<circle cx="${x(i)}" cy="${y(p.y)}" r="4.5" fill="var(--superficie)"
+              stroke="var(--tinta-mute)" stroke-width="2"/>`;
     });
-
-    se.datos.forEach((p, i) => {
-      const nota = p.parcial
-        ? `<br><i>en curso · ${p.medidos} de ${p.esperados} mediciones</i>` : "";
-      s += `<g data-t="${p.etiqueta}<br><b>${num(p.y)}</b> — ${se.nombre}${nota}">
-              <circle cx="${x(i)}" cy="${y(p.y)}" r="4.5"
-                fill="${p.parcial ? "var(--superficie)" : se.color}"
-                stroke="${p.parcial ? "var(--tinta-mute)" : "var(--superficie)"}"
-                stroke-width="2"/>
-              <circle cx="${x(i)}" cy="${y(p.y)}" r="11" fill="transparent"/>
-            </g>`;
-    });
-
     // Se rotula el último punto FIRME, no el provisional: poner el número del
     // parcial ahí lo convierte en la cifra que uno se lleva de la vista.
     if (ult) {
-      const alFinal = ult.i === se.datos.length - 1;
-      s += alFinal
-        ? `<text x="${x(ult.i) + 9}" y="${y(ult.p.y) + 4}" class="rotulo">${num(ult.p.y, 1)}</text>`
-        : `<text x="${x(ult.i)}" y="${y(ult.p.y) - 11}" class="rotulo"
-             text-anchor="middle">${num(ult.p.y, 1)}</text>`;
+      s += `<circle cx="${x(ult.i)}" cy="${y(ult.p.y)}" r="4.5" fill="${se.color}"
+              stroke="var(--superficie)" stroke-width="2"/>`;
+      finales.push({ y: y(ult.p.y), yp: y(ult.p.y), xp: x(ult.i), se, v: ult.p.y });
     }
   });
+
+  // Rótulos finales: si dos chocan no se apilan a ciegas; se separan y un
+  // conector fino los mantiene unidos a su línea.
+  finales.sort((a, b) => a.y - b.y);
+  for (let i = 1; i < finales.length; i++) {
+    if (finales[i].y - finales[i - 1].y < 15) finales[i].y = finales[i - 1].y + 15;
+  }
+  const xr = W - der + 10;
+  finales.forEach(f => {
+    if (Math.abs(f.y - f.yp) > 2) {
+      s += `<path d="M${f.xp + 6},${f.yp} L${xr - 3},${f.y}" stroke="var(--eje)" fill="none"/>`;
+    }
+    s += `<text x="${xr}" y="${f.y + 4}" class="rotulo">${rotuloNombre
+      ? `<tspan class="rotulo-fuerte">${num(f.v, 1)}</tspan> ${esc(f.se.nombre)}`
+      : `<tspan class="rotulo-fuerte">${num(f.v, 1)}</tspan>`}</text>`;
+  });
+
+  s += `<g class="cruz" style="display:none">
+          <line class="cruz-l" y1="${sup}" y2="${H - inf}" stroke="var(--tinta-mute)" stroke-width="1"/>
+          ${series.map((se, k) => `<circle class="cruz-p" data-k="${k}" r="5" fill="${se.color}"
+             stroke="var(--superficie)" stroke-width="2"/>`).join("")}
+        </g>
+        <rect class="capa" x="${izq}" y="0" width="${W - izq - der}" height="${H - inf}" fill="transparent"/>`;
   s += `</svg>`;
   cont.innerHTML = s;
-  cont.querySelectorAll("g[data-t]").forEach(g => seguir(g, g.dataset.t));
+
+  const svg = cont.querySelector("svg"), cruz = svg.querySelector(".cruz");
+  const aIndice = (cx) => {
+    const pt = svg.createSVGPoint(); pt.x = cx; pt.y = 0;
+    const px = pt.matrixTransform(svg.getScreenCTM().inverse()).x;
+    return Math.max(0, Math.min(n - 1, Math.round(((px - izq) / (W - izq - der)) * (n - 1))));
+  };
+  const enfocar = (i, cx, cy) => {
+    cruz.style.display = "";
+    cruz.querySelector(".cruz-l").setAttribute("x1", x(i));
+    cruz.querySelector(".cruz-l").setAttribute("x2", x(i));
+    cruz.querySelectorAll(".cruz-p").forEach(c => {
+      const p = series[+c.dataset.k].datos[i];
+      c.style.display = p?.y == null ? "none" : "";
+      if (p?.y != null) { c.setAttribute("cx", x(i)); c.setAttribute("cy", y(p.y)); }
+    });
+    const p0 = series.map(se => se.datos[i]).find(Boolean);
+    const parcial = series.find(se => se.datos[i]?.parcial)?.datos[i];
+    mostrar({
+      titulo: p0?.etiqueta,
+      filas: series.filter(se => se.datos[i]?.y != null)
+        .map(se => ({ color: se.color, valor: `${num(se.datos[i].y)} %`, nombre: se.nombre })),
+      nota: parcial ? `en curso · ${parcial.medidos} de ${parcial.esperados} mediciones`
+                    : p0?.extra,
+    }, cx, cy);
+  };
+  let actual = n - 1;
+  svg.querySelector(".capa").addEventListener("pointermove", (e) => {
+    actual = aIndice(e.clientX); enfocar(actual, e.clientX, e.clientY);
+  });
+  svg.addEventListener("pointerleave", () => { cruz.style.display = "none"; ocultar(); });
+  svg.addEventListener("keydown", (e) => {
+    if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+    e.preventDefault();
+    actual = Math.max(0, Math.min(n - 1, actual + (e.key === "ArrowRight" ? 1 : -1)));
+    const r = svg.getBoundingClientRect();
+    enfocar(actual, r.left + (x(actual) / W) * r.width, r.top + 20);
+  });
+  svg.addEventListener("blur", () => { cruz.style.display = "none"; ocultar(); });
 }
 
 function leyenda(cont, series) {
-  cont.insertAdjacentHTML("afterbegin", `<div class="leyenda">` +
-    series.map(s => `<span><i class="muestra" style="background:${s.color}"></i>${s.nombre}</span>`).join("") +
-    `</div>`);
+  const div = document.createElement("div");
+  div.className = "leyenda"; div.style.marginBottom = "10px";
+  for (const s of series) {
+    const sp = document.createElement("span"), k = document.createElement("i");
+    k.className = "clave-linea"; k.style.background = s.color;
+    sp.append(k, document.createTextNode(s.nombre)); div.append(sp);
+  }
+  cont.prepend(div);
+}
+
+function sparkline(valores, { W = 200, H = 38 } = {}) {
+  if (valores.length < 2) return "";
+  const lo = Math.min(...valores), hi = Math.max(...valores), r = (hi - lo) || 1;
+  const x = (i) => 3 + (i / (valores.length - 1)) * (W - 6);
+  const y = (v) => H - 4 - ((v - lo) / r) * (H - 8);
+  const d = valores.map((v, i) => `${i ? "L" : "M"}${x(i)},${y(v)}`).join(" ");
+  return `<svg class="spark" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true">
+    <path d="${d}" fill="none" stroke="var(--tinta-mute)" stroke-width="1.5" stroke-linejoin="round"
+      vector-effect="non-scaling-stroke"/>
+    <circle cx="${x(valores.length - 1)}" cy="${y(valores.at(-1))}" r="3.5" fill="var(--serie-1)"
+      stroke="var(--superficie)" stroke-width="1.5"/></svg>`;
 }
 
 function tabla(cols, filas) {
-  return `<table><thead><tr>${cols.map(c => `<th>${c}</th>`).join("")}</tr></thead>
+  return `<table><thead><tr>${cols.map(c => `<th>${esc(c)}</th>`).join("")}</tr></thead>
     <tbody>${filas.map(f => `<tr>${f.map(c => `<td>${c}</td>`).join("")}</tr>`).join("")}</tbody></table>`;
 }
 
+const ICONOS = {
+  ingesta: `<path d="M12 3v12m0 0-4-4m4 4 4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/>`,
+  modelo: `<path d="M12 2 3 7l9 5 9-5-9-5Z"/><path d="m3 12 9 5 9-5M3 17l9 5 9-5"/>`,
+  entrega: `<path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-7Z"/>`,
+  evaluacion: `<path d="M3 3v18h18"/><path d="m7 15 4-4 3 3 6-6"/>`,
+};
+const icono = (n) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONOS[n]}</svg>`;
+
 // ----------------------------------------------------------------- pintar
 async function pintar() {
-  $("#sub").textContent = "Cargando…";
-  const [lb, metricas, senales, decisiones, runs, subs, champion, cursor, scores] =
+  $("#principal").classList.add("recargando");
+  const [lb, metricas, senales, decisiones, runs, subs, champion, estaciones, scores] =
     await Promise.all([
       pedir("leaderboard_snapshots?select=*&order=captured_at.asc"),
       pedir("model_metrics?select=*&split=eq.production"),
       pedir("drift_signals?select=*&order=computed_at.desc&limit=400"),
-      pedir("retrain_decisions?select=*&order=decided_at.desc&limit=8"),
+      pedir("retrain_decisions?select=*&order=decided_at.desc&limit=30"),
       pedir("pipeline_runs?select=*&order=run_id.desc&limit=40"),
       pedir("submissions?select=cycle_id,is_official,attempt,http_status,submitted_at&order=submitted_at.desc"),
       pedir("v_active_model?select=*"),
-      pedir("stream_cursor?select=*"),
+      pedir("stations?select=station_id,station_name,corridor,latitude,longitude,is_portal"),
       pedir("v_prediction_scores?select=station_id,issued_at,y_pred,y_true,abs_error&order=issued_at.asc"),
     ]);
+  const est = new Map(estaciones.map(e => [e.station_id, e]));
+  const nombreEst = (id) => est.get(id)?.station_name ?? id;
 
-  const ult = lb[lb.length - 1] || null;
+  const ult = lb.at(-1) || null, previo = lb.at(-2) || null;
   const glob = (fold, metric) => metricas.find(
     m => m.fold === fold && m.station_id === null && m.metric === metric)?.value;
   const acc24 = glob(1, "accuracy"), accAcum = glob(0, "accuracy");
 
-  // --- KPIs
-  const cobertura = ult ? ult.coverage * 100 : null;
-  $("#kpis").innerHTML = [
-    { etiqueta: "Accuracy oficial", cifra: ult ? num(ult.accuracy) + " %" : "—",
-      pie: ult ? `puesto ${ult.rank} de ${ult.participantes}` : "sin datos" },
-    { etiqueta: "Cobertura", cifra: cobertura != null ? num(cobertura, 0) + " %" : "—",
-      pie: "la guía pide ≥ 95 %" },
-    { etiqueta: "Accuracy del modelo · 24 h", cifra: acc24 != null ? num(acc24) + " %" : "—",
-      pie: `acumulada ${num(accAcum)} % · piso ${UMBRAL_ACC} %` },
-    { etiqueta: "Entregas aceptadas", cifra: String(subs.length),
-      pie: `${subs.filter(s => s.is_official).length} oficiales · intento máx. ${Math.max(0, ...subs.map(s => s.attempt || 0))}` },
-  ].map(k => `<div class="kpi"><div class="etiqueta">${k.etiqueta}</div>
-      <div class="cifra">${k.cifra}</div><div class="pie">${k.pie}</div></div>`).join("");
-
-  // --- estado operativo
-  const ultRun = (pred) => runs.find(pred);
-  const collector = ultRun(r => r.rows_ingested > 0);
+  // --- semáforos del pipeline
+  const collector = runs.find(r => r.rows_ingested > 0);
   const evaluacion = decisiones[0];
   const gap = senales.find(s => s.signal === "ingest_gap");
-  // Cuánto hace, en minutos, para poder semaforizar por antigüedad.
-  const minutos = (iso) => iso
-    ? (Date.now() - new Date(iso).getTime()) / 60000 : Infinity;
+  const minutos = (iso) => iso ? (Date.now() - new Date(iso).getTime()) / 60000 : Infinity;
   // Los ciclos son horarios: pasados ~70 min sin entregar, algo falla. Y cada
-  // tick de datos son 30 min, así que 45 sin ingerir ya es atraso. Estos dos
+  // tick de datos son 30 min, así que 45 sin ingerir ya es atraso. Estos
   // umbrales son los que convierten el panel en algo que se lee de un vistazo
   // en vez de una lista de datos que hay que interpretar.
   const semaforo = (iso, aviso, critico) => {
     const m = minutos(iso);
     return m > critico ? "critico" : m > aviso ? "aviso" : "bien";
   };
-
-  const filas = [
-    // La entrega va de primera: es la única fila que decide la cobertura, y
-    // la cobertura es casi toda la nota.
-    ["Última entrega", hace(subs[0]?.submitted_at),
-      semaforo(subs[0]?.submitted_at, 70, 120),
-      subs.length ? `ciclo ${subs[0].cycle_id.slice(-14)} · HTTP ${subs[0].http_status}` : "sin entregas"],
-    ["Champion activo", champion[0]?.name ?? "—",
-      champion[0] ? "bien" : "critico",
-      champion[0]?.hyperparams?.version ?? ""],
-    ["Última ingesta", hace(collector?.finished_at),
-      semaforo(collector?.finished_at, 45, 90),
-      `${collector?.rows_ingested ?? 0} filas`],
-    ["Última evaluación", hace(evaluacion?.decided_at),
-      semaforo(evaluacion?.decided_at, 90, 180),
-      evaluacion ? evaluacion.decision : ""],
-    ["Atraso de ingesta", gap ? `${num(gap.value, 0)} min` : "—",
-      gap ? (gap.breached ? "critico" : "bien") : "aviso", gap ? `umbral ${num(gap.threshold,0)}` : ""],
-    ["Corridas fallidas", String(runs.filter(r => r.status === "failed").length),
-      runs.some(r => r.status === "failed") ? "aviso" : "bien", `de ${runs.length} recientes`],
+  const fallidas = runs.filter(r => r.status === "failed").length;
+  const nodos = [
+    { id: "ingesta", titulo: "Ingesta", valor: hace(collector?.finished_at),
+      e: semaforo(collector?.finished_at, 45, 90),
+      detalle: `${collector?.rows_ingested ?? 0} filas · atraso ${gap ? num(gap.value, 0) : "—"} min` },
+    { id: "modelo", titulo: "Champion activo", valor: champion[0]?.name ?? "—",
+      e: champion[0] ? "bien" : "critico", texto: champion[0] ? "activo" : "sin champion",
+      detalle: champion[0]?.hyperparams?.version ?? "" },
+    // La entrega es la pieza que decide la cobertura, y la cobertura es casi
+    // toda la nota: es el nodo que más pesa en la salud general.
+    { id: "entrega", titulo: "Última entrega", valor: hace(subs[0]?.submitted_at),
+      e: semaforo(subs[0]?.submitted_at, 70, 120),
+      detalle: subs.length ? `ciclo ${subs[0].cycle_id.slice(-14)} · HTTP ${subs[0].http_status}` : "sin entregas" },
+    { id: "evaluacion", titulo: "Última evaluación", valor: hace(evaluacion?.decided_at),
+      e: semaforo(evaluacion?.decided_at, 90, 180),
+      detalle: evaluacion ? `decisión: ${evaluacion.decision}` : "" },
   ];
-  $("#operativo").innerHTML = filas.map(([q, v, e, extra]) =>
-    `<div class="fila-estado"><span class="que">${q}</span>
-      <span class="val"><span class="estado">${marca(e)}${v}</span>
-      ${extra ? `<span style="color:var(--tinta-mute)"> · ${extra}</span>` : ""}</span></div>`).join("");
+  $("#flujo").innerHTML = nodos.map(nd => `
+    <div class="nodo">
+      <div class="cab"><span class="icono" style="color:${COLOR_ESTADO[nd.e]}">${icono(nd.id)}</span>
+        ${estadoHTML(nd.e, nd.texto)}</div>
+      <div class="titulo">${esc(nd.titulo)}</div>
+      <div class="valor">${esc(nd.valor)}</div>
+      <div class="detalle">${esc(nd.detalle)}</div>
+    </div>`).join("");
+  $("#pie-flujo").innerHTML = `
+    <span>${estadoHTML(fallidas ? "aviso" : "bien", `${fallidas} corridas fallidas`)}
+      <span style="color:var(--tinta-mute)"> de ${runs.length} recientes</span></span>
+    <span>${estadoHTML(gap ? (gap.breached ? "critico" : "bien") : "aviso",
+      `atraso de ingesta ${gap ? num(gap.value, 0) + " min" : "—"}`)}
+      <span style="color:var(--tinta-mute)"> · umbral ${gap ? num(gap.threshold, 0) : "—"}</span></span>`;
 
-  // --- drift (última corrida, señales globales)
-  const ultimaEval = senales.length ? senales[0].run_id : null;
-  const globales = senales.filter(s => s.run_id === ultimaEval && s.station_id === null);
-  const porSenal = (sig) => senales.filter(s => s.run_id === ultimaEval && s.signal === sig && s.station_id);
-  $("#drift").innerHTML = globales.length ? globales.map(s => {
-    const rojas = porSenal(s.signal).filter(x => x.breached).length;
-    const tot = porSenal(s.signal).length;
-    return `<div class="fila-estado">
-      <span class="que">${s.signal}</span>
-      <span class="val"><span class="estado">${marca(s.breached ? "critico" : "bien")}
-        ${s.breached ? "roto" : "ok"}</span>
-        <span style="color:var(--tinta-mute)"> · ${num(s.value, 3)} / ${num(s.threshold, 2)}${
-          tot ? ` · ${rojas}/${tot} estaciones` : ""}</span></span></div>`;
-  }).join("") : `<p class="vacio">Sin evaluaciones todavía.</p>`;
+  const peor = [...nodos.map(nd => nd.e), fallidas ? "aviso" : "bien"]
+    .reduce((a, b) => GRAVEDAD[b] > GRAVEDAD[a] ? b : a, "bien");
+  $("#salud").innerHTML = `<span class="latido" style="background:${COLOR_ESTADO[peor]}"></span>${
+    { bien: "Operando con normalidad", aviso: "Operando con atrasos",
+      serio: "Requiere atención", critico: "Pipeline detenido" }[peor]}`;
 
-  // --- accuracy por estación (24 h)
-  const porEst = metricas
-    .filter(m => m.fold === 1 && m.station_id && m.metric === "accuracy")
-    .map(m => ({ etiqueta: m.station_id, valor: m.value }))
-    .sort((a, b) => a.valor - b.valor);
-  barras($("#estaciones"), porEst, { umbral: UMBRAL_ACC });
-  $("#estaciones-tabla").innerHTML = tabla(["Estación", "Accuracy 24 h (%)"],
-    porEst.map(f => [f.etiqueta, num(f.valor)]));
+  // --- héroe
+  const cobertura = ult ? ult.coverage * 100 : null;
+  const dPrev = ult && previo ? ult.accuracy - previo.accuracy : null;
+  const brecha = ult ? ult.accuracy - ult.lider_accuracy : null;
+  const eCob = cobertura == null ? "aviso" : cobertura >= META_COBERTURA ? "bien"
+             : cobertura >= 80 ? "aviso" : "critico";
+  $("#heroe").innerHTML = `
+    <div class="bloque">
+      <div class="etq">Accuracy oficial en el leaderboard</div>
+      <div class="cifra-heroe">${ult ? num(ult.accuracy) : "—"}<small>%</small></div>
+      <div class="contexto">
+        ${dPrev != null ? `<span class="delta ${dPrev >= 0 ? "sube" : "baja"}">${dPrev >= 0 ? "▲" : "▼"} ${signo(dPrev)} pts</span>
+          <span>desde la captura anterior (${ult ? hora(ult.captured_at) : ""})</span>` : "<span>sin capturas previas</span>"}
+      </div>
+    </div>
+    <div class="bloque">
+      <div class="etq">Posición</div>
+      <div class="cifra-media">${ult ? `#${ult.rank}` : "—"} <small>de ${ult?.participantes ?? "—"} equipos</small></div>
+      <div class="contexto">
+        <span>Líder <b style="color:var(--tinta)">${ult ? num(ult.lider_accuracy) : "—"} %</b></span>
+        <span>Brecha ${brecha != null ? `<b style="color:var(--tinta)">${signo(brecha)} pts</b>` : "—"}</span>
+        <span>Mediana ${ult ? num(ult.mediana_accuracy) : "—"} %</span>
+      </div>
+    </div>
+    <div class="bloque">
+      <div class="etq">Cobertura de ciclos</div>
+      <div class="cifra-media">${cobertura != null ? num(cobertura, 0) : "—"}<small> %</small></div>
+      <div class="medidor" role="meter" aria-valuemin="0" aria-valuemax="100"
+           aria-valuenow="${cobertura ?? 0}" aria-label="Cobertura contra la meta de ${META_COBERTURA} %">
+        <div class="relleno" style="width:${Math.min(100, cobertura ?? 0)}%;background:${COLOR_ESTADO[eCob]}"></div>
+        <div class="meta" style="left:${META_COBERTURA}%"><span>meta ${META_COBERTURA} %</span></div>
+      </div>
+      <div class="contexto">${estadoHTML(eCob, cobertura == null ? "sin datos"
+        : cobertura >= META_COBERTURA ? "cumple la guía" : `faltan ${num(META_COBERTURA - cobertura, 0)} pts`)}</div>
+    </div>`;
 
   // --- accuracy por ciclo (desde la vista, agrupando por el corte del ciclo)
   const ciclos = new Map();
@@ -515,13 +932,73 @@ async function pintar() {
   const serieCiclos = [...ciclos.entries()].map(([iso, c]) => {
     const accs = [...c.est.values()].filter(a => a.real > 0)
       .map(a => 100 * Math.max(0, 1 - a.err / a.real));
-    return { etiqueta: new Date(iso).toISOString().slice(5, 16).replace("T", " "),
+    return { etiqueta: `Ciclo del ${fechaHora(iso)}`, corto: fechaHora(iso),
              y: accs.reduce((p, x) => p + x, 0) / (accs.length || 1),
              parcial: c.n < esperados, medidos: c.n, esperados };
   });
+  const firmesCiclo = serieCiclos.filter(p => !p.parcial);
+
+  // --- accuracy por estación (24 h), con nombre y coordenadas
+  const porEst = metricas
+    .filter(m => m.fold === 1 && m.station_id && m.metric === "accuracy")
+    .map(m => { const e = est.get(m.station_id) || {};
+      return { id: m.station_id, nombre: e.station_name ?? m.station_id, corredor: e.corridor,
+               lat: e.latitude, lon: e.longitude, portal: e.is_portal, valor: m.value }; })
+    .sort((a, b) => a.valor - b.valor);
+  const sobre = porEst.filter(f => f.valor >= UMBRAL_ACC).length;
+
+  // --- drift (última corrida)
+  const ultimaEval = senales.length ? senales[0].run_id : null;
+  const deLaEval = senales.filter(s => s.run_id === ultimaEval);
+  const globales = deLaEval.filter(s => s.station_id === null);
+  const rotas = globales.filter(s => s.breached).length;
+
+  // --- stat tiles
+  const dPiso = acc24 != null ? acc24 - UMBRAL_ACC : null;
+  $("#tiles").innerHTML = `
+    <section class="tarjeta tile">
+      <div class="etq">Accuracy del modelo · 24 h</div>
+      <div class="cifra">${num(acc24)}<small> %</small></div>
+      <div class="pie">${dPiso != null ? `<span class="delta ${dPiso >= 0 ? "sube" : "baja"}">${dPiso >= 0 ? "▲" : "▼"} ${num(Math.abs(dPiso))} pts</span>
+        ${dPiso >= 0 ? "sobre" : "bajo"} el piso · acumulada ${num(accAcum)} %` : "sin evaluación"}</div>
+      ${sparkline(firmesCiclo.slice(-24).map(p => p.y))}
+    </section>
+    <section class="tarjeta tile">
+      <div class="etq">Estaciones sobre el piso</div>
+      <div class="cifra">${sobre}<small> de ${porEst.length}</small></div>
+      <div class="pie">la peor: ${porEst[0] ? `${esc(corto(porEst[0].nombre))} (${num(porEst[0].valor, 1)} %)` : "—"}</div>
+      <div class="unidades" aria-hidden="true">${porEst.map(f =>
+        `<i style="background:${f.valor >= UMBRAL_ACC ? "var(--polo-alto)" : "var(--polo-bajo)"}"></i>`).join("")}</div>
+    </section>
+    <section class="tarjeta tile">
+      <div class="etq">Señales de drift rotas</div>
+      <div class="cifra">${rotas}<small> de ${globales.length}</small></div>
+      <div class="pie">${globales.filter(s => s.breached).map(s => esc(s.signal)).join(" · ") || "todas dentro del umbral"}</div>
+      <div class="unidades" style="grid-template-columns:repeat(${Math.max(1, globales.length)},1fr)" aria-hidden="true">${
+        globales.map(s => `<i style="background:${s.breached ? "var(--critico)" : "var(--superficie-2)"};${
+          s.breached ? "" : "border:1px solid var(--borde)"}"></i>`).join("")}</div>
+    </section>
+    <section class="tarjeta tile">
+      <div class="etq">Entregas aceptadas</div>
+      <div class="cifra">${subs.length}</div>
+      <div class="pie">${subs.filter(s => s.is_official).length} oficiales · intento máx. ${
+        Math.max(0, ...subs.map(s => s.attempt || 0))}</div>
+      <div class="pie" style="margin-top:12px">última ${esc(hace(subs[0]?.submitted_at))}</div>
+    </section>`;
+
+  // --- estaciones + mapa
+  divergentes($("#estaciones"), porEst, { piso: UMBRAL_ACC });
+  mapa($("#mapa"), porEst, { piso: UMBRAL_ACC });
+  $("#estaciones-tabla").innerHTML = tabla(["Estación", "Corredor", "Accuracy 24 h (%)", "vs piso (pts)"],
+    porEst.map(f => [esc(f.nombre), esc(f.corredor ?? ""), num(f.valor), signo(f.valor - UMBRAL_ACC)]));
+
+  // --- ciclos
   const enCurso = serieCiclos.filter(p => p.parcial).length;
-  lineas($("#ciclos"), [{ nombre: "Accuracy oficial", color: "var(--serie-1)", datos: serieCiclos }],
-    { etiquetaX: "Accuracy por ciclo", minY: Math.min(75, ...serieCiclos.map(p => p.y)) - 2, maxY: 100 });
+  const minCiclo = Math.min(UMBRAL_ACC, ...serieCiclos.map(p => p.y));
+  lineas($("#ciclos"), [{ nombre: "Accuracy", color: "var(--serie-1)", datos: serieCiclos }],
+    { minY: Math.max(0, Math.floor((minCiclo - 2) / 5) * 5),
+      maxY: Math.min(100, Math.ceil((Math.max(...serieCiclos.map(p => p.y), UMBRAL_ACC) + 2) / 5) * 5),
+      umbral: UMBRAL_ACC, area: ["Accuracy"], rotuloNombre: false });
   if (enCurso) {
     $("#ciclos").insertAdjacentHTML("beforeend",
       `<p class="pie-nota"><span class="muestra-hueca"></span>
@@ -531,42 +1008,84 @@ async function pintar() {
         su accuracy no es comparable con la de los ciclos completos.</p>`);
   }
   $("#ciclos-tabla").innerHTML = tabla(["Corte del ciclo", "Accuracy (%)", "Estado"],
-    serieCiclos.map(p => [p.etiqueta, num(p.y),
-      p.parcial ? `<span class="texto">en curso · ${p.medidos}/${p.esperados}</span>`
-                : `<span class="texto">completo</span>`]));
+    serieCiclos.map(p => [esc(p.corto), num(p.y),
+      p.parcial ? `en curso · ${p.medidos}/${p.esperados}` : "completo"]));
 
   // --- carrera del leaderboard
-  const eje = lb.map(r => new Date(r.captured_at).toISOString().slice(5, 16).replace("T", " "));
+  const pt = (r, campo) => ({ etiqueta: fechaHora(r.captured_at), corto: fechaHora(r.captured_at),
+    y: r[campo], extra: `puesto ${r.rank} de ${r.participantes}` });
   const carrera = [
-    { nombre: "Nosotros", color: "var(--serie-1)",
-      datos: lb.map((r, i) => ({ etiqueta: eje[i], y: r.accuracy })) },
-    { nombre: "Líder", color: "var(--serie-2)",
-      datos: lb.map((r, i) => ({ etiqueta: eje[i], y: r.lider_accuracy })) },
-    { nombre: "Mediana", color: "var(--serie-3)",
-      datos: lb.map((r, i) => ({ etiqueta: eje[i], y: r.mediana_accuracy })) },
+    { nombre: "Nosotros", color: "var(--serie-1)", datos: lb.map(r => pt(r, "accuracy")) },
+    { nombre: "Líder", color: "var(--serie-2)", datos: lb.map(r => pt(r, "lider_accuracy")) },
+    { nombre: "Mediana", color: "var(--serie-3)", datos: lb.map(r => pt(r, "mediana_accuracy")) },
   ].filter(s => s.datos.some(p => p.y != null));
   // El gráfico primero: `lineas` reescribe innerHTML y se llevaría la leyenda
   // por delante. Con tres series la identidad no puede quedar sólo en el color.
-  lineas($("#carrera"), carrera, { etiquetaX: "Carrera del leaderboard", minY: 0, maxY: 100 });
+  lineas($("#carrera"), carrera, { minY: 0, maxY: 100, area: ["Nosotros"] });
   if (carrera.length > 1) leyenda($("#carrera"), carrera);
   $("#carrera-tabla").innerHTML = tabla(["Momento", "Nosotros", "Líder", "Mediana", "Puesto"],
-    lb.map((r, i) => [eje[i], num(r.accuracy), num(r.lider_accuracy),
-                      num(r.mediana_accuracy), `${r.rank}/${r.participantes}`]));
+    lb.map(r => [esc(fechaHora(r.captured_at)), num(r.accuracy), num(r.lider_accuracy),
+                 num(r.mediana_accuracy), `${r.rank}/${r.participantes}`]));
 
-  // --- decisiones
-  const color = { keep: "bien", blocked: "aviso", retrain: "serio", rollback: "critico" };
-  $("#decisiones").innerHTML = decisiones.length ? tabla(
-    ["Cuándo", "Decisión", "Señales rotas", "Motivo"],
-    decisiones.map(d => [
-      hace(d.decided_at),
-      `<span class="estado">${marca(color[d.decision] || "aviso")}${d.decision}</span>`,
-      (d.breached_signals || []).join(", ") || "—",
-      `<span class="texto">${d.reason}</span>`,
-    ])) : `<p class="vacio">Sin decisiones todavía.</p>`;
+  // --- mapa de calor de drift: estaciones × señales
+  if (globales.length) {
+    const sigs = globales.map(s => s.signal);
+    const celda = (s) => s ? `<td class="${s.breached ? "roto" : ""}" data-sig="${esc(s.signal)}"
+        data-est="${esc(s.station_id ?? "")}">${num(s.value, s.signal === "ingest_gap" ? 0 : 3)}</td>` : `<td>—</td>`;
+    const porCelda = new Map(deLaEval.filter(s => s.station_id).map(s => [`${s.station_id}|${s.signal}`, s]));
+    const ids = [...new Set(deLaEval.filter(s => s.station_id).map(s => s.station_id))];
+    const rojasDe = (id) => sigs.filter(g => porCelda.get(`${id}|${g}`)?.breached).length;
+    ids.sort((a, b) => rojasDe(b) - rojasDe(a) || nombreEst(a).localeCompare(nombreEst(b), "es"));
+    $("#drift").innerHTML = `<table>
+      <thead><tr><th></th>${globales.map(s => `<th>${esc(s.signal)}<small>umbral ${num(s.threshold, 2)}</small></th>`).join("")}</tr></thead>
+      <tbody>
+        <tr class="global"><th class="fila">Global</th>${globales.map(celda).join("")}</tr>
+        ${ids.map(id => `<tr><th class="fila" title="${esc(nombreEst(id))}">${esc(corto(nombreEst(id)))}</th>${
+          sigs.map(g => celda(porCelda.get(`${id}|${g}`))).join("")}</tr>`).join("")}
+      </tbody></table>`;
+    $("#nota-drift").textContent = `Cada señal contra su umbral en la evaluación de las ${
+      hora(senales[0].computed_at)}. ▲ = umbral roto.`;
+    $("#drift").querySelectorAll("td[data-sig]").forEach(td => {
+      const s = td.dataset.est ? porCelda.get(`${td.dataset.est}|${td.dataset.sig}`)
+                               : globales.find(g => g.signal === td.dataset.sig);
+      td.tabIndex = 0;
+      seguir(td, { titulo: `${s.station_id ? nombreEst(s.station_id) : "Global"} · ${s.signal}`,
+        filas: [{ valor: num(s.value, 3), nombre: `valor (umbral ${num(s.threshold, 2)})` }],
+        nota: s.breached ? "umbral roto" : "dentro del umbral" });
+    });
+  } else {
+    $("#drift").innerHTML = `<p class="vacio">Sin evaluaciones todavía.</p>`;
+  }
+
+  // --- decisiones: una línea de tiempo que agrupa las repeticiones seguidas
+  const COLOR_DEC = { keep: "bien", blocked: "aviso", retrain: "serio", rollback: "critico" };
+  const NOMBRE_DEC = { keep: "Mantener", blocked: "Bloqueado", retrain: "Reentrenar", rollback: "Rollback" };
+  const ISO = /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(\+00:00|Z)/g;
+  const clave = (d) => `${d.decision}|${(d.breached_signals || []).join()}|${d.reason.replace(ISO, "")}`;
+  const grupos = [];
+  for (const d of decisiones) {
+    const g = grupos.at(-1);
+    if (g && clave(g.d) === clave(d)) { g.n++; g.primera = d.decided_at; }
+    else grupos.push({ d, n: 1, primera: d.decided_at });
+  }
+  $("#decisiones").innerHTML = grupos.length ? `<ol class="linea-tiempo">${grupos.slice(0, 7).map(g => {
+    const e = COLOR_DEC[g.d.decision] || "aviso";
+    return `<li><span class="hito" style="background:${COLOR_ESTADO[e]}"></span>
+      <div class="cab-hito">
+        <span class="decision">${esc(NOMBRE_DEC[g.d.decision] ?? g.d.decision)}</span>
+        ${g.n > 1 ? `<span class="veces">×${g.n}</span>` : ""}
+        <span class="cuando">${esc(hace(g.d.decided_at))}${g.n > 1 ? ` · desde ${esc(hace(g.primera).replace("hace ", ""))}` : ""}</span>
+      </div>
+      <div class="motivo">${esc(g.d.reason.replace(ISO, (m) => fechaHora(m)))}</div>
+      ${(g.d.breached_signals || []).length ? `<div class="chips">${g.d.breached_signals.map(s =>
+        `<span class="chip">${esc(s)}</span>`).join("")}</div>` : ""}
+    </li>`;
+  }).join("")}</ol>` : `<p class="vacio">Sin decisiones todavía.</p>`;
 
   $("#sub").textContent =
-    `Actualizado ${new Date().toLocaleTimeString("es-CO")} · ` +
-    `${subs.length} entregas · ${senales.length} señales · reloj virtual de la competencia`;
+    ` Actualizado ${new Date().toLocaleTimeString("es-CO")} · ${subs.length} entregas · ` +
+    `${senales.length} señales · reloj virtual de la competencia.`;
+  $("#principal").classList.remove("recargando");
 }
 
 // ------------------------------------------------------------------ chrome
@@ -582,9 +1101,14 @@ $("#btn-tabla").addEventListener("click", (e) => {
   ["#estaciones", "#ciclos", "#carrera"].forEach(s => $(s).classList.toggle("oculto", !ver));
   e.target.textContent = ver ? "Ver tablas" : "Ver gráficos";
 });
-$("#btn-recargar").addEventListener("click", () => pintar());
+$("#btn-recargar").addEventListener("click", () => pintar().catch(fallo));
 
-pintar().catch(e => { $("#sub").textContent = "Error cargando: " + e.message; });
+const fallo = (e) => {
+  $("#principal").classList.remove("recargando");
+  $("#salud").innerHTML = `<span class="latido" style="background:var(--critico)"></span>Error cargando datos`;
+  $("#sub").textContent = " Error cargando: " + e.message;
+};
+pintar().catch(fallo);
 setInterval(() => pintar().catch(() => {}), 120000);
 </script>
 </body>

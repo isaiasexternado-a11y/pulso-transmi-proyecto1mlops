@@ -29,13 +29,13 @@ permissions:
   actions: write              # para encolar el relevo y avisar al evaluador
 
 env:
-  TURNO_MIN: 25               # cuánto dura el turno
+  TURNO_MIN: 50               # turnos largos: cada relevo es una ocasión de romperse
   INTERVALO_SEG: 150          # cada cuánto se consulta el ciclo
 
 jobs:
   predict:
     runs-on: ubuntu-latest
-    timeout-minutes: 35       # holgura sobre TURNO_MIN, nunca al filo
+    timeout-minutes: 65       # holgura sobre TURNO_MIN, nunca al filo
     steps:
       - uses: actions/checkout@v4
 
@@ -46,27 +46,24 @@ jobs:
 
       - run: pip install -r requirements.txt
 
-      # El relevo se encola AL PRINCIPIO, no al final. Así, si este turno se
-      # cae a la mitad —runner muerto, timeout, lo que sea— el sucesor ya está
-      # esperando en la cola y arranca solo. `concurrency` impide que corran a
-      # la vez, así que esperar en cola es exactamente lo que queremos.
+      # El relevo se encola AL PRINCIPIO, no al final: si este turno se cae a
+      # la mitad —runner muerto, timeout, lo que sea— el sucesor ya está en la
+      # cola y arranca solo.
+      #
+      # Se encola SIN CONDICIONES, y eso es deliberado. Antes había un guardia
+      # que sólo encolaba "si no hay otra corrida viva", para evitar que las
+      # cadenas se multiplicaran. Dos problemas: GitHub ya impide la
+      # multiplicación por su cuenta —"any existing pending job or workflow in
+      # the same concurrency group will be canceled and the new queued job will
+      # take its place"—, y el guardia creaba un bloqueo mutuo. Dos turnos
+      # solapados se veían el uno al otro, ninguno encolaba, y al terminar
+      # ambos la cadena moría en silencio. Pasó el 2026-09-23 a las 14:21 y
+      # costó dos ciclos.
       - name: Encolar el relevo
         env:
           GH_TOKEN: ${{ github.token }}
-        run: |
-          otros=$(gh run list --workflow predict.yml --limit 50 \
-                    --json databaseId,status \
-                    --jq "[.[] | select(.status != \"completed\")
-                               | select(.databaseId != ${{ github.run_id }})] | length")
-          if [ "$otros" -eq 0 ]; then
-            gh workflow run predict.yml --ref "${{ github.ref_name }}"
-            echo "relevo encolado"
-          else
-            # Puede ser el relevo de un turno anterior o una corrida del cron.
-            # Cualquiera de los dos sirve: lo que no queremos es multiplicar
-            # cadenas, que es lo que pasa si cada turno encola sin mirar.
-            echo "ya hay $otros corrida(s) en cola o en curso; no encolo otra"
-          fi
+          GH_REPO: ${{ github.repository }}
+        run: gh workflow run predict.yml --ref "${{ github.ref_name }}"
 
       - name: Turno de vigilancia
         env:
@@ -99,10 +96,22 @@ jobs:
             exit 1
           fi
 
+      # Segunda oportunidad. Si el relevo que se encoló al empezar fue
+      # cancelado —GitHub cancela el pendiente cuando llega uno más nuevo— y
+      # su reemplazo no sobrevivió, esto lo vuelve a crear. Encolar de más es
+      # inofensivo: el grupo de concurrencia deja uno solo.
+      - name: Confirmar el relevo al cerrar
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: gh workflow run predict.yml --ref "${{ github.ref_name }}" || true
+
       # La evaluación es una rutina aparte, como pide la guía, pero no depende
       # del cron: se la avisa desde aquí para que herede esta misma cadena.
       - name: Avisar al evaluador
         if: always()
         env:
           GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
         run: gh workflow run evaluate.yml --ref "${{ github.ref_name }}" || true

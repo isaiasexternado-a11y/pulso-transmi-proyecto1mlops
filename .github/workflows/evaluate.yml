@@ -52,6 +52,7 @@ jobs:
         if: steps.evaluar.outputs.decision == 'retrain'
         env:
           GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
         run: |
           if gh workflow view train.yml >/dev/null 2>&1; then
             gh workflow run train.yml --ref "${{ github.ref_name }}"

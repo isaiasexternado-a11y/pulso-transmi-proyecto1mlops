@@ -36,7 +36,7 @@ sys.path.insert(0, str(RAIZ))
 sys.path.insert(0, str(RAIZ / "ml"))
 
 from collector.entorno import Supabase        # noqa: E402
-from pipeline.entregar import cargar_artefacto  # noqa: E402
+from pipeline.entregar import cargar_artefacto, predecir  # noqa: E402
 
 HORIZONTES = (1, 2, 3, 4)
 
@@ -61,7 +61,6 @@ def inferencia_de_prueba(sb: Supabase, ficha: dict) -> tuple[bool, str]:
     """
     import pandas as pd
     from ml.data import cargar
-    from ml.features import construir_para_objetivos
 
     modelo = cargar_artefacto(sb, ficha)          # el camino de producción
     ancha, ctx, _ = cargar(origen="supabase")
@@ -71,8 +70,7 @@ def inferencia_de_prueba(sb: Supabase, ficha: dict) -> tuple[bool, str]:
     objetivos = [(est, origen + h * paso)
                  for h in HORIZONTES for est in ancha.columns]
 
-    frame = construir_para_objetivos(ancha, ctx, origen, objetivos)
-    pred = modelo.predict(frame)
+    pred = predecir(modelo, ficha, ancha, ctx, origen, objetivos)
 
     esperados = len(ancha.columns) * len(HORIZONTES)
     serie = pd.Series(pred, dtype="float64")

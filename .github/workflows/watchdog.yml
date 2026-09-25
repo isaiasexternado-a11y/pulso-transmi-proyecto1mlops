@@ -1,0 +1,69 @@
+# El vigilante de última instancia.
+#
+# La cadena de entrega se sostiene sola: cada turno encola su relevo. Pero si
+# muere entera —un bug en el encolado, una caída de Actions, un cancelado
+# desafortunado— nada dentro de la cadena puede revivirla, porque ya no hay
+# cadena. Eso pasó el 2026-09-23: el último turno decidió no encolar relevo y
+# la entrega estuvo caída 1 h 46 min. Costó dos ciclos, y la cobertura no se
+# recupera hacia atrás.
+#
+# Este workflow existe sólo para eso. No entrega, no evalúa, no entrena: mira
+# si hay algún `predict` vivo y, si no hay ninguno, arranca uno. Dura segundos
+# y no necesita checkout ni dependencias, así que puede correr seguido.
+#
+# La condición es la inversa de la que falló. Aquella decía "si hay otra
+# corrida viva, NO encoles" —y dos turnos solapados se suprimían mutuamente—.
+# Ésta dice "si no hay NINGUNA viva, encola una". No puede bloquearse: si dos
+# vigilantes coinciden y ambos arrancan uno, el grupo de concurrencia de
+# `predict` deja uno solo.
+name: pulso-transmi-watchdog
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"   # el cron de GitHub se salta ejecuciones; pedir
+                             # muchas oportunidades es la forma de tener algunas
+  workflow_dispatch:
+    inputs:
+      forzar:
+        description: "Reenganchar aunque la cadena parezca viva"
+        type: boolean
+        default: false
+
+permissions:
+  actions: write             # sólo para poder disparar predict.yml
+
+jobs:
+  vigilar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Reenganchar la cadena si murió
+        env:
+          GH_TOKEN: ${{ github.token }}
+          # Este job no hace checkout —es deliberado, para que dure segundos—
+          # así que no hay remoto de git del que `gh` pueda deducir el repo.
+          # Sin esto, `gh workflow run` muere con "not a git repository" y el
+          # vigilante queda decorativo: detecta la caída, anuncia el reenganche
+          # y no reengancha. Pasó al ejercitarlo por primera vez.
+          GH_REPO: ${{ github.repository }}
+        run: |
+          vivos=$(gh run list --workflow predict.yml \
+                    --limit 20 --json status \
+                    --jq '[.[] | select(.status != "completed")] | length')
+          echo "corridas de predict vivas: $vivos"
+
+          # `forzar` no es andamiaje de prueba: es el botón para reenganchar a
+          # mano sin abrir la terminal. Sirve además para ejercitar esta rama,
+          # que de otro modo sólo se ejecutaría el día que todo esté roto — y
+          # ése es el peor momento para descubrir que no funcionaba.
+          if [ "$vivos" -eq 0 ] || [ "${{ inputs.forzar }}" = "true" ]; then
+            if [ "$vivos" -eq 0 ]; then
+              echo "::warning::la cadena de entrega estaba muerta; reenganchando"
+            else
+              echo "reenganche forzado a mano (había $vivos viva(s))"
+            fi
+            gh workflow run predict.yml --ref main
+            echo "predict.yml disparado"
+          else
+            echo "cadena viva; no hago nada"
+          fi
