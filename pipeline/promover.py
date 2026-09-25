@@ -89,7 +89,7 @@ def inferencia_de_prueba(sb: Supabase, ficha: dict) -> tuple[bool, str]:
     return True, detalle
 
 
-def promover(sb: Supabase, ficha: dict) -> None:
+def promover(sb: Supabase, ficha: dict, cierra_decision: bool = True) -> None:
     """Un solo `active` a la vez. El saliente queda `retired`, no borrado:
     sin el anterior disponible no hay rollback posible."""
     salientes = sb.seleccionar("models", select="model_id,name",
@@ -107,7 +107,10 @@ def promover(sb: Supabase, ficha: dict) -> None:
 
     # La decisión que originó este entrenamiento queda cerrada con el modelo
     # que produjo. Sin esto, `retrain_decisions` diría por qué se reentrenó
-    # pero no en qué terminó.
+    # pero no en qué terminó. Un rollback no responde a ninguna decisión: la
+    # cerraría con el modelo que la decisión pedía reemplazar.
+    if not cierra_decision:
+        return
     ultima = sb.seleccionar("retrain_decisions", select="run_id,decision",
                             decision="eq.retrain", new_model_id="is.null",
                             order="decided_at.desc", limit=1)
@@ -136,7 +139,7 @@ def rollback(sb: Supabase, dry_run: bool) -> None:
     if dry_run:
         print("\n[dry-run] no se revirtió nada")
         return
-    promover(sb, ficha)
+    promover(sb, ficha, cierra_decision=False)
     print("ROLLBACK COMPLETO")
 
 
