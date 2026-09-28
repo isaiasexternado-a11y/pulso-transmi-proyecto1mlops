@@ -288,7 +288,16 @@ def senales(run_id: int, scores: pd.DataFrame, obs: pd.DataFrame,
 
     # --- ingesta: un hueco de datos se parece a un modelo malo, y no lo es.
     # El reloj de la API es la autoridad; el atraso no se calcula con la hora local.
+    #
+    # Con el reloj en pausa (`state=waiting`, visto el 2026-09-28 17:40Z) la
+    # API no publica `virtual_now`: no hay "ahora" contra el cual medir el
+    # atraso, y no se inventa uno con la hora local. La señal se omite y el
+    # resto de la evaluación sigue; antes esto tumbaba el workflow entero.
     reloj = api_get(base, key, "clock")
+    if "virtual_now" not in reloj:
+        print(f"[senales] reloj de la API en estado {reloj.get('state')!r} sin "
+              f"virtual_now: se omite ingest_gap")
+        return filas
     virtual = pd.Timestamp(reloj["virtual_now"])
     if virtual.tzinfo is None:
         virtual = virtual.tz_localize("UTC")
