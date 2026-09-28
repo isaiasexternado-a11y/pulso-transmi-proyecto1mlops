@@ -453,8 +453,27 @@ def main(dry_run: bool) -> None:
 
     scores = traer_scores(sb, ficha["model_id"])
     if scores.empty:
-        print("nada que evaluar: ninguna predicción tiene realidad observada aún")
-        raise SystemExit(0)
+        # Pasa tras cada promoción: el champion nuevo no tiene nada resuelto
+        # hasta que el stream alcanza sus primeros targets (~1-2 h). Salir en
+        # silencio dejaba el panel en "atrasado" sin distinguir "no hay qué
+        # juzgar" de "el evaluador no corre". Se deja constancia con `keep`:
+        # no reentrenar un modelo que todavía no se puede juzgar. No toca la
+        # racha (se cuenta en `drift_signals`) ni el enfriamiento (sólo mira
+        # filas con `cooldown_until`).
+        motivo = (f"{ficha['name']} ({ficha['hyperparams'].get('version')}) aún no "
+                  f"tiene predicciones con realidad observada; se espera evidencia "
+                  f"antes de juzgarlo.")
+        print(f"nada que evaluar: {motivo}")
+        if dry_run:
+            return
+        run_id = abrir_run(sb)
+        sb.upsert("retrain_decisions", [{
+            "run_id": run_id, "decision": "keep", "reason": motivo,
+            "breached_signals": [], "incumbent_model_id": ficha["model_id"],
+            "cooldown_until": None, "decided_at": ahora}], conflicto="run_id")
+        ingestar_leaderboard(sb, base, key)
+        cerrar_run(sb, run_id, "success")
+        return
 
     print(f"scores  : {len(scores)} pares predicción/realidad  "
           f"({scores['target_at'].min()} -> {scores['target_at'].max()})")
