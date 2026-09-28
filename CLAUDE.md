@@ -91,18 +91,27 @@ El histórico semilla (45 días, 51.840 obs, 2026-07-26 → 2026-09-08) se extie
   con el último observado en `data_cutoff`, con pesos por horizonte en `hyperparams.mezcla_persistencia`
   (+15→0,6 · +30→0,4 · +45/+60→0,2). La aplica `pipeline/entregar.py::predecir`. Evidencia en
   `ml/experimento_persistencia.py` (rama ML): 81,41 → 84,44 % bajo drift, −0,16 sin drift.
+- Desde el 2026-09-28 13:17Z el champion es `… x persistencia x nivel`
+  (`20260918T202534Z-pers-06-04-02-02-niv-12-075`): encima de la mezcla, cada estación se
+  multiplica por `1 + α (r − 1)`, con `r = observado / predicho` en las últimas 12 h resueltas
+  (α=0,75, r∈[0,4; 2,5]) y lo predicho sacado de *backcasts* del propio champion.
+  Vive en `hyperparams.correccion_nivel`. Evidencia en `ml/experimento_nivel.py` (rama ML):
+  77,41 → 83,23 % bajo drift, −0,07 sin drift; 05100 pasó de 20 % a 77 %.
 - **El contexto de la API está congelado** en 2026-09-08 23:45-05 mientras las observaciones avanzan.
   `ml/data.py` arrastra el último valor conocido.
 - El monitoreo corre: `evaluate.yml` llena `model_metrics`, `drift_signals` (wape_24h, wape_7d,
   residual_bias, level_shift_7d, profile_corr, ingest_gap) y `retrain_decisions` (retrain · blocked · keep),
   y dispara `train.yml`, que registra candidatos. `promover` los activa tras la inferencia de prueba.
 - Desde el viernes 11 virtual (stream), 05000, 07107, 07111 y 09122 subieron 13–29 % y alargaron el pico.
+- Desde el 13 virtual, 05100 cayó a menos de la mitad (~62k → ~26k/día), 07111 subió ~40 % y 06000 ~20 %.
 
 ### Trampas ya pisadas
 
 - `model.version` debe cumplir `^[A-Za-z0-9][A-Za-z0-9._:/-]*$` (máx. 64). Un `+` da 422.
-- La mezcla vive en la ficha, no en el pickle: un modelo nuevo la hereda en `ml/entrenar.py::registrar`.
-  Si se registra un candidato por otro camino, hay que copiarla o se apaga al promover.
+- La mezcla y la corrección de nivel viven en la ficha, no en el pickle: un modelo nuevo las hereda en
+  `ml/entrenar.py::registrar`. Si se registra un candidato por otro camino, hay que copiarlas o se apagan al promover.
+- No promover con una ventana abierta si el turno de `predict` en curso arrancó antes del código nuevo:
+  cargaría la ficha nueva con el `predecir` viejo y entregaría bajo la versión nueva sin el ajuste.
 - Un runner de Actions puede quedarse sin red hacia la API mientras la API responde desde fuera.
   `predict.yml` cede el turno tras 3 fallos seguidos.
 - En SQL, `observations.demand` es `integer`: castear antes de dividir o el WAPE sale 0.
@@ -117,7 +126,9 @@ El histórico semilla (45 días, 51.840 obs, 2026-07-26 → 2026-09-08) se extie
 
 1. Medir la mezcla con persistencia en vivo durante la fase de drift y recalibrar los pesos si cambia
    el régimen (`python3 -m ml.experimento_persistencia --particion <ts>`).
-2. El backtest de `ml/entrenar.py` compara recetas crudas: un ganador podría rendir distinto con la mezcla.
+2. El backtest de `ml/entrenar.py` compara recetas crudas y en folds casi sin drift: un ganador podría rendir
+   distinto con la mezcla y la corrección, y ninguna receta que se adapte al nivel pasa las compuertas.
+   Medir la corrección de nivel en vivo y recalibrar L y α (`python3 -m ml.experimento_nivel --particion <ts>`).
 3. El GBM depende de 5 features de contexto que ya no se publican. Vale la pena un candidato sin contexto.
 4. Dashboard en Vercel (bono).
 
