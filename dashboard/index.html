@@ -857,7 +857,7 @@ const icono = (n) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
 async function pintar() {
   $("#principal").classList.add("recargando");
   guardadoDesde = null;
-  const [lb, metricas, senales, decisiones, runs, subs, champion, estaciones, scores] =
+  const [lb, metricasTodas, senales, decisiones, runs, subs, champion, estaciones, scores] =
     await Promise.all([
       pedir("leaderboard_snapshots?select=*&order=captured_at.asc"),
       pedir("model_metrics?select=*&split=eq.production"),
@@ -871,6 +871,10 @@ async function pintar() {
     ]);
   const est = new Map(estaciones.map(e => [e.station_id, e]));
   const nombreEst = (id) => est.get(id)?.station_name ?? id;
+  // `model_metrics` guarda una fila por estación para CADA modelo que ha sido
+  // champion. Sin este filtro, cada promoción repite las 12 estaciones y la
+  // accuracy global sale de un modelo cualquiera, no del que está entregando.
+  const metricas = metricasTodas.filter(m => m.model_id === champion[0]?.model_id);
 
   const ult = lb.at(-1) || null, previo = lb.at(-2) || null;
   const glob = (fold, metric) => metricas.find(
