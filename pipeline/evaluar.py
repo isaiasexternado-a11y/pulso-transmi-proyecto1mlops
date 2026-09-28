@@ -50,15 +50,21 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from collector.entorno import Supabase, exigir           # noqa: E402
 from collector.recolectar import api_get, procedencia    # noqa: E402
+from pipeline.entregar import registrar_reloj             # noqa: E402
 
 TZ = "America/Bogota"
 PAGINA = 1000                      # PostgREST recorta toda respuesta a 1000 filas
 
 # --------------------------------------------------------------------- umbrales
-# El piso no es un número redondo: 88,11 % es el baseline de perfil
-# (estación x slot x tipo de día). Por debajo de 87 % el champion ya perdió
-# contra algo que no necesita entrenarse, y eso es lo que lo vuelve inaceptable.
-UMBRAL_ACCURACY = 87.0
+# El piso es el del proyecto: naive s-1 (misma hora, semana pasada) = 83,11 %,
+# el baseline que todo candidato debe superar. Por debajo, el champion rinde
+# menos que copiar la semana anterior, y eso lo vuelve inaceptable.
+#
+# Antes era 87 %, derivado del baseline de perfil (88,11 %) medido en el
+# histórico SIN drift. Bajo drift nadie lo alcanza —el líder del leaderboard
+# iba en 85,2 % el 2026-09-28—, así que `wape_24h` quedaba en rojo siempre y el
+# reentrenamiento dejaba de responder al drift: sólo lo frenaba el enfriamiento.
+UMBRAL_ACCURACY = 83.11
 UMBRAL_WAPE = round(1 - UMBRAL_ACCURACY / 100, 4)
 UMBRAL_LEVEL_SHIFT = 0.15          # cambio relativo de nivel de demanda
 UMBRAL_PROFILE_CORR = 0.90         # correlación con el perfil aprendido
@@ -288,7 +294,16 @@ def senales(run_id: int, scores: pd.DataFrame, obs: pd.DataFrame,
 
     # --- ingesta: un hueco de datos se parece a un modelo malo, y no lo es.
     # El reloj de la API es la autoridad; el atraso no se calcula con la hora local.
+    #
+    # Con el reloj en pausa (`state=waiting`, visto el 2026-09-28 17:40Z) la
+    # API no publica `virtual_now`: no hay "ahora" contra el cual medir el
+    # atraso, y no se inventa uno con la hora local. La señal se omite y el
+    # resto de la evaluación sigue; antes esto tumbaba el workflow entero.
     reloj = api_get(base, key, "clock")
+    if "virtual_now" not in reloj:
+        print(f"[senales] reloj de la API en estado {reloj.get('state')!r} sin "
+              f"virtual_now: se omite ingest_gap")
+        return filas
     virtual = pd.Timestamp(reloj["virtual_now"])
     if virtual.tzinfo is None:
         virtual = virtual.tz_localize("UTC")
@@ -361,9 +376,20 @@ def decidir(sb: Supabase, run_id: int, filas_senales: list[dict],
 
     # Persistencia: corridas seguidas con wape_24h global en rojo, contando
     # ésta. Se cuenta hacia atrás y se corta en la primera verde.
+    #
+    # Sólo cuentan las corridas que evaluaron a ESTE champion. `drift_signals`
+    # no guarda el modelo, pero `retrain_decisions` sí (`incumbent_model_id`),
+    # y comparten `run_id`. Sin este filtro la racha sobrevivía a la promoción:
+    # el 2026-09-28 a las 17:49 se decidió reentrenar un champion con dos
+    # ciclos medidos, sumando las corridas en rojo del modelo que reemplazó.
+    propias = [d["run_id"] for d in sb.seleccionar(
+        "retrain_decisions", select="run_id",
+        incumbent_model_id=f"eq.{ficha['model_id']}",
+        order="decided_at.desc", limit=20)]
     previas = [f for f in sb.seleccionar(
         "drift_signals", select="run_id,breached,computed_at",
         signal="eq.wape_24h", station_id="is.null",
+        run_id=f"in.({','.join(map(str, propias)) or '-1'})",
         order="computed_at.desc", limit=10) if f["run_id"] != run_id]
     seguidas = 0
     if wape_roto:
@@ -472,6 +498,7 @@ def main(dry_run: bool) -> None:
             "breached_signals": [], "incumbent_model_id": ficha["model_id"],
             "cooldown_until": None, "decided_at": ahora}], conflicto="run_id")
         ingestar_leaderboard(sb, base, key)
+        registrar_reloj(sb, base, key)
         cerrar_run(sb, run_id, "success")
         return
 
@@ -525,6 +552,7 @@ def main(dry_run: bool) -> None:
                       conflicto="run_id,station_id,signal")
         sb.upsert("retrain_decisions", [decision], conflicto="run_id")
         ingestar_leaderboard(sb, base, key)
+        registrar_reloj(sb, base, key)
         cerrar_run(sb, run_id, "success",
                    cutoff_at=scores["target_at"].max().isoformat())
         print(f"\nguardado: run_id {run_id}  ·  {len(filas_m)} métricas  ·  "
