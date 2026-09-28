@@ -319,10 +319,12 @@ def registrar(sb: Supabase, ancha, ctx, ganador: dict, tabla: dict) -> dict:
 
     previo = sb.seleccionar("models", select="model_id,hyperparams",
                             status="eq.active", limit=1)
-    # La mezcla con persistencia vive en la ficha, no en el pickle. Si el
-    # ganador no la hereda, promoverlo la apaga sin que nadie lo decida. El
+    # La mezcla con persistencia y la corrección de nivel viven en la ficha,
+    # no en el pickle. Si el ganador no las hereda, promoverlo las apaga sin
+    # que nadie lo decida. El
     # backtest compara recetas crudas, así que hereda la del champion vigente.
     mezcla = (previo[0]["hyperparams"] or {}).get("mezcla_persistencia") if previo else None
+    nivel = (previo[0]["hyperparams"] or {}).get("correccion_nivel") if previo else None
     sin_contexto = not any(c.startswith(("rain", "temp", "evento")) for c in cols)
 
     fila = {
@@ -356,6 +358,7 @@ def registrar(sb: Supabase, ancha, ctx, ganador: dict, tabla: dict) -> dict:
             "folds": N_FOLDS,
             "dias_validacion": DIAS_VALIDACION,
             **({"mezcla_persistencia": mezcla} if mezcla else {}),
+            **({"correccion_nivel": nivel} if nivel else {}),
         },
     }
     creado = sb.insertar("models", [fila], devolver=True)[0]

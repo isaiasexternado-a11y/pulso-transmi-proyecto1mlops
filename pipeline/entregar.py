@@ -109,15 +109,62 @@ def champion(sb: Supabase) -> tuple[object, dict]:
 
 
 def predecir(modelo: object, ficha: dict, ancha, ctx, origen, objetivos) -> list[float]:
-    """Predicción del champion más la mezcla con persistencia de su ficha.
+    """Predicción del champion con los ajustes que traiga su ficha.
 
-    `hyperparams.mezcla_persistencia` es {horizonte en pasos: peso}. Cada valor
-    queda en `(1 - w) · modelo + w · último observado en el corte`. Vive en la
-    ficha y no en el pickle para que una versión nueva no traiga una clase que
-    `main` no conozca, y para que el rollback la apague sin tocar el artefacto.
-    Sin la llave, el modelo sale tal cual.
+    Dos capas, ambas en `hyperparams` y no en el pickle, para que una versión
+    nueva no traiga una clase que `main` no conozca y para que el rollback las
+    apague sin tocar el artefacto:
+
+    - `mezcla_persistencia` (ver `_mezclado`).
+    - `correccion_nivel` = {ventana_h, alfa, r_min, r_max}: cada estación se
+      multiplica por `1 + alfa · (r − 1)`, con `r = Σ observado / Σ predicho`
+      sobre los objetivos ya resueltos en las últimas `ventana_h` horas. Lo
+      "predicho" son backcasts: lo que esta misma ficha, sin la corrección,
+      habría dicho en cada origen horario previo con los datos de entonces.
+      No se leen las predicciones guardadas, que ya vendrían corregidas y
+      realimentarían el factor. Evidencia en `ml/experimento_nivel.py`.
 
     La promoción la reusa por la misma razón que `cargar_artefacto`.
+    """
+    valores = _mezclado(modelo, ficha, ancha, ctx, origen, objetivos)
+    nivel = (ficha.get("hyperparams") or {}).get("correccion_nivel")
+    if not nivel:
+        return valores
+    factor = factores_nivel(modelo, ficha, ancha, ctx, origen, nivel)
+    alfa = float(nivel["alfa"])
+    return [v * (1 + alfa * (factor.get(est, 1.0) - 1))
+            for (est, _), v in zip(objetivos, valores)]
+
+
+def factores_nivel(modelo: object, ficha: dict, ancha, ctx, origen,
+                   nivel: dict) -> dict[str, float]:
+    """r por estación con los objetivos en (origen − ventana, origen]."""
+    import pandas as pd
+
+    hora = pd.Timedelta(hours=1)
+    paso = ancha.index[1] - ancha.index[0]
+    pasos_hora = round(hora / paso)
+    obs, pred = {}, {}
+    for k in range(1, int(nivel["ventana_h"]) + 1):
+        o = origen - k * hora
+        if o not in ancha.index:
+            break
+        objetivos = [(est, o + h * paso) for est in ancha.columns
+                     for h in range(1, pasos_hora + 1)]
+        for (est, t), v in zip(objetivos, _mezclado(modelo, ficha, ancha, ctx, o, objetivos)):
+            obs[est] = obs.get(est, 0.0) + float(ancha.at[t, est])
+            pred[est] = pred.get(est, 0.0) + max(v, 0.0)
+    lo, hi = float(nivel["r_min"]), float(nivel["r_max"])
+    return {est: min(max(obs[est] / pred[est], lo), hi)
+            for est in obs if pred[est] > 0}
+
+
+def _mezclado(modelo: object, ficha: dict, ancha, ctx, origen, objetivos) -> list[float]:
+    """Modelo más la mezcla con persistencia de la ficha.
+
+    `hyperparams.mezcla_persistencia` es {horizonte en pasos: peso}. Cada valor
+    queda en `(1 - w) · modelo + w · último observado en el corte`. Sin la
+    llave, el modelo sale tal cual.
     """
     from ml.features import construir_para_objetivos
 
