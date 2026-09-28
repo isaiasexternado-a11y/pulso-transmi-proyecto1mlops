@@ -102,6 +102,9 @@ El histórico semilla (45 días, 51.840 obs, 2026-07-26 → 2026-09-08) se extie
 - El monitoreo corre: `evaluate.yml` llena `model_metrics`, `drift_signals` (wape_24h, wape_7d,
   residual_bias, level_shift_7d, profile_corr, ingest_gap) y `retrain_decisions` (retrain · blocked · keep),
   y dispara `train.yml`, que registra candidatos. `promover` los activa tras la inferencia de prueba.
+  Reentrena sólo si `wape_24h` supera 0,1689 (accuracy < 83,11 %, el piso naive s-1) en 3 corridas
+  seguidas **del champion vigente**, con ≥576 obs nuevas y sin enfriamiento de 6 h. El resto de las
+  señales son alerta temprana (`keep`), no disparan.
 - Desde el viernes 11 virtual (stream), 05000, 07107, 07111 y 09122 subieron 13–29 % y alargaron el pico.
 - Desde el 13 virtual, 05100 cayó a menos de la mitad (~62k → ~26k/día), 07111 subió ~40 % y 06000 ~20 %.
 
