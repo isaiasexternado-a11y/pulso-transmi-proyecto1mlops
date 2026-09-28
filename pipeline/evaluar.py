@@ -50,6 +50,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from collector.entorno import Supabase, exigir           # noqa: E402
 from collector.recolectar import api_get, procedencia    # noqa: E402
+from pipeline.entregar import registrar_reloj             # noqa: E402
 
 TZ = "America/Bogota"
 PAGINA = 1000                      # PostgREST recorta toda respuesta a 1000 filas
@@ -481,6 +482,7 @@ def main(dry_run: bool) -> None:
             "breached_signals": [], "incumbent_model_id": ficha["model_id"],
             "cooldown_until": None, "decided_at": ahora}], conflicto="run_id")
         ingestar_leaderboard(sb, base, key)
+        registrar_reloj(sb, base, key)
         cerrar_run(sb, run_id, "success")
         return
 
@@ -534,6 +536,7 @@ def main(dry_run: bool) -> None:
                       conflicto="run_id,station_id,signal")
         sb.upsert("retrain_decisions", [decision], conflicto="run_id")
         ingestar_leaderboard(sb, base, key)
+        registrar_reloj(sb, base, key)
         cerrar_run(sb, run_id, "success",
                    cutoff_at=scores["target_at"].max().isoformat())
         print(f"\nguardado: run_id {run_id}  ·  {len(filas_m)} métricas  ·  "

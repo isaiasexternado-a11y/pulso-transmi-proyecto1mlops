@@ -44,6 +44,39 @@ def salir_ok(motivo: str) -> None:
     raise SystemExit(0)
 
 
+# ------------------------------------------------------------------- el reloj
+
+def registrar_reloj(sb: Supabase, base: str, key: str) -> dict | None:
+    """Deja en `api_clock` el estado del reloj oficial, para el dashboard.
+
+    Es lo único que le permite al panel distinguir "la API está en pausa" de
+    "dejamos de entregar". `cambio_at` sólo se mueve cuando cambia `state`.
+    Es informativo: si falla, se avisa y la entrega sigue.
+    """
+    try:
+        reloj = api_get(base, key, "clock")
+        previo = sb.seleccionar("api_clock", select="state,cambio_at",
+                                reloj="eq.oficial", limit=1)
+        ahora = datetime.now(timezone.utc).isoformat()
+        cambio = (previo[0]["cambio_at"]
+                  if previo and previo[0]["state"] == reloj.get("state") else ahora)
+        sb.upsert("api_clock", [{
+            "reloj": "oficial",
+            "state": reloj.get("state") or "desconocido",
+            "code": reloj.get("code"),
+            "virtual_now": reloj.get("virtual_now"),
+            "tick_number": reloj.get("tick_number"),
+            "last_tick_at": reloj.get("last_tick_at"),
+            "server_time": reloj.get("server_time"),
+            "consultado_at": ahora,
+            "cambio_at": cambio,
+        }], conflicto="reloj")
+        return reloj
+    except Exception as e:
+        print(f"[reloj] no se pudo registrar ({type(e).__name__}: {e}); se continúa")
+        return None
+
+
 # ------------------------------------------------------------------- el ciclo
 
 def ciclo_vigente(base: str, key: str) -> dict | None:
@@ -323,6 +356,9 @@ def main(dry_run: bool) -> None:
 
     # 2. Consultar el ciclo. La API es la autoridad.
     print("\n--- ciclo ---")
+    reloj = registrar_reloj(sb, base, key)
+    if reloj:
+        print(f"reloj   : {reloj.get('state')}  virtual {reloj.get('virtual_now', '—')}")
     ciclo = ciclo_vigente(base, key)
     if ciclo is None:
         salir_ok("no hay ciclo abierto (404 no_open_cycle)")

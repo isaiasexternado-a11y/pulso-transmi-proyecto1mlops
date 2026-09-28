@@ -176,7 +176,7 @@
   @media (max-width: 520px) { .r-4 { grid-template-columns: 1fr; } }
 
   /* ------------------------------------------------------------ pipeline */
-  .flujo { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; }
+  .flujo { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0; }
   @media (max-width: 860px) { .flujo { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 22px; } }
   .nodo { position: relative; padding-right: 20px; }
   .nodo .cab { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
@@ -487,10 +487,13 @@ function hace(iso) {
   return `hace ${Math.floor(h / 24)} d`;
 }
 
-const COLOR_ESTADO = { bien: "var(--bien)", aviso: "var(--aviso)",
+// `pausa` no es una falla: la API detuvo su reloj y no hay ciclos que entregar.
+// Pesa más que `bien` (para que se vea) y menos que cualquier atraso nuestro.
+const COLOR_ESTADO = { bien: "var(--bien)", pausa: "var(--serie-1)", aviso: "var(--aviso)",
                        serio: "var(--serio)", critico: "var(--critico)" };
-const TEXTO_ESTADO = { bien: "al día", aviso: "atrasado", serio: "atención", critico: "detenido" };
-const GRAVEDAD = { bien: 0, aviso: 1, serio: 2, critico: 3 };
+const TEXTO_ESTADO = { bien: "al día", pausa: "API en pausa", aviso: "atrasado",
+                       serio: "atención", critico: "detenido" };
+const GRAVEDAD = { bien: 0, pausa: 0.5, aviso: 1, serio: 2, critico: 3 };
 const marca = (e) => `<span class="punto" style="background:${COLOR_ESTADO[e]}"></span>`;
 const estadoHTML = (e, texto = TEXTO_ESTADO[e]) =>
   `<span class="estado">${marca(e)}${esc(texto)}</span>`;
@@ -849,6 +852,7 @@ const ICONOS = {
   modelo: `<path d="M12 2 3 7l9 5 9-5-9-5Z"/><path d="m3 12 9 5 9-5M3 17l9 5 9-5"/>`,
   entrega: `<path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-7Z"/>`,
   evaluacion: `<path d="M3 3v18h18"/><path d="m7 15 4-4 3 3 6-6"/>`,
+  api: `<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>`,
 };
 const icono = (n) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
   stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONOS[n]}</svg>`;
@@ -857,7 +861,7 @@ const icono = (n) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
 async function pintar() {
   $("#principal").classList.add("recargando");
   guardadoDesde = null;
-  const [lb, metricasTodas, senales, decisiones, runs, subs, champion, estaciones, scores] =
+  const [lb, metricasTodas, senales, decisiones, runs, subs, champion, estaciones, scores, relojes] =
     await Promise.all([
       pedir("leaderboard_snapshots?select=*&order=captured_at.asc"),
       pedir("model_metrics?select=*&split=eq.production"),
@@ -868,6 +872,8 @@ async function pintar() {
       pedir("v_active_model?select=*"),
       pedir("stations?select=station_id,station_name,corridor,latitude,longitude,is_portal"),
       pedir("v_prediction_scores?select=station_id,issued_at,y_pred,y_true,abs_error&order=issued_at.asc"),
+      // Sin esta tabla el panel sigue: sólo pierde la capacidad de reconocer una pausa.
+      pedir("api_clock?select=*").catch(() => []),
     ]);
   const est = new Map(estaciones.map(e => [e.station_id, e]));
   const nombreEst = (id) => est.get(id)?.station_name ?? id;
@@ -895,9 +901,27 @@ async function pintar() {
     return m > critico ? "critico" : m > aviso ? "aviso" : "bien";
   };
   const fallidas = runs.filter(r => r.status === "failed").length;
+
+  // --- ¿la API está en pausa o dejamos de funcionar nosotros?
+  // `predict` escribe el reloj oficial en `api_clock` cada ~2,5 min. Una pausa
+  // sólo se da por buena si el operador la CONFIRMÓ hace poco: si ese dato
+  // envejece, quien dejó de mirar fuimos nosotros, y eso es una falla, nunca
+  // una pausa. Así un pipeline caído no puede esconderse detrás de la API.
+  const reloj = relojes[0];
+  const RELOJ_FRESCO_MIN = 15;
+  const sinContacto = minutos(reloj?.consultado_at) > RELOJ_FRESCO_MIN;
+  const enPausa = !sinContacto && reloj.state !== "running";
+  // Ingesta y entrega se quedan quietas por diseño cuando la API no publica.
+  const segunApi = (e) => enPausa && e !== "bien" ? "pausa" : e;
+
   const nodos = [
+    { id: "api", titulo: "Reloj de la API",
+      valor: reloj ? (reloj.state === "running" ? "corriendo" : reloj.state) : "—",
+      e: sinContacto ? "critico" : enPausa ? "pausa" : "bien",
+      texto: sinContacto ? "sin contacto" : enPausa ? "en pausa" : "corriendo",
+      detalle: reloj ? `consultado ${hace(reloj.consultado_at)}` : "nunca consultado" },
     { id: "ingesta", titulo: "Ingesta", valor: hace(collector?.finished_at),
-      e: semaforo(collector?.finished_at, 45, 90),
+      e: segunApi(semaforo(collector?.finished_at, 45, 90)),
       detalle: `${collector?.rows_ingested ?? 0} filas · atraso ${gap ? num(gap.value, 0) : "—"} min` },
     { id: "modelo", titulo: "Champion activo", valor: champion[0]?.name ?? "—",
       e: champion[0] ? "bien" : "critico", texto: champion[0] ? "activo" : "sin champion",
@@ -905,7 +929,7 @@ async function pintar() {
     // La entrega es la pieza que decide la cobertura, y la cobertura es casi
     // toda la nota: es el nodo que más pesa en la salud general.
     { id: "entrega", titulo: "Última entrega", valor: hace(subs[0]?.submitted_at),
-      e: semaforo(subs[0]?.submitted_at, 70, 120),
+      e: segunApi(semaforo(subs[0]?.submitted_at, 70, 120)),
       detalle: subs.length ? `ciclo ${subs[0].cycle_id.slice(-14)} · HTTP ${subs[0].http_status}` : "sin entregas" },
     { id: "evaluacion", titulo: "Última evaluación", valor: hace(evaluacion?.decided_at),
       e: semaforo(evaluacion?.decided_at, 90, 180),
@@ -928,9 +952,16 @@ async function pintar() {
 
   const peor = [...nodos.map(nd => nd.e), fallidas ? "aviso" : "bien"]
     .reduce((a, b) => GRAVEDAD[b] > GRAVEDAD[a] ? b : a, "bien");
-  $("#salud").innerHTML = `<span class="latido" style="background:${COLOR_ESTADO[peor]}"></span>${
-    { bien: "Operando con normalidad", aviso: "Operando con atrasos",
-      serio: "Requiere atención", critico: "Pipeline detenido" }[peor]}`;
+  // Una falla nuestra siempre pesa más que la pausa: si algo está en rojo o
+  // amarillo, eso es lo que se dice, aunque la API también esté detenida.
+  const mensaje = sinContacto
+    ? (reloj ? `Sin contacto con la API · el operador no la consulta desde las ${hora(reloj.consultado_at)}`
+             : "Sin contacto con la API · el operador nunca registró el reloj")
+    : { bien: "Operando con normalidad",
+        pausa: `API en pausa · sin ciclos desde ${subs[0] ? hora(subs[0].submitted_at) : "—"}`,
+        aviso: "Operando con atrasos", serio: "Requiere atención",
+        critico: "Pipeline detenido" }[peor];
+  $("#salud").innerHTML = `<span class="latido" style="background:${COLOR_ESTADO[peor]}"></span>${esc(mensaje)}`;
   // Con datos guardados, los "hace X min" crecen solos y el semáforo diría
   // "detenido" cuando lo que falta es la red del celular: se dice eso.
   if (guardadoDesde) {
