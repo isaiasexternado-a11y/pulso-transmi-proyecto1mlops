@@ -159,6 +159,21 @@ def recetas() -> list[Receta]:
                lambda: nombrar(PerfilMasTendencia(),
                                "perfil x ajuste reciente (14d)"), 14),
 
+        # Normalizado por nivel reciente: predice demanda / escala y las
+        # variables de nivel entran divididas por la misma escala. Es lo que
+        # comparten los dos primeros del leaderboard de 24 h el 2026-09-29: un
+        # salto de nivel mueve la escala y el modelo lo acompaña sin esperar a
+        # la corrección de la ficha ni a un reentrenamiento.
+        Receta("gbm + perfil normalizado 24h",
+               lambda: GBMconPerfil("gbm + perfil normalizado 24h (mae)", cols=sc,
+                                    escalas=("roll24h",)), None),
+        Receta("gbm + perfil normalizado 3 escalas",
+               lambda: GBMconPerfil("gbm + perfil normalizado 3 escalas (mae)", cols=sc,
+                                    escalas=("roll24h", "roll1h", "roll7d")), None),
+        Receta("gbm + perfil normalizado 3 escalas · 14d",
+               lambda: GBMconPerfil("gbm + perfil normalizado 3 escalas (mae)", cols=sc,
+                                    escalas=("roll24h", "roll1h", "roll7d")), 14),
+
         # Un modelo por estación. Quedó a 0,24 del champion, lo bastante cerca
         # como para que un cambio de régimen pueda darle la vuelta.
         Receta("gbm + perfil por estacion",
@@ -207,16 +222,30 @@ def aplicar_capas(val: pd.DataFrame, pred, capas: dict) -> np.ndarray:
                       "origen": pd.DatetimeIndex(val["target_at"] - val["horizon"] * PASO),
                       "y": val["y"].to_numpy(dtype=float),
                       "base": np.clip(out, 0, None)})
-    ancho = pd.to_timedelta(int(nivel["ventana_h"]), unit="h")
+    L = int(nivel["ventana_h"])
     lo, hi = float(nivel["r_min"]), float(nivel["r_max"])
+    alfa = float(nivel["alfa"])
+    quiebre = nivel.get("quiebre")
     factor = pd.Series(1.0, index=d.index)
     for est, g in d.groupby("station_id"):
         serie = g.groupby("target_at")[["y", "base"]].first().sort_index()
-        suma = serie.rolling(ancho, closed="right").sum()          # (t − L, t]
-        r = (suma["y"] / suma["base"]).replace([np.inf, -np.inf], np.nan).clip(lo, hi)
-        factor[g.index] = r.reindex(g["origen"]).fillna(1.0).to_numpy()
-    alfa = float(nivel["alfa"])
-    return out * (1 + alfa * (factor.to_numpy() - 1))
+
+        def razon(horas):                                          # (t − L, t]
+            suma = serie.rolling(pd.to_timedelta(horas, unit="h"), closed="right").sum()
+            r = (suma["y"] / suma["base"]).replace([np.inf, -np.inf], np.nan)
+            return r.reindex(g["origen"]).to_numpy()
+
+        corto = razon(L)
+        f = 1 + alfa * (np.clip(np.nan_to_num(corto, nan=1.0), lo, hi) - 1)
+        if quiebre:
+            # Mismo criterio que `pipeline/entregar.py::factores_nivel`.
+            largo, u = razon(2 * L), float(quiebre["umbral"])
+            q = ((np.abs(corto - 1) > u) & (np.abs(largo - 1) > u)
+                 & (np.sign(corto - 1) == np.sign(largo - 1)))
+            f = np.where(q, np.clip(np.nan_to_num(corto, nan=1.0),
+                                    float(quiebre["r_min"]), float(quiebre["r_max"])), f)
+        factor[g.index] = f
+    return out * factor.to_numpy()
 
 
 # ------------------------------------------------------------ validación temporal
