@@ -97,6 +97,14 @@ El histórico semilla (45 días, 51.840 obs, 2026-07-26 → 2026-09-08) se extie
   (α=0,75, r∈[0,4; 2,5]) y lo predicho sacado de *backcasts* del propio champion.
   Vive en `hyperparams.correccion_nivel`. Evidencia en `ml/experimento_nivel.py` (rama ML):
   77,41 → 83,23 % bajo drift, −0,07 sin drift; 05100 pasó de 20 % a 77 %.
+- Desde el 2026-09-29 21:25Z el champion es `… x nivel con quiebre`
+  (`20260918T202534Z-pers-06-04-02-02-nivq-02-050`): la corrección de nivel mira 2 h (α=0,5) y,
+  si r de 2 h y de 4 h se desvían >20 % en el mismo sentido, corrige completo con r∈[0,15; 5]
+  (`correccion_nivel.quiebre`). Responde a la continuación del escenario del 16 virtual 08:00
+  (02300/05000 a 2–4,7×, 05100 a 0,15×, 03000 a 0,4×). Evidencia en `ml/experimento_nivel_corto.py`:
+  en la continuación 76,24 → 85,30 %, sin costo sin drift; 05100 de 2,9 % a 77 %.
+  La idea viene de los punteros del leaderboard, que corrigen con ventanas de 1–2 h.
+- El cierre de la competencia es el **viernes 2 de octubre 23:59 Bogotá**.
 - **El contexto de la API está congelado** en 2026-09-08 23:45-05 mientras las observaciones avanzan.
   `ml/data.py` arrastra el último valor conocido.
 - El monitoreo corre: `evaluate.yml` llena `model_metrics`, `drift_signals` (wape_24h, wape_7d,
