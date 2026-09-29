@@ -299,7 +299,15 @@ def senales(run_id: int, scores: pd.DataFrame, obs: pd.DataFrame,
     # API no publica `virtual_now`: no hay "ahora" contra el cual medir el
     # atraso, y no se inventa uno con la hora local. La señal se omite y el
     # resto de la evaluación sigue; antes esto tumbaba el workflow entero.
-    reloj = api_get(base, key, "clock")
+    #
+    # Lo mismo si el runner no alcanza la API (timeout; pasó tres veces entre
+    # el 2026-09-28 21:48Z y el 29 01:12Z con la API respondiendo desde fuera).
+    # Una señal de ingesta no puede costar las métricas, el drift y la decisión.
+    try:
+        reloj = api_get(base, key, "clock")
+    except OSError as e:           # URLError, timeout y fallos de socket
+        print(f"[senales] no se pudo leer el reloj de la API ({e}): se omite ingest_gap")
+        return filas
     if "virtual_now" not in reloj:
         print(f"[senales] reloj de la API en estado {reloj.get('state')!r} sin "
               f"virtual_now: se omite ingest_gap")
