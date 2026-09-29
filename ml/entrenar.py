@@ -19,6 +19,12 @@ llevan congeladas desde el 2026-09-08 y hoy son una constante arrastrada. Un
 candidato sin ellas no es una poda cosmética: es quitarle al modelo una
 variable que finge informar.
 
+Cada receta se mide como la ENTREGARÍA producción: a su predicción se le
+aplican las capas de la ficha del champion vigente (mezcla con persistencia y
+corrección de nivel), las mismas que un ganador hereda al registrarse. Medir
+recetas crudas comparaba algo que nadie entrega: el 2026-09-28 el champion
+daba 85,4 % crudo en el backtest y 86 % en vivo con sus capas.
+
 Y el perfil se queda siempre en la comparación. No necesita entrenarse, se
 recalcula solo con datos nuevos, y bajo drift fuerte eso lo vuelve un rival
 serio, no un trámite.
@@ -32,8 +38,9 @@ pickle y lo deserializa el código de `main`; al hacerlo se restaura el
 clase desconocida no. Por eso `models.py` parametriza en vez de subclasear.
 
 Uso:
-    python3 -m ml.entrenar --dry-run   # compara y reporta, no registra nada
-    python3 -m ml.entrenar             # registra al ganador como candidate
+    python3 -m ml.entrenar --dry-run              # compara y reporta, no registra nada
+    python3 -m ml.entrenar --dry-run --sin-capas  # la comparación vieja, recetas crudas
+    python3 -m ml.entrenar                        # registra al ganador como candidate
 """
 from __future__ import annotations
 
@@ -48,6 +55,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 import joblib
+import numpy as np
 import pandas as pd
 
 RAIZ = Path(__file__).resolve().parent.parent
@@ -74,6 +82,15 @@ N_FOLDS = 3
 # que el ruido de tres folds no se disfrace de mejora.
 MARGEN_CHAMPION = 0.15      # puntos de accuracy sobre el champion
 TOLERANCIA_ESTACION = 2.0   # ninguna estación puede empeorar más que esto
+
+# Veto por lo reciente. Los folds pesan igual —ponderar fuerte pocos días de
+# drift dejaría ganar por suerte y la promoción es automática—, pero un
+# candidato que no le gana al champion en los últimos días, donde vive el
+# régimen actual, no entra. Lo reciente puede vetar, no hacer ganar.
+DIAS_RECIENTES = 3
+
+PASO = pd.to_timedelta(15, unit="min")
+CAPAS = ("mezcla_persistencia", "correccion_nivel")
 
 
 # ------------------------------------------------------------------ recetas
@@ -150,6 +167,58 @@ def recetas() -> list[Receta]:
     ]
 
 
+# ------------------------------------------------------------ capas de la ficha
+
+def capas_vigentes(sb: Supabase) -> dict:
+    """Las capas del champion activo: lo que un ganador heredaría."""
+    fila = sb.seleccionar("models", select="hyperparams", status="eq.active", limit=1)
+    hp = (fila[0]["hyperparams"] or {}) if fila else {}
+    return {k: hp[k] for k in CAPAS if hp.get(k)}
+
+
+def aplicar_capas(val: pd.DataFrame, pred, capas: dict) -> np.ndarray:
+    """Lo que la receta habría entregado con las capas del champion.
+
+    Es `pipeline/entregar.py::predecir` vectorizado sobre el backtest:
+
+    - mezcla: `(1 − w_h) · pred + w_h · lag0`, con `lag0` el último observado
+      en el origen.
+    - nivel: por estación, `r = Σ y / Σ max(entregado, 0)` sobre los objetivos
+      ya resueltos en (origen − ventana, origen], acotado, y el valor queda en
+      `entregado · (1 + α (r − 1))`. Los objetivos de la ventana son las
+      predicciones de la propia receta en orígenes previos del mismo fold,
+      como los backcasts de producción. Al arrancar cada fold la ventana está
+      incompleta y en el primer origen vacía (factor 1): son las primeras
+      horas de siete días.
+
+    Sólo usa `y` de objetivos con `target_at <= origen`: nada del futuro.
+    """
+    out = np.asarray(pred, dtype=float)
+    mezcla = capas.get("mezcla_persistencia")
+    if mezcla:
+        w = val["horizon"].map(lambda h: float(mezcla[str(int(h))])).to_numpy()
+        out = (1 - w) * out + w * val["lag0"].to_numpy(dtype=float)
+
+    nivel = capas.get("correccion_nivel")
+    if not nivel:
+        return out
+    d = pd.DataFrame({"station_id": val["station_id"].to_numpy(),
+                      "target_at": pd.DatetimeIndex(val["target_at"]),
+                      "origen": pd.DatetimeIndex(val["target_at"] - val["horizon"] * PASO),
+                      "y": val["y"].to_numpy(dtype=float),
+                      "base": np.clip(out, 0, None)})
+    ancho = pd.to_timedelta(int(nivel["ventana_h"]), unit="h")
+    lo, hi = float(nivel["r_min"]), float(nivel["r_max"])
+    factor = pd.Series(1.0, index=d.index)
+    for est, g in d.groupby("station_id"):
+        serie = g.groupby("target_at")[["y", "base"]].first().sort_index()
+        suma = serie.rolling(ancho, closed="right").sum()          # (t − L, t]
+        r = (suma["y"] / suma["base"]).replace([np.inf, -np.inf], np.nan).clip(lo, hi)
+        factor[g.index] = r.reindex(g["origen"]).fillna(1.0).to_numpy()
+    alfa = float(nivel["alfa"])
+    return out * (1 + alfa * (factor.to_numpy() - 1))
+
+
 # ------------------------------------------------------------ validación temporal
 
 def folds(ancha: pd.DataFrame, n: int) -> list[tuple[pd.Timestamp, pd.Timestamp]]:
@@ -167,8 +236,9 @@ def folds(ancha: pd.DataFrame, n: int) -> list[tuple[pd.Timestamp, pd.Timestamp]
     return out
 
 
-def comparar(ancha, ctx, n_folds: int) -> dict[str, dict]:
+def comparar(ancha, ctx, n_folds: int, capas: dict) -> dict[str, dict]:
     todas = recetas()
+    recientes = ancha.index[-1] - pd.to_timedelta(DIAS_RECIENTES, unit="D")
     acum: dict[str, list] = {r.etiqueta: [] for r in todas}
 
     for i, (val_ini, val_fin) in enumerate(folds(ancha, n_folds), 1):
@@ -199,7 +269,11 @@ def comparar(ancha, ctx, n_folds: int) -> dict[str, dict]:
 
             t0 = time.time()
             m = r.crear().fit(tr)
-            res = resumen(val.assign(y_pred=m.predict(val)))
+            entregado = aplicar_capas(val, m.predict(val), capas)
+            res = resumen(val.assign(y_pred=entregado))
+            ult = val["target_at"] > recientes
+            if ult.any():
+                res["reciente"] = resumen(val[ult].assign(y_pred=entregado[ult.to_numpy()]))["accuracy"]
             res["segundos"] = round(time.time() - t0, 1)
             res["n_train"] = int(len(tr))
             acum[r.etiqueta].append(res)
@@ -225,6 +299,7 @@ def comparar(ancha, ctx, n_folds: int) -> dict[str, dict]:
             "por_fold": accs,
             "por_estacion": estaciones,
             "por_horizonte": rs[-1]["por_horizonte"],
+            "reciente": next((x["reciente"] for x in reversed(rs) if "reciente" in x), None),
             "folds": rs,
         }
     return tabla
@@ -267,6 +342,11 @@ def elegir(tabla: dict) -> tuple[str | None, list[str]]:
         if cand["accuracy_min"] < ref["accuracy_min"]:
             fallos.append(f"su peor fold ({cand['accuracy_min']:.2f}) es peor "
                           f"que el del champion ({ref['accuracy_min']:.2f})")
+
+        if cand["reciente"] is not None and ref["reciente"] is not None \
+                and cand["reciente"] <= ref["reciente"]:
+            fallos.append(f"no le gana al champion en los últimos {DIAS_RECIENTES} días "
+                          f"({cand['reciente']:.2f} vs {ref['reciente']:.2f})")
 
         hundidas = [e for e, v in cand["por_estacion"].items()
                     if ref["por_estacion"].get(e, 0) - v > TOLERANCIA_ESTACION]
@@ -321,8 +401,8 @@ def registrar(sb: Supabase, ancha, ctx, ganador: dict, tabla: dict) -> dict:
                             status="eq.active", limit=1)
     # La mezcla con persistencia y la corrección de nivel viven en la ficha,
     # no en el pickle. Si el ganador no las hereda, promoverlo las apaga sin
-    # que nadie lo decida. El
-    # backtest compara recetas crudas, así que hereda la del champion vigente.
+    # que nadie lo decida. El backtest ya lo midió CON esas capas, así que
+    # heredarlas es entregar exactamente lo que ganó.
     mezcla = (previo[0]["hyperparams"] or {}).get("mezcla_persistencia") if previo else None
     nivel = (previo[0]["hyperparams"] or {}).get("correccion_nivel") if previo else None
     sin_contexto = not any(c.startswith(("rain", "temp", "evento")) for c in cols)
@@ -351,6 +431,9 @@ def registrar(sb: Supabase, ancha, ctx, ganador: dict, tabla: dict) -> dict:
             "receta": r.etiqueta,
             "validacion_accuracy": ganador["accuracy_media"],
             "validacion_peor_fold": ganador["accuracy_min"],
+            "validacion_reciente": ganador["reciente"],
+            "validacion_con_capas": [k for k in CAPAS if k in (previo[0]["hyperparams"] or {})]
+                                    if previo else [],
             "por_fold": ganador["por_fold"],
             "champion_previo_accuracy": next(
                 (v["accuracy_media"] for v in tabla.values()
@@ -396,21 +479,24 @@ def anunciar(**kv) -> None:
 
 # ------------------------------------------------------------------------ main
 
-def main(dry_run: bool, n_folds: int) -> None:
+def main(dry_run: bool, n_folds: int, sin_capas: bool) -> None:
     sb = Supabase()
+    capas = {} if sin_capas else capas_vigentes(sb)
+    print(f"capas    : {', '.join(capas) or 'ninguna (recetas crudas)'}")
     ancha, ctx, _ = cargar(origen="supabase")
     print(f"panel: {ancha.shape[0]:,} periodos x {ancha.shape[1]} estaciones "
           f"({ancha.index[0]:%Y-%m-%d} -> {ancha.index[-1]:%Y-%m-%d %H:%M})")
 
-    tabla = comparar(ancha, ctx, n_folds)
+    tabla = comparar(ancha, ctx, n_folds, capas)
 
-    print("\n" + "=" * 76)
-    print(f"{'receta':40} {'media':>7} {'peor fold':>10}")
-    print("-" * 76)
+    print("\n" + "=" * 86)
+    print(f"{'receta':40} {'media':>7} {'peor fold':>10} {f'últ. {DIAS_RECIENTES} d':>10}")
+    print("-" * 86)
     for k, v in sorted(tabla.items(), key=lambda x: -x[1]["accuracy_media"]):
         marca = "<- champion" if v["receta"].es_champion else ""
-        print(f"{k:40} {v['accuracy_media']:7.2f} {v['accuracy_min']:10.2f}  {marca}")
-    print("=" * 76)
+        rec = f"{v['reciente']:10.2f}" if v["reciente"] is not None else f"{'—':>10}"
+        print(f"{k:40} {v['accuracy_media']:7.2f} {v['accuracy_min']:10.2f} {rec}  {marca}")
+    print("=" * 86)
 
     etiqueta, razones = elegir(tabla)
     print("\ncompuertas:")
@@ -439,5 +525,7 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--folds", type=int, default=N_FOLDS)
+    ap.add_argument("--sin-capas", action="store_true",
+                    help="comparar recetas crudas, como antes del 2026-09-29")
     a = ap.parse_args()
-    main(a.dry_run, a.folds)
+    main(a.dry_run, a.folds, a.sin_capas)
