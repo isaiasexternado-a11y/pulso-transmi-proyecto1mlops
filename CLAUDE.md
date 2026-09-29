@@ -129,9 +129,10 @@ El histórico semilla (45 días, 51.840 obs, 2026-07-26 → 2026-09-08) se extie
 
 1. Medir la mezcla con persistencia en vivo durante la fase de drift y recalibrar los pesos si cambia
    el régimen (`python3 -m ml.experimento_persistencia --particion <ts>`).
-2. El backtest de `ml/entrenar.py` compara recetas crudas y en folds casi sin drift: un ganador podría rendir
-   distinto con la mezcla y la corrección, y ninguna receta que se adapte al nivel pasa las compuertas.
-   Medir la corrección de nivel en vivo y recalibrar L y α (`python3 -m ml.experimento_nivel --particion <ts>`).
+2. Recalibrar L y α de la corrección de nivel con los ciclos en vivo del drift
+   (`python3 -m ml.experimento_nivel --particion <ts>`; `python3 -m ml.medir_vivo` compara al champion con su padre).
+   Desde el 2026-09-29 `ml/entrenar.py` mide cada receta CON las capas del champion y veta al candidato que no le
+   gane en los últimos 3 días (`--sin-capas` reproduce la comparación vieja).
 3. El GBM depende de 5 features de contexto que ya no se publican. Vale la pena un candidato sin contexto.
 4. Dashboard en Vercel (bono).
 
