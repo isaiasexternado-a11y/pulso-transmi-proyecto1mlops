@@ -157,6 +157,12 @@ def predecir(modelo: object, ficha: dict, ancha, ctx, origen, objetivos) -> list
       No se leen las predicciones guardadas, que ya vendrían corregidas y
       realimentarían el factor. Evidencia en `ml/experimento_nivel.py`.
 
+      Con la llave opcional `quiebre` = {umbral, r_min, r_max}, una estación
+      cuyo r de `ventana_h` y el de `2 · ventana_h` se desvían de 1 más que
+      `umbral` en el mismo sentido cambió de régimen: se corrige completo
+      (α = 1) con los límites amplios de `quiebre`. Sin la llave, nada cambia.
+      Evidencia en `ml/experimento_nivel_corto.py`.
+
     La promoción la reusa por la misma razón que `cargar_artefacto`.
     """
     valores = _mezclado(modelo, ficha, ancha, ctx, origen, objetivos)
@@ -164,32 +170,51 @@ def predecir(modelo: object, ficha: dict, ancha, ctx, origen, objetivos) -> list
     if not nivel:
         return valores
     factor = factores_nivel(modelo, ficha, ancha, ctx, origen, nivel)
-    alfa = float(nivel["alfa"])
-    return [v * (1 + alfa * (factor.get(est, 1.0) - 1))
-            for (est, _), v in zip(objetivos, valores)]
+    return [v * factor.get(est, 1.0) for (est, _), v in zip(objetivos, valores)]
 
 
 def factores_nivel(modelo: object, ficha: dict, ancha, ctx, origen,
                    nivel: dict) -> dict[str, float]:
-    """r por estación con los objetivos en (origen − ventana, origen]."""
+    """Multiplicador final por estación (ver `predecir`)."""
+    L = int(nivel["ventana_h"])
+    quiebre = nivel.get("quiebre")
+    r = razones_nivel(modelo, ficha, ancha, ctx, origen, [L, 2 * L] if quiebre else [L])
+    lo, hi = float(nivel["r_min"]), float(nivel["r_max"])
+    alfa = float(nivel["alfa"])
+    out = {}
+    for est, corto in r[L].items():
+        out[est] = 1 + alfa * (min(max(corto, lo), hi) - 1)
+        largo = r.get(2 * L, {}).get(est) if quiebre else None
+        u = float(quiebre["umbral"]) if quiebre else 0.0
+        if largo is not None and abs(corto - 1) > u and abs(largo - 1) > u \
+                and (corto > 1) == (largo > 1):
+            out[est] = min(max(corto, float(quiebre["r_min"])), float(quiebre["r_max"]))
+    return out
+
+
+def razones_nivel(modelo: object, ficha: dict, ancha, ctx, origen,
+                  ventanas_h: list[int]) -> dict[int, dict[str, float]]:
+    """r sin acotar por estación, con los objetivos en (origen − L, origen]
+    para cada L de `ventanas_h`. Los backcasts se calculan una sola vez."""
     import pandas as pd
 
     hora = pd.Timedelta(hours=1)
     paso = ancha.index[1] - ancha.index[0]
     pasos_hora = round(hora / paso)
-    obs, pred = {}, {}
-    for k in range(1, int(nivel["ventana_h"]) + 1):
+    obs, pred = {L: {} for L in ventanas_h}, {L: {} for L in ventanas_h}
+    for k in range(1, max(ventanas_h) + 1):
         o = origen - k * hora
         if o not in ancha.index:
             break
         objetivos = [(est, o + h * paso) for est in ancha.columns
                      for h in range(1, pasos_hora + 1)]
         for (est, t), v in zip(objetivos, _mezclado(modelo, ficha, ancha, ctx, o, objetivos)):
-            obs[est] = obs.get(est, 0.0) + float(ancha.at[t, est])
-            pred[est] = pred.get(est, 0.0) + max(v, 0.0)
-    lo, hi = float(nivel["r_min"]), float(nivel["r_max"])
-    return {est: min(max(obs[est] / pred[est], lo), hi)
-            for est in obs if pred[est] > 0}
+            for L in ventanas_h:
+                if k <= L:
+                    obs[L][est] = obs[L].get(est, 0.0) + float(ancha.at[t, est])
+                    pred[L][est] = pred[L].get(est, 0.0) + max(v, 0.0)
+    return {L: {est: obs[L][est] / pred[L][est] for est in obs[L] if pred[L][est] > 0}
+            for L in ventanas_h}
 
 
 def _mezclado(modelo: object, ficha: dict, ancha, ctx, origen, objetivos) -> list[float]:
