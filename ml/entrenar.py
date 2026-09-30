@@ -542,7 +542,7 @@ def _elegir_historia(tabla: dict) -> tuple[str | None, list[str]]:
 # -------------------------------------------------------------------- registro
 
 def registrar(sb: Supabase, ancha, ctx, ganador: dict, tabla: dict,
-              ruta: str = "historia", vivo: dict | None = None) -> dict:
+              ruta_promocion: str = "historia", vivo: dict | None = None) -> dict:
     """Reentrena al ganador con todo lo disponible, lo sube y lo inscribe."""
     r = ganador["receta"]
     fin = ancha.index[-1]
@@ -611,7 +611,7 @@ def registrar(sb: Supabase, ancha, ctx, ganador: dict, tabla: dict,
             "validacion_accuracy": ganador["accuracy_media"],
             "validacion_peor_fold": ganador["accuracy_min"],
             "validacion_reciente": ganador["reciente"],
-            "ruta_promocion": ruta,
+            "ruta_promocion": ruta_promocion,
             **({"validacion_vivo": {"accuracy": vivo["por_receta"].get(r.etiqueta),
                                     "vara": vivo["vara"], "fuente_vara": vivo["fuente_vara"],
                                     "corte": vivo["corte"], "ciclos": vivo["ciclos"]}}
