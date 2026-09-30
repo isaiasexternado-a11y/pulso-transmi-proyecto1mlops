@@ -115,6 +115,8 @@ El histórico semilla (45 días, 51.840 obs, 2026-07-26 → 2026-09-08) se extie
   refresco (la receta del champion con datos nuevos). Entre los elegibles gana el mejor en lo vivo.
   La receta del champion se lee de `hyperparams.receta`. Primer resultado: `gbm + perfil por estacion`
   (`20260930T025733Z`), 87,82 vs 86,03 del GBM congelado en las últimas 24 h.
+- Desde el 2026-09-30 17:10Z el champion es `gbm + perfil sin contexto · 14d` (`fs-v2-sin-contexto`), por
+  cambio de receta: 86,99 vs 86,77 en las últimas 24 h. Ya no depende de las 5 features de contexto congeladas.
 - **Se entrena con 6 h de reserva** (`RESERVA_H`). Sin ella, un modelo recién entrenado reproduce las
   últimas horas, los backcasts de la corrección de nivel salen in-sample y el quiebre se apaga: cada 2 h
   sin reserva quedaba por debajo del congelado (84,72 vs 85,47); con reserva, 86,87
@@ -155,7 +157,7 @@ El histórico semilla (45 días, 51.840 obs, 2026-07-26 → 2026-09-08) se extie
    (`python3 -m ml.experimento_nivel --particion <ts>`; `python3 -m ml.medir_vivo` compara al champion con su padre).
    Desde el 2026-09-29 `ml/entrenar.py` mide cada receta CON las capas del champion y veta al candidato que no le
    gane en los últimos 3 días (`--sin-capas` reproduce la comparación vieja).
-3. El GBM depende de 5 features de contexto que ya no se publican. Vale la pena un candidato sin contexto.
+3. ~~Candidato sin contexto~~: champion desde el 2026-09-30 17:10Z. Vigilar que siga ganando en lo vivo.
 4. Dashboard en Vercel (bono).
 
 ### Vocabularios que impone el esquema
