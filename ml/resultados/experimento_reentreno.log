@@ -1,0 +1,47 @@
+champion: 20260918T202534Z-pers-06-04-02-02-nivq-02-050  capas: mezcla_persistencia, correccion_nivel
+bloque 1/17  09-13 00:00 -> 09-13 06:00  congelado=82.15  gbm + perfil s=82.43  normalizado 3 =81.88  perfil=82.21
+bloque 2/17  09-13 06:00 -> 09-13 12:00  congelado=82.78  gbm + perfil s=83.06  normalizado 3 =82.86  perfil=83.18
+bloque 3/17  09-13 12:00 -> 09-13 18:00  congelado=83.24  gbm + perfil s=83.35  normalizado 3 =83.50  perfil=83.11
+bloque 4/17  09-13 18:00 -> 09-14 00:00  congelado=82.72  gbm + perfil s=82.92  normalizado 3 =83.17  perfil=82.96
+bloque 5/17  09-14 00:00 -> 09-14 06:00  congelado=82.39  gbm + perfil s=82.52  normalizado 3 =82.35  perfil=82.72
+bloque 6/17  09-14 06:00 -> 09-14 12:00  congelado=83.66  gbm + perfil s=83.35  normalizado 3 =83.19  perfil=83.78
+bloque 7/17  09-14 12:00 -> 09-14 18:00  congelado=84.49  gbm + perfil s=83.87  normalizado 3 =84.53  perfil=84.55
+bloque 8/17  09-14 18:00 -> 09-15 00:00  congelado=82.99  gbm + perfil s=82.09  normalizado 3 =81.13  perfil=83.26
+bloque 9/17  09-15 00:00 -> 09-15 06:00  congelado=82.40  gbm + perfil s=81.53  normalizado 3 =82.27  perfil=82.50
+bloque 10/17  09-15 06:00 -> 09-15 12:00  congelado=83.06  gbm + perfil s=82.51  normalizado 3 =82.71  perfil=83.21
+bloque 11/17  09-15 12:00 -> 09-15 18:00  congelado=83.88  gbm + perfil s=84.56  normalizado 3 =84.52  perfil=84.20
+bloque 12/17  09-15 18:00 -> 09-16 00:00  congelado=83.62  gbm + perfil s=83.07  normalizado 3 =81.44  perfil=83.89
+bloque 13/17  09-16 00:00 -> 09-16 06:00  congelado=89.14  gbm + perfil s=90.64  normalizado 3 =90.02  perfil=89.58
+bloque 14/17  09-16 06:00 -> 09-16 12:00  congelado=84.72  gbm + perfil s=85.21  normalizado 3 =85.35  perfil=84.97
+bloque 15/17  09-16 12:00 -> 09-16 18:00  congelado=86.23  gbm + perfil s=86.44  normalizado 3 =87.51  perfil=86.40
+bloque 16/17  09-16 18:00 -> 09-17 00:00  congelado=86.11  gbm + perfil s=84.37  normalizado 3 =85.58  perfil=86.57
+bloque 17/17  09-17 00:00 -> 09-17 04:00  congelado=87.04  gbm + perfil s=87.98  normalizado 3 =87.39  perfil=87.55
+
+                                 drift antes de la continuación  continuación   todo  ciclos cont.
+normalizado 3 escalas · 14d                               83.70         86.34  84.31            20
+perfil · 14d                                              84.08         86.20  84.44            20
+gbm + perfil sin contexto · 14d                           84.10         85.97  84.62            20
+normalizado 3 escalas                                     83.62         85.94  84.10            20
+perfil                                                    84.02         85.71  84.27            20
+congelado                                                 83.79         85.47  84.05            20
+gbm + perfil (todo)                                       83.84         85.47  84.28            20
+normalizado 24h                                           83.55         85.45  83.99            20
+gbm + perfil sin contexto                                 83.81         84.82  84.10            20
+
+continuación por estación:
+            congelado  normalizado 3 escalas · 14d  delta
+station_id                                               
+02300            82.0                         82.9    0.9
+03000            82.5                         80.0   -2.5
+05000            73.8                         81.9    8.1
+05100            77.8                         71.3   -6.5
+06000            89.0                         90.5    1.5
+06111            88.9                         89.3    0.4
+07105            91.7                         92.0    0.3
+07107            86.0                         88.7    2.7
+07111            86.1                         88.6    2.5
+09000            91.6                         89.8   -1.8
+09122            84.6                         90.1    5.5
+10009            91.8                         91.1   -0.7
+
+normalizado 3 escalas · 14d gana en 14 de 20 ciclos de la continuación
