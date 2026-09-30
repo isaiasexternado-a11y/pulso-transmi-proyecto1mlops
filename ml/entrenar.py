@@ -364,7 +364,10 @@ def comparar(ancha, ctx, n_folds: int, capas: dict) -> dict[str, dict]:
 
 HORAS_VIVO = 24
 CALENTAR_H = 5              # 2 · ventana de nivel (2 h) + holgura
-MARGEN_VIVO = 0.30          # para cambiar de receta hay que ganar esto en lo vivo
+MARGEN_VIVO = 0.10          # para cambiar de receta hay que ganar esto en lo vivo
+# Era 0,30. Se bajó el 2026-09-30: todo elegible ya pasó las compuertas de
+# historia, así que cambiar por poco no arriesga; 0,10 filtra el ruido de
+# elegir al mejor de ~14 recetas en una sola ventana de 24 h.
 
 # Reserva: las últimas horas no entran al entrenamiento. La corrección de nivel
 # compara lo observado contra backcasts del propio modelo en las últimas 2-4 h;
