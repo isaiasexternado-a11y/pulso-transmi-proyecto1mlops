@@ -11,3 +11,4 @@ Aplicadas:
 |---|---|
 | `20260921_stream_cursor.sql` | Tabla del cursor del stream incremental |
 | `20260921_pipeline_runs_identity.sql` | `pipeline_runs.run_id` lo genera la base |
+| `20260930_training_runs.sql` | Una fila por corrida de `train.yml`, para verificar la cadencia de reentreno |

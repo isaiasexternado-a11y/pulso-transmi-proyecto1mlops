@@ -176,7 +176,7 @@
   @media (max-width: 520px) { .r-4 { grid-template-columns: 1fr; } }
 
   /* ------------------------------------------------------------ pipeline */
-  .flujo { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0; }
+  .flujo { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 0; }
   @media (max-width: 860px) { .flujo { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 22px; } }
   .nodo { position: relative; padding-right: 20px; }
   .nodo .cab { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
@@ -245,6 +245,7 @@
   .linea-tiempo .veces { font-size: 12px; color: var(--tinta-2); background: var(--superficie-2);
     border-radius: 999px; padding: 1px 8px; }
   .linea-tiempo .cuando { font-size: 12.5px; color: var(--tinta-mute); }
+  .linea-tiempo .motivo a { color: var(--serie-1); }
   .linea-tiempo .motivo { font-size: 13px; color: var(--tinta-2); margin-top: 3px; max-width: 90ch; }
   .chips { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
   .chip { font-size: 11.5px; padding: 1px 8px; border-radius: 6px; color: var(--tinta-2);
@@ -399,6 +400,13 @@
     <p class="nota">Reentrenar es una consecuencia registrada, no un impulso. Las decisiones
       idénticas seguidas se agrupan.</p>
     <div id="decisiones"></div>
+  </section>
+
+  <section class="tarjeta seccion">
+    <h2>Entrenamientos</h2>
+    <p class="nota">Cada corrida de <code>train.yml</code>, haya candidato o no. La cadencia es
+      cada ~2 h: un hueco de más de 3 h entre dos corridas significa que el disparo falló.</p>
+    <div id="entrenamientos"></div>
   </section>
 
   <footer>
@@ -853,7 +861,91 @@ const ICONOS = {
   entrega: `<path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-7Z"/>`,
   evaluacion: `<path d="M3 3v18h18"/><path d="m7 15 4-4 3 3 6-6"/>`,
   api: `<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>`,
+  entreno: `<path d="M21 12a9 9 0 1 1-2.64-6.36L21 8"/><path d="M21 3v5h-5"/>`,
 };
+
+// --------------------------------------------------------------- entrenamiento
+// La cadencia es de ~2 h (evaluate.yml dispara train.yml pasados 110 min, y
+// evaluate despierta cada ~50). Más de 3 h sin arrancar uno es un disparo
+// perdido; más de 5 h, que el mecanismo entero dejó de andar. Un entrenamiento
+// tarda ~5 min y tiene tope de 60 en el workflow: `running` pasada 1 h es un
+// runner que murió sin cerrar su fila.
+//
+// Lo peor que marca es `serio`, nunca `critico`: un entrenamiento caído deja
+// al champion quieto, pero la entrega sigue. "Pipeline detenido" en el
+// encabezado sería mentira.
+const HUECO_MIN = 180, PARADO_MIN = 300, COLGADO_MIN = 75;
+
+function desenlace(t) {
+  if (t.status === "running")
+    return (Date.now() - new Date(t.started_at)) / 60000 > COLGADO_MIN
+      ? { e: "serio", texto: "colgado" } : { e: "bien", texto: "corriendo" };
+  if (t.status === "cancelled") return { e: "aviso", texto: "cancelado" };
+  if (t.status === "failed")
+    return t.promoted === false ? { e: "serio", texto: "candidato rechazado" }
+                                : { e: "serio", texto: "falló" };
+  if (t.promoted) return { e: "bien", texto: "promovido" };
+  return { e: "bien", texto: "sin candidato" };
+}
+
+function nodoEntreno(entrenos, minutos) {
+  const base = { id: "entreno", titulo: "Último entrenamiento" };
+  if (entrenos === null)
+    return { ...base, valor: "—", e: "aviso", texto: "sin registro",
+             detalle: "falta la tabla training_runs" };
+  const t = entrenos[0];
+  if (!t) return { ...base, valor: "nunca", e: "aviso", texto: "sin corridas", detalle: "" };
+  const m = minutos(t.started_at), d = desenlace(t);
+  // El atraso manda sobre el desenlace: un "promovido" de hace 6 h es un
+  // pipeline que dejó de entrenar, no uno sano.
+  const e = m > PARADO_MIN ? "serio" : m > HUECO_MIN ? "aviso" : d.e;
+  return { ...base, valor: hace(t.started_at), e,
+           texto: m > HUECO_MIN ? "sin entrenar" : d.texto,
+           detalle: `${d.texto} · ${t.event === "schedule" ? "cron" : "disparado"}` };
+}
+
+function pintarEntrenamientos(entrenos) {
+  const caja = $("#entrenamientos");
+  if (entrenos === null) {
+    caja.innerHTML = `<p class="vacio">Falta la tabla <code>training_runs</code>
+      (migración <code>sql/20260930_training_runs.sql</code>).</p>`;
+    return;
+  }
+  if (!entrenos.length) { caja.innerHTML = `<p class="vacio">Sin entrenamientos registrados todavía.</p>`; return; }
+  // Hueco = minutos desde el arranque de la corrida anterior. A la más
+  // reciente se le mide además cuánto lleva sin que llegue la siguiente: 4 h
+  // sin entrenar es un hueco aunque todavía no haya corrida que lo cierre.
+  const t0 = (t) => new Date(t.started_at).getTime();
+  const filas = entrenos.slice(0, 10).map((t, i) => ({
+    t, d: desenlace(t),
+    hueco: entrenos[i + 1] ? (t0(t) - t0(entrenos[i + 1])) / 60000 : null,
+  }));
+  const actual = (Date.now() - t0(entrenos[0])) / 60000;
+  const huecos = filas.filter(f => f.hueco > HUECO_MIN).length + (actual > HUECO_MIN ? 1 : 0);
+  const durMin = (t) => t.finished_at
+    ? Math.max(1, Math.round((new Date(t.finished_at) - new Date(t.started_at)) / 60000)) : null;
+  caja.innerHTML = `
+    <div class="pie-flujo" style="margin:0 0 14px">${estadoHTML(huecos ? "aviso" : "bien",
+      huecos ? `${huecos} hueco${huecos > 1 ? "s" : ""} de más de 3 h` : "sin huecos de más de 3 h")}
+      <span style="color:var(--tinta-mute)"> en las últimas ${filas.length} corridas</span></div>
+    <ol class="linea-tiempo">${filas.map(({ t, d, hueco }, i) => {
+      const largo = hueco > HUECO_MIN;
+      const cadencia = [
+        i === 0 && actual > HUECO_MIN ? `<span style="color:var(--aviso)">sin entrenar desde hace ${esc(num(actual / 60, 1))} h ⚠</span>` : "",
+        hueco == null ? "" : `<span style="color:${largo ? "var(--aviso)" : "inherit"}">${Math.round(hueco)} min después de la anterior${largo ? " ⚠" : ""}</span>`,
+      ].filter(Boolean).join(" · ");
+      return `<li><span class="hito" style="background:${COLOR_ESTADO[d.e]}"></span>
+        <div class="cab-hito">
+          <span class="decision">${esc(d.texto[0].toUpperCase() + d.texto.slice(1))}</span>
+          <span class="cuando">${esc(fechaHora(t.started_at))} · ${esc(hace(t.started_at))}</span>
+        </div>
+        <div class="motivo">${t.event === "schedule" ? "cron" : "disparado por evaluate o a mano"}${
+          durMin(t) ? ` · ${durMin(t)} min` : ""}${
+          cadencia ? ` · ${cadencia}` : ""}${
+          t.run_url ? ` · <a href="${esc(t.run_url)}" target="_blank" rel="noopener">ver en Actions</a>` : ""}</div>
+      </li>`;
+    }).join("")}</ol>`;
+}
 const icono = (n) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
   stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONOS[n]}</svg>`;
 
@@ -861,7 +953,7 @@ const icono = (n) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
 async function pintar() {
   $("#principal").classList.add("recargando");
   guardadoDesde = null;
-  const [lb, metricasTodas, senales, decisiones, runs, subs, champion, estaciones, scores, relojes] =
+  const [lb, metricasTodas, senales, decisiones, runs, subs, champion, estaciones, scores, relojes, entrenos] =
     await Promise.all([
       pedir("leaderboard_snapshots?select=*&order=captured_at.asc"),
       pedir("model_metrics?select=*&split=eq.production"),
@@ -874,6 +966,8 @@ async function pintar() {
       pedir("v_prediction_scores?select=station_id,issued_at,y_pred,y_true,abs_error&order=issued_at.asc"),
       // Sin esta tabla el panel sigue: sólo pierde la capacidad de reconocer una pausa.
       pedir("api_clock?select=*").catch(() => []),
+      // null (no []) si la tabla no existe: "sin registro" no es "nunca entrenó".
+      pedir("training_runs?select=*&order=started_at.desc&limit=30").catch(() => null),
     ]);
   const est = new Map(estaciones.map(e => [e.station_id, e]));
   const nombreEst = (id) => est.get(id)?.station_name ?? id;
@@ -934,6 +1028,7 @@ async function pintar() {
     { id: "evaluacion", titulo: "Última evaluación", valor: hace(evaluacion?.decided_at),
       e: semaforo(evaluacion?.decided_at, 90, 180),
       detalle: evaluacion ? `decisión: ${evaluacion.decision}` : "" },
+    nodoEntreno(entrenos, minutos),
   ];
   $("#flujo").innerHTML = nodos.map(nd => `
     <div class="nodo">
@@ -1145,6 +1240,8 @@ async function pintar() {
   } else {
     $("#drift").innerHTML = `<p class="vacio">Sin evaluaciones todavía.</p>`;
   }
+
+  pintarEntrenamientos(entrenos);
 
   // --- decisiones: una línea de tiempo que agrupa las repeticiones seguidas
   const COLOR_DEC = { keep: "bien", blocked: "aviso", retrain: "serio", rollback: "critico" };

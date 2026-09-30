@@ -40,10 +40,38 @@ jobs:
     outputs:
       model_id: ${{ steps.entrenar.outputs.model_id }}
       version: ${{ steps.entrenar.outputs.version }}
+      started_at: ${{ steps.abrir.outputs.started_at }}
+      ml_commit: ${{ steps.commit.outputs.sha }}
     steps:
+      # Primero que todo, antes de instalar nada: si algo de lo que sigue
+      # falla, la corrida ya quedó constando en `training_runs`. El registro
+      # es para verificar la cadencia, así que nunca bloquea el entrenamiento.
+      - name: Registrar inicio en training_runs
+        id: abrir
+        continue-on-error: true
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+        run: |
+          inicio=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          echo "started_at=$inicio" >> "$GITHUB_OUTPUT"
+          curl -sS --fail-with-body -X POST \
+            "$SUPABASE_URL/rest/v1/training_runs?on_conflict=gh_run_id,attempt" \
+            -H "apikey: $SUPABASE_SECRET_KEY" -H "Authorization: Bearer $SUPABASE_SECRET_KEY" \
+            -H "Content-Type: application/json" \
+            -H "Prefer: resolution=merge-duplicates,return=minimal" \
+            -d "{\"gh_run_id\": ${{ github.run_id }}, \"attempt\": ${{ github.run_attempt }},
+                 \"event\": \"${{ github.event_name }}\", \"started_at\": \"$inicio\",
+                 \"status\": \"running\",
+                 \"run_url\": \"${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\"}" \
+            || { echo "::warning::no se pudo registrar el inicio en training_runs"; exit 1; }
+
       - uses: actions/checkout@v4
         with:
           ref: experimentos-ml     # el trabajo de ML no vive en main
+
+      - id: commit
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
       - uses: actions/setup-python@v5
         with:
@@ -81,3 +109,49 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
         run: python -m pipeline.promover --model-id "${{ needs.entrenar.outputs.model_id }}"
+
+  # Cierra la fila de `training_runs` pase lo que pase: sin candidato, con
+  # candidato promovido, con la promoción rechazada o con el entrenamiento
+  # caído. Sin este job, una corrida que falla quedaría en `running` y el
+  # dashboard sólo podría adivinar.
+  cerrar:
+    needs: [entrenar, promover]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Registrar desenlace en training_runs
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+          ENTRENAR: ${{ needs.entrenar.result }}
+          PROMOVER: ${{ needs.promover.result }}
+          CANDIDATO: ${{ needs.entrenar.outputs.model_id }}
+          INICIO: ${{ needs.entrenar.outputs.started_at }}
+          ML_COMMIT: ${{ needs.entrenar.outputs.ml_commit }}
+        run: |
+          set -euo pipefail
+          if [ "$ENTRENAR" = cancelled ] || [ "$PROMOVER" = cancelled ]; then estado=cancelled
+          elif [ "$ENTRENAR" != success ] || [ "$PROMOVER" = failure ]; then estado=failed
+          else estado=success; fi
+
+          # promoted: null sin candidato; si lo hubo, si `promover` lo activó.
+          if [ -z "$CANDIDATO" ]; then candidato=null; promovido=null
+          else candidato="\"$CANDIDATO\""
+               [ "$PROMOVER" = success ] && promovido=true || promovido=false; fi
+          [ -n "$ML_COMMIT" ] && commit="\"$ML_COMMIT\"" || commit=null
+
+          echo "entrenar=$ENTRENAR promover=$PROMOVER -> $estado · candidato=$candidato promovido=$promovido"
+          curl -sS --fail-with-body -X POST \
+            "$SUPABASE_URL/rest/v1/training_runs?on_conflict=gh_run_id,attempt" \
+            -H "apikey: $SUPABASE_SECRET_KEY" -H "Authorization: Bearer $SUPABASE_SECRET_KEY" \
+            -H "Content-Type: application/json" \
+            -H "Prefer: resolution=merge-duplicates,return=minimal" \
+            -d "{\"gh_run_id\": ${{ github.run_id }}, \"attempt\": ${{ github.run_attempt }},
+                 \"event\": \"${{ github.event_name }}\",
+                 \"started_at\": \"${INICIO:-$(date -u +%Y-%m-%dT%H:%M:%SZ)}\",
+                 \"finished_at\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",
+                 \"status\": \"$estado\", \"candidate_model_id\": $candidato,
+                 \"promoted\": $promovido,
+                 \"ml_commit\": $commit,
+                 \"run_url\": \"${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\"}"

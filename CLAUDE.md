@@ -107,7 +107,9 @@ El histórico semilla (45 días, 51.840 obs, 2026-07-26 → 2026-09-08) se extie
 - El cierre de la competencia es el **viernes 2 de octubre 23:59 Bogotá**.
 - Desde el 2026-09-30 03:00Z **`train.yml` corre cada 2 h** y el champion se renueva solo.
   La cadencia la lleva `evaluate.yml`, no el cron (GitHub se saltó 5 de 6 el 30-sep): en cada corrida
-  mira el último run de `train.yml` y lo dispara si pasaron ≥110 min y no hay uno en cola o corriendo. Además de los
+  mira el último run de `train.yml` y lo dispara si pasaron ≥110 min y no hay uno en cola o corriendo.
+  Cada corrida queda en `training_runs` (la abre `train.yml` al arrancar y la cierra un job `if: always()`),
+  y el dashboard muestra "Último entrenamiento" y la línea de tiempo con los huecos de más de 3 h. Además de los
   folds, `ml/entrenar.py` mide cada receta en las últimas 24 h (`medir_vivo`) y hay tres rutas a
   `candidate`: historia (folds), cambio de receta (gana ≥0,10 en lo vivo sin perder >0,30 en folds) y
   refresco (la receta del champion con datos nuevos). Entre los elegibles gana el mejor en lo vivo.
