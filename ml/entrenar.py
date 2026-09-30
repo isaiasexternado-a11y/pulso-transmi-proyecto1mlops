@@ -40,7 +40,13 @@ clase desconocida no. Por eso `models.py` parametriza en vez de subclasear.
 Uso:
     python3 -m ml.entrenar --dry-run              # compara y reporta, no registra nada
     python3 -m ml.entrenar --dry-run --sin-capas  # la comparación vieja, recetas crudas
+    python3 -m ml.entrenar --dry-run --sin-vivo   # sin la prueba de las últimas 24 h
     python3 -m ml.entrenar                        # registra al ganador como candidate
+
+Además de los folds, cada corrida mide las últimas 24 h (`medir_vivo`). Con eso
+hay dos rutas más hacia `candidate`: cambiar de receta si otra gana en lo vivo,
+o refrescar la receta del champion con los datos más nuevos. `train.yml` corre
+cada 2 h, así que el champion ve el régimen actual en horas, no en días.
 """
 from __future__ import annotations
 
@@ -117,7 +123,21 @@ def nombrar(m, nombre: str):
     return m
 
 
+# Etiqueta de la receta del champion activo. `main` la fija desde la ficha
+# (`hyperparams.receta`); si la ficha no la trae —el champion se empaquetó a
+# mano—, la receta marcada `es_champion` en la lista.
+RECETA_CHAMPION: str | None = None
+
+
 def recetas() -> list[Receta]:
+    lista = _recetas()
+    if RECETA_CHAMPION and any(r.etiqueta == RECETA_CHAMPION for r in lista):
+        for r in lista:
+            r.es_champion = r.etiqueta == RECETA_CHAMPION
+    return lista
+
+
+def _recetas() -> list[Receta]:
     sc = COLS_SIN_CONTEXTO
     return [
         # El champion vigente, con su receta exacta. Es la vara: sin medirlo
@@ -334,10 +354,128 @@ def comparar(ancha, ctx, n_folds: int, capas: dict) -> dict[str, dict]:
     return tabla
 
 
+# ------------------------------------------------------------ el régimen vivo
+# Los folds de 7 días diluyen un cambio de régimen de horas: el 2026-09-29 la
+# continuación del escenario era 15 h de 21 días y ningún candidato pasaba,
+# aunque reentrenar cada 6 h le ganaba al GBM congelado en 14 de 20 ciclos de
+# la continuación (`ml/experimento_reentreno.py`). Esta prueba mide sólo lo
+# último: cada receta se entrena con lo resuelto hasta `fin − HORAS_VIVO` y
+# predice los ciclos horarios de ahí en adelante, con las capas del champion.
+
+HORAS_VIVO = 24
+CALENTAR_H = 5              # 2 · ventana de nivel (2 h) + holgura
+MARGEN_VIVO = 0.30          # para cambiar de receta hay que ganar esto en lo vivo
+TOLERANCIA_HISTORIA = 0.30  # y no perder más que esto en los folds
+
+
+def medir_vivo(sb: Supabase, ancha, ctx, capas: dict) -> dict:
+    """Accuracy de cada receta en las últimas HORAS_VIVO horas, y la vara.
+
+    La vara es lo que se entregaría sin promover nada: el artefacto activo,
+    siempre que se haya entrenado antes del corte. Si se entrenó después (un
+    refresco reciente), en esta ventana estaría prediciendo datos que ya vio y
+    ganaría por memoria; entonces la vara es su receta entrenada al corte, en
+    las mismas condiciones que los rivales.
+    """
+    from pipeline.entregar import champion
+
+    fin = ancha.index[-1]
+    corte = fin - pd.to_timedelta(HORAS_VIVO, unit="h")
+    o_val = origenes_por_hora(ancha, corte - pd.to_timedelta(CALENTAR_H, unit="h"), fin)
+    val = construir(ancha, ctx, o_val).dropna(subset=["y"])
+    evaluar = ((val["target_at"] - val["horizon"] * PASO) >= corte).to_numpy()
+    o_train = origenes_por_hora(ancha, ancha.index[0], corte)
+    train_full = construir(ancha, ctx, o_train).dropna()
+    train_full = train_full[train_full["target_at"] <= corte]
+
+    def medir(pred) -> float:
+        entregado = aplicar_capas(val, pred, capas)
+        return resumen(val[evaluar].assign(y_pred=entregado[evaluar]))["accuracy"]
+
+    print(f"\nvivo: entrenado hasta {corte:%m-%d %H:%M}, "
+          f"{int(evaluar.sum() / 48)} ciclos evaluados")
+    por_receta = {}
+    for r in recetas():
+        tr = train_full
+        if r.dias is not None:
+            tr = tr[tr["target_at"] > corte - pd.to_timedelta(r.dias, unit="D")]
+        por_receta[r.etiqueta] = medir(r.crear().fit(tr).predict(val))
+        print(f"   {r.etiqueta:40} vivo {por_receta[r.etiqueta]:6.2f}")
+
+    modelo, ficha = champion(sb)
+    if pd.Timestamp(ficha["train_end"]) <= corte:
+        vara, fuente = medir(modelo.predict(val)), "artefacto activo"
+    else:
+        etiqueta = next(r.etiqueta for r in recetas() if r.es_champion)
+        vara, fuente = por_receta[etiqueta], f"receta del champion al corte ({etiqueta})"
+    print(f"   {'vara: ' + fuente:40} vivo {vara:6.2f}")
+    return {"corte": str(corte), "ciclos": int(evaluar.sum() / 48),
+            "por_receta": por_receta, "vara": vara, "fuente_vara": fuente}
+
+
 # ------------------------------------------------------------------ compuertas
 
-def elegir(tabla: dict) -> tuple[str | None, list[str]]:
-    """Devuelve (etiqueta ganadora o None, razones)."""
+def elegir(tabla: dict, vivo: dict | None = None) -> tuple[str | None, list[str], str]:
+    """Devuelve (etiqueta ganadora o None, razones, ruta).
+
+    Tres rutas deciden quién es ELEGIBLE:
+
+    - `historia`: gana en los folds con margen (las compuertas de siempre).
+    - `cambio de receta`: gana en lo vivo por MARGEN_VIVO sin perder más de
+      TOLERANCIA_HISTORIA en los folds ni hundir una estación.
+    - `refresco`: la receta del champion con los datos más nuevos. Entra si
+      en lo vivo no pierde más de TOLERANCIA_HISTORIA contra la vara. Es lo
+      que hace el reentreno periódico: el mismo modelo, visto lo último.
+
+    Entre los elegibles gana el mejor en lo vivo. Las rutas ya garantizan que
+    nadie empeora la historia; lo vivo decide cuál sirve para el régimen de
+    hoy. Sin prueba viva queda sólo la ruta `historia`, como antes.
+    """
+    etiqueta, razones = _elegir_historia(tabla)
+    if not vivo:
+        return etiqueta, razones, "historia"
+
+    elegibles = {etiqueta: "historia"} if etiqueta else {}
+    champion = next((k for k, v in tabla.items() if v["receta"].es_champion), None)
+    if champion is None:
+        return etiqueta, razones, "historia"
+    ref = tabla[champion]
+    pv, vara = vivo["por_receta"], vivo["vara"]
+
+    for k in (k for k in tabla if k != champion and k in pv and k not in elegibles):
+        c = tabla[k]
+        fallos = []
+        if pv[k] < vara + MARGEN_VIVO:
+            fallos.append(f"en lo vivo {pv[k]:.2f} vs vara {vara:.2f}, se exigen {MARGEN_VIVO:+.2f}")
+        if c["accuracy_media"] < ref["accuracy_media"] - TOLERANCIA_HISTORIA:
+            fallos.append(f"en los folds pierde {c['accuracy_media'] - ref['accuracy_media']:+.2f}")
+        hundidas = [e for e, v in c["por_estacion"].items()
+                    if ref["por_estacion"].get(e, 0) - v > TOLERANCIA_ESTACION]
+        if hundidas:
+            fallos.append(f"hunde {', '.join(hundidas[:3])}")
+        if fallos:
+            razones.append(f"{k} [vivo]: {'; '.join(fallos)}")
+        else:
+            elegibles[k] = "cambio de receta"
+            razones.append(f"{k}: elegible por cambio de receta, vivo {pv[k]:.2f}")
+
+    if champion in pv and pv[champion] >= vara - TOLERANCIA_HISTORIA:
+        elegibles.setdefault(champion, "refresco")
+        razones.append(f"{champion}: elegible por refresco, vivo {pv[champion]:.2f}")
+    else:
+        razones.append(f"{champion} [refresco]: en lo vivo "
+                       f"{pv.get(champion, float('nan')):.2f} vs vara {vara:.2f}")
+
+    if not elegibles:
+        return None, razones, "historia"
+    mejor = max(elegibles, key=lambda k: pv.get(k, float("-inf")))
+    razones.append(f"entre {len(elegibles)} elegibles gana en lo vivo {mejor}: "
+                   f"{pv[mejor]:.2f} vs vara {vara:.2f} ({vivo['fuente_vara']})")
+    return mejor, razones, elegibles[mejor]
+
+
+def _elegir_historia(tabla: dict) -> tuple[str | None, list[str]]:
+    """Las compuertas de siempre: ganar en los folds con margen."""
     champion = next((k for k, v in tabla.items() if v["receta"].es_champion), None)
     if champion is None:
         return None, ["no se pudo medir la receta del champion; sin vara no hay comparación"]
@@ -394,7 +532,8 @@ def elegir(tabla: dict) -> tuple[str | None, list[str]]:
 
 # -------------------------------------------------------------------- registro
 
-def registrar(sb: Supabase, ancha, ctx, ganador: dict, tabla: dict) -> dict:
+def registrar(sb: Supabase, ancha, ctx, ganador: dict, tabla: dict,
+              ruta: str = "historia", vivo: dict | None = None) -> dict:
     """Reentrena al ganador con todo lo disponible, lo sube y lo inscribe."""
     r = ganador["receta"]
     fin = ancha.index[-1]
@@ -461,6 +600,11 @@ def registrar(sb: Supabase, ancha, ctx, ganador: dict, tabla: dict) -> dict:
             "validacion_accuracy": ganador["accuracy_media"],
             "validacion_peor_fold": ganador["accuracy_min"],
             "validacion_reciente": ganador["reciente"],
+            "ruta_promocion": ruta,
+            **({"validacion_vivo": {"accuracy": vivo["por_receta"].get(r.etiqueta),
+                                    "vara": vivo["vara"], "fuente_vara": vivo["fuente_vara"],
+                                    "corte": vivo["corte"], "ciclos": vivo["ciclos"]}}
+               if vivo else {}),
             "validacion_con_capas": [k for k in CAPAS if k in (previo[0]["hyperparams"] or {})]
                                     if previo else [],
             "por_fold": ganador["por_fold"],
@@ -508,9 +652,13 @@ def anunciar(**kv) -> None:
 
 # ------------------------------------------------------------------------ main
 
-def main(dry_run: bool, n_folds: int, sin_capas: bool) -> None:
+def main(dry_run: bool, n_folds: int, sin_capas: bool, sin_vivo: bool = False) -> None:
+    global RECETA_CHAMPION
     sb = Supabase()
     capas = {} if sin_capas else capas_vigentes(sb)
+    activo = sb.seleccionar("models", select="hyperparams", status="eq.active", limit=1)
+    RECETA_CHAMPION = ((activo[0]["hyperparams"] or {}).get("receta") if activo else None)
+    print(f"receta del champion: {RECETA_CHAMPION or 'la marcada en la lista'}")
     print(f"capas    : {', '.join(capas) or 'ninguna (recetas crudas)'}")
     ancha, ctx, _ = cargar(origen="supabase")
     print(f"panel: {ancha.shape[0]:,} periodos x {ancha.shape[1]} estaciones "
@@ -527,7 +675,8 @@ def main(dry_run: bool, n_folds: int, sin_capas: bool) -> None:
         print(f"{k:40} {v['accuracy_media']:7.2f} {v['accuracy_min']:10.2f} {rec}  {marca}")
     print("=" * 86)
 
-    etiqueta, razones = elegir(tabla)
+    vivo = None if sin_vivo else medir_vivo(sb, ancha, ctx, capas)
+    etiqueta, razones, ruta = elegir(tabla, vivo)
     print("\ncompuertas:")
     for r in razones:
         print(f"  · {r}")
@@ -537,13 +686,13 @@ def main(dry_run: bool, n_folds: int, sin_capas: bool) -> None:
         anunciar(model_id="", version="")
         return
 
-    print(f"\nGANADOR: {etiqueta}")
+    print(f"\nGANADOR: {etiqueta}  (ruta: {ruta})")
     if dry_run:
         print("[dry-run] no se registró nada")
         anunciar(model_id="", version="")
         return
 
-    creado = registrar(sb, ancha, ctx, tabla[etiqueta], tabla)
+    creado = registrar(sb, ancha, ctx, tabla[etiqueta], tabla, ruta, vivo)
     anunciar(model_id=creado["model_id"],
              version=creado["hyperparams"]["version"])
     print("\nlisto: el candidato queda registrado, NO promovido. "
@@ -556,5 +705,7 @@ if __name__ == "__main__":
     ap.add_argument("--folds", type=int, default=N_FOLDS)
     ap.add_argument("--sin-capas", action="store_true",
                     help="comparar recetas crudas, como antes del 2026-09-29")
+    ap.add_argument("--sin-vivo", action="store_true",
+                    help="sólo las compuertas de los folds, sin cambio de receta ni refresco")
     a = ap.parse_args()
-    main(a.dry_run, a.folds, a.sin_capas)
+    main(a.dry_run, a.folds, a.sin_capas, a.sin_vivo)
