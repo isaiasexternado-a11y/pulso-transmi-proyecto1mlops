@@ -91,16 +91,17 @@ class GBM(Modelo):
     """Gradient boosting sobre las variables de `features.COLS_NUM`."""
     nombre = "hist gradient boosting"
 
-    def __init__(self, nombre=None, **kw):
+    def __init__(self, nombre=None, cols=None, **kw):
         if nombre:
             self.nombre = nombre
+        self.cols = cols        # None = COLS_NUM completo
         self.kw = {"max_iter": 400, "learning_rate": 0.06,
                    "max_depth": None, "random_state": 20260916, **kw}
 
     def fit(self, train):
         from sklearn.ensemble import HistGradientBoostingRegressor
         from features import COLS_NUM
-        self.cols_ = COLS_NUM
+        self.cols_ = list(self.cols) if self.cols else COLS_NUM
         self.est_ = HistGradientBoostingRegressor(**self.kw)
         self.est_.fit(train[self.cols_], train["y"])
         return self
@@ -120,10 +121,26 @@ class GBMconPerfil(Modelo):
     """
     nombre = "gbm + perfil (mae)"
 
-    def __init__(self, nombre=None, por_estacion=False, **kw):
+    # Variables en unidades de pasajeros: son las que se dividen por la escala
+    # cuando el modelo trabaja normalizado.
+    COLS_NIVEL = ("lag0", "lag1", "lag2", "lag3", "lag4", "lag_dia", "lag_sem",
+                  "roll1h", "roll24h", "roll7d", "perfil")
+    PISO_ESCALA = 1.0
+
+    def __init__(self, nombre=None, por_estacion=False, cols=None, escalas=None, **kw):
         if nombre:
             self.nombre = nombre
         self.por_estacion = por_estacion
+        self.cols = cols        # None = COLS_NUM completo
+        # Normalización por nivel reciente. Con `escalas` (columnas de
+        # `features`, p. ej. ("roll24h",)) el modelo no predice pasajeros sino
+        # pasajeros / escala, y las variables de nivel entran divididas por la
+        # misma escala. Si una estación duplica su demanda, la escala se duplica
+        # y el modelo la acompaña sin reentrenar. Se entrena con peso = escala
+        # para que la pérdida siga siendo error absoluto en pasajeros (WAPE).
+        # Con varias escalas se promedian las predicciones: cada una reacciona
+        # a otra velocidad. None = comportamiento de siempre.
+        self.escalas = tuple(escalas) if escalas else None
         self.kw = {"max_iter": 500, "learning_rate": 0.06,
                    "loss": "absolute_error", "random_state": 20260916, **kw}
 
@@ -131,15 +148,37 @@ class GBMconPerfil(Modelo):
         p = frame[self.claves_].join(self.tabla_, on=self.claves_)["p"]
         return frame.assign(perfil=p.fillna(self.global_).to_numpy())
 
+    def _normalizado(self, t: pd.DataFrame, escala: str) -> tuple[pd.DataFrame, np.ndarray]:
+        s = np.maximum(t[escala].to_numpy(dtype=float), self.PISO_ESCALA)
+        X = t[self.cols_].copy()
+        for c in self.COLS_NIVEL:
+            if c in X:
+                X[c] = X[c].to_numpy(dtype=float) / s
+        return X, s
+
     def fit(self, train):
         from sklearn.ensemble import HistGradientBoostingRegressor
         from features import COLS_NUM
         self.claves_ = ["station_id", "slot", "es_finde"]
         self.tabla_ = train.groupby(self.claves_)["y"].mean().rename("p")
         self.global_ = float(train["y"].mean())
-        self.cols_ = COLS_NUM + ["perfil"]
+        # `cols_` es atributo de instancia, no de clase, y ahí está la gracia:
+        # al deserializar se restaura tal cual, así que un artefacto entrenado
+        # con menos columnas predice bien aunque el `main` que lo carga tenga
+        # una definición de clase más vieja. Por eso la lista de features se
+        # parametriza en vez de crear una clase nueva: una clase que main no
+        # conoce rompe la inferencia; unos atributos distintos, no.
+        base = list(self.cols) if getattr(self, "cols", None) else COLS_NUM
+        self.cols_ = base + ["perfil"]
 
         t = self._con_perfil(train)
+        if getattr(self, "escalas", None):
+            self.est_ = {}
+            for e in self.escalas:
+                X, s = self._normalizado(t, e)
+                self.est_[e] = HistGradientBoostingRegressor(**self.kw).fit(
+                    X, t["y"].to_numpy(dtype=float) / s, sample_weight=s)
+            return self
         if self.por_estacion:
             self.est_ = {e: HistGradientBoostingRegressor(**self.kw).fit(g[self.cols_], g["y"])
                          for e, g in t.groupby("station_id")}
@@ -149,6 +188,12 @@ class GBMconPerfil(Modelo):
 
     def predict(self, frame):
         f = self._con_perfil(frame).reset_index(drop=True)
+        if getattr(self, "escalas", None):
+            salidas = []
+            for e in self.escalas:
+                X, s = self._normalizado(f, e)
+                salidas.append(self.est_[e].predict(X) * s)
+            return clip_no_negativo(np.mean(salidas, axis=0))
         if not self.por_estacion:
             return clip_no_negativo(self.est_.predict(f[self.cols_]))
         out = np.zeros(len(f))
