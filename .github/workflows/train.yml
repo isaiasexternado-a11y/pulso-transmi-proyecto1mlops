@@ -2,7 +2,9 @@
 #
 # Separado de la inferencia a propósito: un fallo entrenando no puede bloquear
 # una entrega. Lo dispara `evaluate.yml` cuando `retrain_decisions` dice
-# `retrain`, o la programación cada 2 h, o una mano humana.
+# `retrain` o cuando pasaron >= 110 min desde el último entrenamiento, o una
+# mano humana. El cron de aquí abajo es sólo la red de seguridad: GitHub se
+# salta schedules con carga, así que la cadencia real la lleva evaluate.yml.
 #
 # Dos jobs y dos ramas, y eso es el punto:
 #

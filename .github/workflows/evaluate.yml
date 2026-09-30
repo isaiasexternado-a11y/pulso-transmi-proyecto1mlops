@@ -46,17 +46,49 @@ jobs:
           SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
         run: python -m pipeline.evaluar
 
-      # Reentrenar es consecuencia de una decisión registrada, nunca de un
-      # cron. `retrain_decisions` ya guardó el porqué antes de llegar aquí.
-      - name: Disparar entrenamiento si la decisión lo pide
-        if: steps.evaluar.outputs.decision == 'retrain'
+      # Dos razones para entrenar, un solo disparo:
+      #
+      #   retrain  -> la decisión registrada en `retrain_decisions` lo pide.
+      #   cadencia -> pasaron >= CADA_MIN desde que arrancó el último
+      #               entrenamiento. El cron de train.yml debía cubrir esto,
+      #               pero GitHub se salta schedules con carga (el 30-sep
+      #               corrió 1 de 6). Evaluar sí despierta cada ciclo, porque
+      #               lo llama predict.yml, así que la cadencia cuelga de aquí.
+      #
+      # "Último entrenamiento" es el último run de train.yml, venga del cron,
+      # de aquí o de una mano: sólo así no se duplica. Si hay uno en cola o
+      # corriendo no se lanza otro. Entrenar no es promover: las compuertas
+      # siguen en ml.entrenar y pipeline.promover.
+      #
+      # Corre aunque la evaluación falle: medir y entrenar son independientes,
+      # y un fallo midiendo no puede congelar al champion.
+      - name: Disparar entrenamiento (decisión o cadencia)
+        if: ${{ !cancelled() }}
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
+          DECISION: ${{ steps.evaluar.outputs.decision }}
+          CADA_MIN: "110"     # evaluar despierta cada ~50 min: ciclo real de 2-2,7 h
         run: |
-          if gh workflow view train.yml >/dev/null 2>&1; then
-            gh workflow run train.yml --ref "${{ github.ref_name }}"
-            echo "entrenamiento disparado"
+          set -euo pipefail
+          ultimo=$(gh run list --workflow train.yml --limit 1 \
+                     --json status,createdAt --jq '.[0] | "\(.status) \(.createdAt)"')
+          if [ -z "$ultimo" ]; then
+            estado=ninguno; minutos=999999
           else
-            echo "::warning::la decisión pide reentrenar pero train.yml todavía no existe"
+            read -r estado creado <<< "$ultimo"
+            minutos=$(( ( $(date -u +%s) - $(date -u -d "$creado" +%s) ) / 60 ))
+          fi
+          echo "último train.yml: $estado, hace $minutos min  ·  decisión: ${DECISION:-sin decisión}"
+
+          if [ "$estado" != completed ] && [ "$estado" != ninguno ]; then
+            echo "ya hay un entrenamiento $estado; no se lanza otro"
+          elif [ "${DECISION:-}" = retrain ]; then
+            gh workflow run train.yml --ref "${{ github.ref_name }}"
+            echo "entrenamiento disparado: la decisión es retrain"
+          elif [ "$minutos" -ge "$CADA_MIN" ]; then
+            gh workflow run train.yml --ref "${{ github.ref_name }}"
+            echo "entrenamiento disparado: cadencia ($minutos >= $CADA_MIN min)"
+          else
+            echo "todavía no toca: faltan $(( CADA_MIN - minutos )) min"
           fi
