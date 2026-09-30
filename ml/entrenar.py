@@ -194,6 +194,27 @@ def _recetas() -> list[Receta]:
                lambda: GBMconPerfil("gbm + perfil normalizado 3 escalas (mae)", cols=sc,
                                     escalas=("roll24h", "roll1h", "roll7d")), 14),
 
+        # Pesos por recencia (revisión 2 del drift, 30-sep: cambia la FORMA de
+        # la demanda). Con 14 días parejos el modelo aprende sobre todo la
+        # forma vieja; con semivida cada fila pesa 0,5^(edad / semivida) y lo
+        # último manda sin tirar la historia. En un cambio de forma sintético
+        # (`ml/experimento_forma.py`) le ganan ~5 puntos a la misma receta
+        # sin pesos en el régimen estable.
+        Receta("gbm + perfil sin contexto · 14d semivida 12h",
+               lambda: GBMconPerfil("gbm + perfil sin contexto semivida 12h (mae)",
+                                    cols=sc, semivida_h=12), 14),
+        Receta("gbm + perfil sin contexto · 14d semivida 24h",
+               lambda: GBMconPerfil("gbm + perfil sin contexto semivida 24h (mae)",
+                                    cols=sc, semivida_h=24), 14),
+        Receta("gbm + perfil normalizado 3 escalas · 14d semivida 12h",
+               lambda: GBMconPerfil("gbm + perfil normalizado 3 escalas semivida 12h (mae)",
+                                    cols=sc, escalas=("roll24h", "roll1h", "roll7d"),
+                                    semivida_h=12), 14),
+        Receta("gbm + perfil normalizado 3 escalas · 14d semivida 24h",
+               lambda: GBMconPerfil("gbm + perfil normalizado 3 escalas semivida 24h (mae)",
+                                    cols=sc, escalas=("roll24h", "roll1h", "roll7d"),
+                                    semivida_h=24), 14),
+
         # Un modelo por estación. Quedó a 0,24 del champion, lo bastante cerca
         # como para que un cambio de régimen pueda darle la vuelta.
         Receta("gbm + perfil por estacion",
@@ -204,11 +225,52 @@ def _recetas() -> list[Receta]:
 
 # ------------------------------------------------------------ capas de la ficha
 
+# El modo quiebre de la corrección de nivel (`correccion_nivel.quiebre`) se
+# retira el 2026-09-30. Corrige COMPLETO cuando r de 2 h y 4 h se desvían en el
+# mismo sentido, y ante un cambio de forma (la revisión 2 del drift) eso
+# amplifica errores de fase como si fueran de nivel. En `experimento_forma`
+# la corrección sin quiebre le ganó a la con quiebre en 12 de 12 comparaciones
+# (6 escenarios x 2 recetas), incluida la ancla que contiene la continuación
+# real del 16 virtual, y a no corregir en 12 de 12.
+SIN_QUIEBRE = True
+
+
+def _sin_quiebre(nivel: dict | None) -> dict | None:
+    if not nivel or not SIN_QUIEBRE:
+        return nivel
+    return {k: v for k, v in nivel.items() if k != "quiebre"}
+
+
 def capas_vigentes(sb: Supabase) -> dict:
     """Las capas del champion activo: lo que un ganador heredaría."""
     fila = sb.seleccionar("models", select="hyperparams", status="eq.active", limit=1)
     hp = (fila[0]["hyperparams"] or {}) if fila else {}
-    return {k: hp[k] for k in CAPAS if hp.get(k)}
+    capas = {k: hp[k] for k in CAPAS if hp.get(k)}
+    if "correccion_nivel" in capas:
+        capas["correccion_nivel"] = _sin_quiebre(capas["correccion_nivel"])
+    return capas
+
+
+def nivel_guardado(sb: Supabase) -> dict | None:
+    """La corrección de nivel del champion, esté prendida o apagada.
+
+    Apagada vive en `correccion_nivel_apagada`: `pipeline/entregar.py` sólo lee
+    `correccion_nivel`, así que no se aplica, pero la receta sigue en la ficha
+    para que un reentreno posterior pueda volver a prenderla si en lo vivo
+    vuelve a ganar.
+    """
+    fila = sb.seleccionar("models", select="hyperparams", status="eq.active", limit=1)
+    hp = (fila[0]["hyperparams"] or {}) if fila else {}
+    return _sin_quiebre(hp.get("correccion_nivel") or hp.get("correccion_nivel_apagada"))
+
+
+def alternar_nivel(capas: dict, nivel: dict | None) -> dict | None:
+    """Las mismas capas con la corrección de nivel en el estado contrario."""
+    if not nivel:
+        return None
+    if "correccion_nivel" in capas:
+        return {k: v for k, v in capas.items() if k != "correccion_nivel"}
+    return {**capas, "correccion_nivel": nivel}
 
 
 def aplicar_capas(val: pd.DataFrame, pred, capas: dict) -> np.ndarray:
@@ -363,6 +425,13 @@ def comparar(ancha, ctx, n_folds: int, capas: dict) -> dict[str, dict]:
 # predice los ciclos horarios de ahí en adelante, con las capas del champion.
 
 HORAS_VIVO = 24
+# Interruptor de la corrección de nivel. Es una corrección de ESCALA, y la
+# revisión 2 del drift (30-sep) cambia la FORMA: el profesor advierte que la
+# referencia que sólo ajustaba la escala dejó de servir, y en el cambio de
+# forma sintético (`ml/experimento_forma.py`) le resta al régimen estable.
+# Cada corrida mide cada receta con y sin ella en lo vivo; se cambia de estado
+# sólo si el otro gana por este margen, para no parpadear entre corridas.
+MARGEN_CAPAS = 0.10
 CALENTAR_H = 5              # 2 · ventana de nivel (2 h) + holgura
 MARGEN_VIVO = 0.10          # para cambiar de receta hay que ganar esto en lo vivo
 # Era 0,30. Se bajó el 2026-09-30: todo elegible ya pasó las compuertas de
@@ -375,11 +444,16 @@ MARGEN_VIVO = 0.10          # para cambiar de receta hay que ganar esto en lo vi
 # factor sale ~1 y la corrección se apaga. Medido en la continuación con
 # reentreno cada 2 h: sin reserva los GBM caían por debajo del congelado
 # (`ml/experimento_reentreno.py --cada 2`).
-RESERVA_H = 6
+RESERVA_H = 2
+# Bajó de 6 a 2 el 2026-09-30 con la revisión 2 del drift. Con pesos por
+# recencia las horas más nuevas son las que más enseñan, y en el cambio de
+# forma sintético (`ml/experimento_forma.py`, 2 anclas x 3 escenarios) la
+# reserva de 2 h le ganó a la de 6 en todas las recetas y capas medidas. El
+# riesgo de backcasts in-sample era del modo quiebre, que también se retira.
 TOLERANCIA_HISTORIA = 0.30  # y no perder más que esto en los folds
 
 
-def medir_vivo(sb: Supabase, ancha, ctx, capas: dict) -> dict:
+def medir_vivo(sb: Supabase, ancha, ctx, capas: dict, nivel: dict | None = None) -> dict:
     """Accuracy de cada receta en las últimas HORAS_VIVO horas, y la vara.
 
     La vara es lo que se entregaría sin promover nada: el artefacto activo,
@@ -406,13 +480,29 @@ def medir_vivo(sb: Supabase, ancha, ctx, capas: dict) -> dict:
 
     print(f"\nvivo: entrenado hasta {corte:%m-%d %H:%M}, "
           f"{int(evaluar.sum() / 48)} ciclos evaluados")
-    por_receta = {}
+    otras = alternar_nivel(capas, nivel)
+    con_nivel_hoy = "correccion_nivel" in capas
+
+    def medir_con(pred, cs) -> float:
+        entregado = aplicar_capas(val, pred, cs)
+        return resumen(val[evaluar].assign(y_pred=entregado[evaluar]))["accuracy"]
+
+    por_receta, nivel_por_receta = {}, {}
     for r in recetas():
         tr = train_full
         if r.dias is not None:
             tr = tr[tr["target_at"] > corte - pd.to_timedelta(r.dias, unit="D")]
-        por_receta[r.etiqueta] = medir(r.crear().fit(tr).predict(val))
-        print(f"   {r.etiqueta:40} vivo {por_receta[r.etiqueta]:6.2f}")
+        pred = r.crear().fit(tr).predict(val)
+        hoy = medir(pred)
+        por_receta[r.etiqueta], nivel_por_receta[r.etiqueta] = hoy, con_nivel_hoy
+        nota = ""
+        if otras is not None:
+            alt = medir_con(pred, otras)
+            nota = f"   {'sin' if con_nivel_hoy else 'con'} nivel {alt:6.2f}"
+            if alt >= hoy + MARGEN_CAPAS:
+                por_receta[r.etiqueta], nivel_por_receta[r.etiqueta] = alt, not con_nivel_hoy
+                nota += "  <- cambia"
+        print(f"   {r.etiqueta:40} vivo {hoy:6.2f}{nota}")
 
     modelo, ficha = champion(sb)
     if pd.Timestamp(ficha["train_end"]) <= corte:
@@ -422,7 +512,8 @@ def medir_vivo(sb: Supabase, ancha, ctx, capas: dict) -> dict:
         vara, fuente = por_receta[etiqueta], f"receta del champion al corte ({etiqueta})"
     print(f"   {'vara: ' + fuente:40} vivo {vara:6.2f}")
     return {"corte": str(corte), "ciclos": int(evaluar.sum() / 48),
-            "por_receta": por_receta, "vara": vara, "fuente_vara": fuente}
+            "por_receta": por_receta, "nivel_por_receta": nivel_por_receta,
+            "vara": vara, "fuente_vara": fuente}
 
 
 # ------------------------------------------------------------------ compuertas
@@ -584,8 +675,13 @@ def registrar(sb: Supabase, ancha, ctx, ganador: dict, tabla: dict,
     # no en el pickle. Si el ganador no las hereda, promoverlo las apaga sin
     # que nadie lo decida. El backtest ya lo midió CON esas capas, así que
     # heredarlas es entregar exactamente lo que ganó.
-    mezcla = (previo[0]["hyperparams"] or {}).get("mezcla_persistencia") if previo else None
-    nivel = (previo[0]["hyperparams"] or {}).get("correccion_nivel") if previo else None
+    hp_previo = (previo[0]["hyperparams"] or {}) if previo else {}
+    mezcla = hp_previo.get("mezcla_persistencia")
+    nivel = _sin_quiebre(hp_previo.get("correccion_nivel") or hp_previo.get("correccion_nivel_apagada"))
+    # Prendida o apagada según lo que ganó en lo vivo (`medir_vivo`); sin
+    # prueba viva, como estaba en el champion.
+    nivel_on = (vivo or {}).get("nivel_por_receta", {}).get(
+        r.etiqueta, "correccion_nivel" in hp_previo)
     sin_contexto = not any(c.startswith(("rain", "temp", "evento")) for c in cols)
 
     fila = {
@@ -628,7 +724,8 @@ def registrar(sb: Supabase, ancha, ctx, ganador: dict, tabla: dict,
             "folds": N_FOLDS,
             "dias_validacion": DIAS_VALIDACION,
             **({"mezcla_persistencia": mezcla} if mezcla else {}),
-            **({"correccion_nivel": nivel} if nivel else {}),
+            **({("correccion_nivel" if nivel_on else "correccion_nivel_apagada"): nivel}
+               if nivel else {}),
         },
     }
     creado = sb.insertar("models", [fila], devolver=True)[0]
@@ -689,7 +786,8 @@ def main(dry_run: bool, n_folds: int, sin_capas: bool, sin_vivo: bool = False) -
         print(f"{k:40} {v['accuracy_media']:7.2f} {v['accuracy_min']:10.2f} {rec}  {marca}")
     print("=" * 86)
 
-    vivo = None if sin_vivo else medir_vivo(sb, ancha, ctx, capas)
+    vivo = None if sin_vivo else medir_vivo(sb, ancha, ctx, capas,
+                                            None if sin_capas else nivel_guardado(sb))
     etiqueta, razones, ruta = elegir(tabla, vivo)
     print("\ncompuertas:")
     for r in razones:

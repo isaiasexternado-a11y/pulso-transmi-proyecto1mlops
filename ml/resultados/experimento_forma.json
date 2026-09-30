@@ -1,0 +1,2931 @@
+{
+  "calculado": "2026-09-30T22:28:10.897815+00:00",
+  "anclas": [
+    "2026-09-01T06:00",
+    "2026-09-15T12:00"
+  ],
+  "escenarios": [
+    "corrimiento",
+    "amplitud",
+    "severo"
+  ],
+  "reservas": [
+    6,
+    2
+  ],
+  "semilla": 20260930,
+  "cada_h": 2,
+  "transicion_h": 6,
+  "resultados": {
+    "2026-09-01T06:00|corrimiento": {
+      "transformacion": {
+        "02300": "corre +60 min",
+        "03000": "corre -60 min",
+        "05000": "corre -60 min",
+        "05100": "corre -60 min",
+        "06000": "corre +90 min",
+        "06111": "corre -60 min",
+        "07105": "corre +90 min",
+        "07107": "corre -60 min",
+        "07111": "corre -60 min",
+        "09000": "corre -90 min",
+        "09122": "corre -60 min",
+        "10009": "corre -60 min"
+      },
+      "tabla": {
+        "sc 14d (champion)|6|sin capas": {
+          "adaptación 0-18 h": 73.08,
+          "estable 18-54 h": 72.01,
+          "todo": 72.22
+        },
+        "sc 3d|6|sin capas": {
+          "adaptación 0-18 h": 71.44,
+          "estable 18-54 h": 77.12,
+          "todo": 74.87
+        },
+        "sc 14d semivida 6h|6|sin capas": {
+          "adaptación 0-18 h": 73.89,
+          "estable 18-54 h": 79.93,
+          "todo": 77.66
+        },
+        "sc 14d semivida 12h|6|sin capas": {
+          "adaptación 0-18 h": 73.83,
+          "estable 18-54 h": 79.49,
+          "todo": 77.31
+        },
+        "sc 14d semivida 24h|6|sin capas": {
+          "adaptación 0-18 h": 73.63,
+          "estable 18-54 h": 78.69,
+          "todo": 76.71
+        },
+        "norm3 14d|6|sin capas": {
+          "adaptación 0-18 h": 73.36,
+          "estable 18-54 h": 73.2,
+          "todo": 73.08
+        },
+        "norm3 14d semivida 12h|6|sin capas": {
+          "adaptación 0-18 h": 74.1,
+          "estable 18-54 h": 80.26,
+          "todo": 77.92
+        },
+        "norm3 14d semivida 24h|6|sin capas": {
+          "adaptación 0-18 h": 74.08,
+          "estable 18-54 h": 79.15,
+          "todo": 77.19
+        },
+        "congelado|6|sin capas": {
+          "adaptación 0-18 h": 72.94,
+          "estable 18-54 h": 65.33,
+          "todo": 67.92
+        },
+        "selector 24 h|6|sin capas": {
+          "adaptación 0-18 h": 73.61,
+          "estable 18-54 h": 80.0,
+          "todo": 77.59
+        },
+        "sc 14d (champion)|2|sin capas": {
+          "adaptación 0-18 h": 73.19,
+          "estable 18-54 h": 72.34,
+          "todo": 72.46
+        },
+        "sc 3d|2|sin capas": {
+          "adaptación 0-18 h": 71.52,
+          "estable 18-54 h": 76.83,
+          "todo": 74.73
+        },
+        "sc 14d semivida 6h|2|sin capas": {
+          "adaptación 0-18 h": 75.04,
+          "estable 18-54 h": 80.18,
+          "todo": 78.25
+        },
+        "sc 14d semivida 12h|2|sin capas": {
+          "adaptación 0-18 h": 74.02,
+          "estable 18-54 h": 80.0,
+          "todo": 77.72
+        },
+        "sc 14d semivida 24h|2|sin capas": {
+          "adaptación 0-18 h": 74.06,
+          "estable 18-54 h": 79.07,
+          "todo": 77.12
+        },
+        "norm3 14d|2|sin capas": {
+          "adaptación 0-18 h": 73.68,
+          "estable 18-54 h": 73.42,
+          "todo": 73.34
+        },
+        "norm3 14d semivida 12h|2|sin capas": {
+          "adaptación 0-18 h": 75.02,
+          "estable 18-54 h": 80.94,
+          "todo": 78.71
+        },
+        "norm3 14d semivida 24h|2|sin capas": {
+          "adaptación 0-18 h": 74.59,
+          "estable 18-54 h": 79.8,
+          "todo": 77.8
+        },
+        "congelado|2|sin capas": {
+          "adaptación 0-18 h": 72.98,
+          "estable 18-54 h": 65.33,
+          "todo": 67.93
+        },
+        "selector 24 h|2|sin capas": {
+          "adaptación 0-18 h": 74.34,
+          "estable 18-54 h": 80.5,
+          "todo": 78.2
+        },
+        "sc 14d (champion)|6|mezcla": {
+          "adaptación 0-18 h": 77.87,
+          "estable 18-54 h": 75.86,
+          "todo": 76.47
+        },
+        "sc 3d|6|mezcla": {
+          "adaptación 0-18 h": 77.06,
+          "estable 18-54 h": 78.84,
+          "todo": 78.07
+        },
+        "sc 14d semivida 6h|6|mezcla": {
+          "adaptación 0-18 h": 78.21,
+          "estable 18-54 h": 80.03,
+          "todo": 79.35
+        },
+        "sc 14d semivida 12h|6|mezcla": {
+          "adaptación 0-18 h": 78.26,
+          "estable 18-54 h": 79.96,
+          "todo": 79.3
+        },
+        "sc 14d semivida 24h|6|mezcla": {
+          "adaptación 0-18 h": 78.22,
+          "estable 18-54 h": 79.39,
+          "todo": 78.89
+        },
+        "norm3 14d|6|mezcla": {
+          "adaptación 0-18 h": 77.95,
+          "estable 18-54 h": 76.37,
+          "todo": 76.82
+        },
+        "norm3 14d semivida 12h|6|mezcla": {
+          "adaptación 0-18 h": 78.19,
+          "estable 18-54 h": 80.08,
+          "todo": 79.35
+        },
+        "norm3 14d semivida 24h|6|mezcla": {
+          "adaptación 0-18 h": 78.3,
+          "estable 18-54 h": 79.48,
+          "todo": 78.99
+        },
+        "congelado|6|mezcla": {
+          "adaptación 0-18 h": 77.77,
+          "estable 18-54 h": 72.4,
+          "todo": 74.21
+        },
+        "selector 24 h|6|mezcla": {
+          "adaptación 0-18 h": 78.0,
+          "estable 18-54 h": 79.62,
+          "todo": 78.99
+        },
+        "sc 14d (champion)|2|mezcla": {
+          "adaptación 0-18 h": 77.9,
+          "estable 18-54 h": 76.11,
+          "todo": 76.63
+        },
+        "sc 3d|2|mezcla": {
+          "adaptación 0-18 h": 77.15,
+          "estable 18-54 h": 78.74,
+          "todo": 78.06
+        },
+        "sc 14d semivida 6h|2|mezcla": {
+          "adaptación 0-18 h": 78.68,
+          "estable 18-54 h": 80.39,
+          "todo": 79.74
+        },
+        "sc 14d semivida 12h|2|mezcla": {
+          "adaptación 0-18 h": 78.24,
+          "estable 18-54 h": 80.19,
+          "todo": 79.44
+        },
+        "sc 14d semivida 24h|2|mezcla": {
+          "adaptación 0-18 h": 78.35,
+          "estable 18-54 h": 79.77,
+          "todo": 79.18
+        },
+        "norm3 14d|2|mezcla": {
+          "adaptación 0-18 h": 78.12,
+          "estable 18-54 h": 76.47,
+          "todo": 76.95
+        },
+        "norm3 14d semivida 12h|2|mezcla": {
+          "adaptación 0-18 h": 78.7,
+          "estable 18-54 h": 80.49,
+          "todo": 79.81
+        },
+        "norm3 14d semivida 24h|2|mezcla": {
+          "adaptación 0-18 h": 78.6,
+          "estable 18-54 h": 79.78,
+          "todo": 79.3
+        },
+        "congelado|2|mezcla": {
+          "adaptación 0-18 h": 77.79,
+          "estable 18-54 h": 72.4,
+          "todo": 74.22
+        },
+        "selector 24 h|2|mezcla": {
+          "adaptación 0-18 h": 78.23,
+          "estable 18-54 h": 80.28,
+          "todo": 79.5
+        },
+        "sc 14d (champion)|6|mezcla + nivel": {
+          "adaptación 0-18 h": 76.83,
+          "estable 18-54 h": 72.4,
+          "todo": 73.76
+        },
+        "sc 3d|6|mezcla + nivel": {
+          "adaptación 0-18 h": 75.59,
+          "estable 18-54 h": 76.07,
+          "todo": 75.69
+        },
+        "sc 14d semivida 6h|6|mezcla + nivel": {
+          "adaptación 0-18 h": 76.98,
+          "estable 18-54 h": 77.35,
+          "todo": 77.12
+        },
+        "sc 14d semivida 12h|6|mezcla + nivel": {
+          "adaptación 0-18 h": 76.71,
+          "estable 18-54 h": 77.41,
+          "todo": 77.05
+        },
+        "sc 14d semivida 24h|6|mezcla + nivel": {
+          "adaptación 0-18 h": 76.73,
+          "estable 18-54 h": 76.3,
+          "todo": 76.3
+        },
+        "norm3 14d|6|mezcla + nivel": {
+          "adaptación 0-18 h": 76.88,
+          "estable 18-54 h": 72.79,
+          "todo": 74.04
+        },
+        "norm3 14d semivida 12h|6|mezcla + nivel": {
+          "adaptación 0-18 h": 77.09,
+          "estable 18-54 h": 77.5,
+          "todo": 77.24
+        },
+        "norm3 14d semivida 24h|6|mezcla + nivel": {
+          "adaptación 0-18 h": 77.06,
+          "estable 18-54 h": 76.81,
+          "todo": 76.77
+        },
+        "congelado|6|mezcla + nivel": {
+          "adaptación 0-18 h": 76.67,
+          "estable 18-54 h": 68.03,
+          "todo": 70.88
+        },
+        "selector 24 h|6|mezcla + nivel": {
+          "adaptación 0-18 h": 76.78,
+          "estable 18-54 h": 77.04,
+          "todo": 76.85
+        },
+        "sc 14d (champion)|2|mezcla + nivel": {
+          "adaptación 0-18 h": 76.88,
+          "estable 18-54 h": 72.45,
+          "todo": 73.79
+        },
+        "sc 3d|2|mezcla + nivel": {
+          "adaptación 0-18 h": 75.73,
+          "estable 18-54 h": 76.43,
+          "todo": 75.98
+        },
+        "sc 14d semivida 6h|2|mezcla + nivel": {
+          "adaptación 0-18 h": 77.58,
+          "estable 18-54 h": 77.91,
+          "todo": 77.72
+        },
+        "sc 14d semivida 12h|2|mezcla + nivel": {
+          "adaptación 0-18 h": 77.27,
+          "estable 18-54 h": 77.58,
+          "todo": 77.34
+        },
+        "sc 14d semivida 24h|2|mezcla + nivel": {
+          "adaptación 0-18 h": 77.37,
+          "estable 18-54 h": 77.29,
+          "todo": 77.19
+        },
+        "norm3 14d|2|mezcla + nivel": {
+          "adaptación 0-18 h": 77.02,
+          "estable 18-54 h": 73.16,
+          "todo": 74.33
+        },
+        "norm3 14d semivida 12h|2|mezcla + nivel": {
+          "adaptación 0-18 h": 77.86,
+          "estable 18-54 h": 78.49,
+          "todo": 78.19
+        },
+        "norm3 14d semivida 24h|2|mezcla + nivel": {
+          "adaptación 0-18 h": 77.89,
+          "estable 18-54 h": 77.37,
+          "todo": 77.45
+        },
+        "congelado|2|mezcla + nivel": {
+          "adaptación 0-18 h": 76.71,
+          "estable 18-54 h": 68.03,
+          "todo": 70.89
+        },
+        "selector 24 h|2|mezcla + nivel": {
+          "adaptación 0-18 h": 77.56,
+          "estable 18-54 h": 78.38,
+          "todo": 78.0
+        },
+        "sc 14d (champion)|6|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 79.23,
+          "estable 18-54 h": 76.86,
+          "todo": 77.59
+        },
+        "sc 3d|6|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 78.47,
+          "estable 18-54 h": 79.17,
+          "todo": 78.8
+        },
+        "sc 14d semivida 6h|6|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 79.47,
+          "estable 18-54 h": 79.78,
+          "todo": 79.64
+        },
+        "sc 14d semivida 12h|6|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 79.61,
+          "estable 18-54 h": 79.76,
+          "todo": 79.66
+        },
+        "sc 14d semivida 24h|6|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 79.54,
+          "estable 18-54 h": 79.25,
+          "todo": 79.28
+        },
+        "norm3 14d|6|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 79.2,
+          "estable 18-54 h": 77.11,
+          "todo": 77.75
+        },
+        "norm3 14d semivida 12h|6|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 79.58,
+          "estable 18-54 h": 80.23,
+          "todo": 79.96
+        },
+        "norm3 14d semivida 24h|6|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 79.65,
+          "estable 18-54 h": 79.78,
+          "todo": 79.68
+        },
+        "congelado|6|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 79.06,
+          "estable 18-54 h": 73.86,
+          "todo": 75.6
+        },
+        "selector 24 h|6|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 79.46,
+          "estable 18-54 h": 79.89,
+          "todo": 79.69
+        },
+        "sc 14d (champion)|2|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 79.22,
+          "estable 18-54 h": 76.9,
+          "todo": 77.61
+        },
+        "sc 3d|2|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 78.43,
+          "estable 18-54 h": 79.22,
+          "todo": 78.82
+        },
+        "sc 14d semivida 6h|2|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 79.64,
+          "estable 18-54 h": 80.16,
+          "todo": 79.94
+        },
+        "sc 14d semivida 12h|2|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 79.42,
+          "estable 18-54 h": 80.06,
+          "todo": 79.79
+        },
+        "sc 14d semivida 24h|2|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 79.46,
+          "estable 18-54 h": 79.86,
+          "todo": 79.66
+        },
+        "norm3 14d|2|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 79.32,
+          "estable 18-54 h": 77.31,
+          "todo": 77.93
+        },
+        "norm3 14d semivida 12h|2|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 79.84,
+          "estable 18-54 h": 80.89,
+          "todo": 80.5
+        },
+        "norm3 14d semivida 24h|2|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 79.72,
+          "estable 18-54 h": 80.15,
+          "todo": 79.96
+        },
+        "congelado|2|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 79.09,
+          "estable 18-54 h": 73.86,
+          "todo": 75.62
+        },
+        "selector 24 h|2|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 79.51,
+          "estable 18-54 h": 80.89,
+          "todo": 80.38
+        }
+      }
+    },
+    "2026-09-01T06:00|amplitud": {
+      "transformacion": {
+        "02300": "amplitud x1.6",
+        "03000": "amplitud x0.5",
+        "05000": "amplitud x0.5",
+        "05100": "amplitud x0.5",
+        "06000": "amplitud x1.6",
+        "06111": "amplitud x0.5",
+        "07105": "amplitud x1.6",
+        "07107": "amplitud x0.5",
+        "07111": "amplitud x0.5",
+        "09000": "amplitud x0.5",
+        "09122": "amplitud x0.5",
+        "10009": "amplitud x0.5"
+      },
+      "tabla": {
+        "sc 14d (champion)|6|sin capas": {
+          "adaptación 0-18 h": 76.84,
+          "estable 18-54 h": 77.93,
+          "todo": 77.59
+        },
+        "sc 3d|6|sin capas": {
+          "adaptación 0-18 h": 75.16,
+          "estable 18-54 h": 82.76,
+          "todo": 79.99
+        },
+        "sc 14d semivida 6h|6|sin capas": {
+          "adaptación 0-18 h": 79.84,
+          "estable 18-54 h": 85.71,
+          "todo": 83.61
+        },
+        "sc 14d semivida 12h|6|sin capas": {
+          "adaptación 0-18 h": 79.49,
+          "estable 18-54 h": 85.55,
+          "todo": 83.39
+        },
+        "sc 14d semivida 24h|6|sin capas": {
+          "adaptación 0-18 h": 78.97,
+          "estable 18-54 h": 84.51,
+          "todo": 82.56
+        },
+        "norm3 14d|6|sin capas": {
+          "adaptación 0-18 h": 77.39,
+          "estable 18-54 h": 78.87,
+          "todo": 78.38
+        },
+        "norm3 14d semivida 12h|6|sin capas": {
+          "adaptación 0-18 h": 79.57,
+          "estable 18-54 h": 86.98,
+          "todo": 84.32
+        },
+        "norm3 14d semivida 24h|6|sin capas": {
+          "adaptación 0-18 h": 79.17,
+          "estable 18-54 h": 85.16,
+          "todo": 83.04
+        },
+        "congelado|6|sin capas": {
+          "adaptación 0-18 h": 75.85,
+          "estable 18-54 h": 66.93,
+          "todo": 70.34
+        },
+        "selector 24 h|6|sin capas": {
+          "adaptación 0-18 h": 79.47,
+          "estable 18-54 h": 86.61,
+          "todo": 84.04
+        },
+        "sc 14d (champion)|2|sin capas": {
+          "adaptación 0-18 h": 76.94,
+          "estable 18-54 h": 79.57,
+          "todo": 78.67
+        },
+        "sc 3d|2|sin capas": {
+          "adaptación 0-18 h": 75.54,
+          "estable 18-54 h": 83.8,
+          "todo": 80.76
+        },
+        "sc 14d semivida 6h|2|sin capas": {
+          "adaptación 0-18 h": 80.23,
+          "estable 18-54 h": 86.19,
+          "todo": 84.05
+        },
+        "sc 14d semivida 12h|2|sin capas": {
+          "adaptación 0-18 h": 79.9,
+          "estable 18-54 h": 86.32,
+          "todo": 84.01
+        },
+        "sc 14d semivida 24h|2|sin capas": {
+          "adaptación 0-18 h": 79.57,
+          "estable 18-54 h": 85.87,
+          "todo": 83.61
+        },
+        "norm3 14d|2|sin capas": {
+          "adaptación 0-18 h": 77.77,
+          "estable 18-54 h": 80.21,
+          "todo": 79.36
+        },
+        "norm3 14d semivida 12h|2|sin capas": {
+          "adaptación 0-18 h": 80.85,
+          "estable 18-54 h": 87.74,
+          "todo": 85.26
+        },
+        "norm3 14d semivida 24h|2|sin capas": {
+          "adaptación 0-18 h": 79.97,
+          "estable 18-54 h": 86.15,
+          "todo": 83.94
+        },
+        "congelado|2|sin capas": {
+          "adaptación 0-18 h": 75.87,
+          "estable 18-54 h": 66.93,
+          "todo": 70.35
+        },
+        "selector 24 h|2|sin capas": {
+          "adaptación 0-18 h": 80.73,
+          "estable 18-54 h": 87.74,
+          "todo": 85.23
+        },
+        "sc 14d (champion)|6|mezcla": {
+          "adaptación 0-18 h": 81.21,
+          "estable 18-54 h": 82.63,
+          "todo": 82.15
+        },
+        "sc 3d|6|mezcla": {
+          "adaptación 0-18 h": 80.72,
+          "estable 18-54 h": 85.21,
+          "todo": 83.59
+        },
+        "sc 14d semivida 6h|6|mezcla": {
+          "adaptación 0-18 h": 83.01,
+          "estable 18-54 h": 86.24,
+          "todo": 85.11
+        },
+        "sc 14d semivida 12h|6|mezcla": {
+          "adaptación 0-18 h": 82.82,
+          "estable 18-54 h": 86.16,
+          "todo": 85.0
+        },
+        "sc 14d semivida 24h|6|mezcla": {
+          "adaptación 0-18 h": 82.65,
+          "estable 18-54 h": 85.8,
+          "todo": 84.71
+        },
+        "norm3 14d|6|mezcla": {
+          "adaptación 0-18 h": 81.47,
+          "estable 18-54 h": 83.03,
+          "todo": 82.49
+        },
+        "norm3 14d semivida 12h|6|mezcla": {
+          "adaptación 0-18 h": 82.85,
+          "estable 18-54 h": 86.9,
+          "todo": 85.46
+        },
+        "norm3 14d semivida 24h|6|mezcla": {
+          "adaptación 0-18 h": 82.67,
+          "estable 18-54 h": 86.19,
+          "todo": 84.96
+        },
+        "congelado|6|mezcla": {
+          "adaptación 0-18 h": 80.61,
+          "estable 18-54 h": 76.26,
+          "todo": 77.94
+        },
+        "selector 24 h|6|mezcla": {
+          "adaptación 0-18 h": 82.83,
+          "estable 18-54 h": 86.62,
+          "todo": 85.29
+        },
+        "sc 14d (champion)|2|mezcla": {
+          "adaptación 0-18 h": 81.27,
+          "estable 18-54 h": 83.62,
+          "todo": 82.8
+        },
+        "sc 3d|2|mezcla": {
+          "adaptación 0-18 h": 80.96,
+          "estable 18-54 h": 85.8,
+          "todo": 84.04
+        },
+        "sc 14d semivida 6h|2|mezcla": {
+          "adaptación 0-18 h": 83.07,
+          "estable 18-54 h": 86.15,
+          "todo": 85.07
+        },
+        "sc 14d semivida 12h|2|mezcla": {
+          "adaptación 0-18 h": 82.97,
+          "estable 18-54 h": 86.51,
+          "todo": 85.25
+        },
+        "sc 14d semivida 24h|2|mezcla": {
+          "adaptación 0-18 h": 82.87,
+          "estable 18-54 h": 86.51,
+          "todo": 85.21
+        },
+        "norm3 14d|2|mezcla": {
+          "adaptación 0-18 h": 81.64,
+          "estable 18-54 h": 83.81,
+          "todo": 83.05
+        },
+        "norm3 14d semivida 12h|2|mezcla": {
+          "adaptación 0-18 h": 83.54,
+          "estable 18-54 h": 87.31,
+          "todo": 85.97
+        },
+        "norm3 14d semivida 24h|2|mezcla": {
+          "adaptación 0-18 h": 83.06,
+          "estable 18-54 h": 86.71,
+          "todo": 85.41
+        },
+        "congelado|2|mezcla": {
+          "adaptación 0-18 h": 80.63,
+          "estable 18-54 h": 76.26,
+          "todo": 77.94
+        },
+        "selector 24 h|2|mezcla": {
+          "adaptación 0-18 h": 83.52,
+          "estable 18-54 h": 87.23,
+          "todo": 85.91
+        },
+        "sc 14d (champion)|6|mezcla + nivel": {
+          "adaptación 0-18 h": 81.36,
+          "estable 18-54 h": 83.75,
+          "todo": 82.92
+        },
+        "sc 3d|6|mezcla + nivel": {
+          "adaptación 0-18 h": 80.6,
+          "estable 18-54 h": 85.29,
+          "todo": 83.61
+        },
+        "sc 14d semivida 6h|6|mezcla + nivel": {
+          "adaptación 0-18 h": 82.6,
+          "estable 18-54 h": 84.46,
+          "todo": 83.94
+        },
+        "sc 14d semivida 12h|6|mezcla + nivel": {
+          "adaptación 0-18 h": 82.32,
+          "estable 18-54 h": 85.56,
+          "todo": 84.44
+        },
+        "sc 14d semivida 24h|6|mezcla + nivel": {
+          "adaptación 0-18 h": 82.4,
+          "estable 18-54 h": 85.63,
+          "todo": 84.53
+        },
+        "norm3 14d|6|mezcla + nivel": {
+          "adaptación 0-18 h": 81.63,
+          "estable 18-54 h": 83.98,
+          "todo": 83.17
+        },
+        "norm3 14d semivida 12h|6|mezcla + nivel": {
+          "adaptación 0-18 h": 82.42,
+          "estable 18-54 h": 86.02,
+          "todo": 84.77
+        },
+        "norm3 14d semivida 24h|6|mezcla + nivel": {
+          "adaptación 0-18 h": 82.32,
+          "estable 18-54 h": 85.69,
+          "todo": 84.53
+        },
+        "congelado|6|mezcla + nivel": {
+          "adaptación 0-18 h": 81.1,
+          "estable 18-54 h": 79.49,
+          "todo": 80.13
+        },
+        "selector 24 h|6|mezcla + nivel": {
+          "adaptación 0-18 h": 82.33,
+          "estable 18-54 h": 84.87,
+          "todo": 84.1
+        },
+        "sc 14d (champion)|2|mezcla + nivel": {
+          "adaptación 0-18 h": 81.47,
+          "estable 18-54 h": 84.55,
+          "todo": 83.45
+        },
+        "sc 3d|2|mezcla + nivel": {
+          "adaptación 0-18 h": 80.61,
+          "estable 18-54 h": 86.08,
+          "todo": 84.08
+        },
+        "sc 14d semivida 6h|2|mezcla + nivel": {
+          "adaptación 0-18 h": 82.84,
+          "estable 18-54 h": 84.83,
+          "todo": 84.22
+        },
+        "sc 14d semivida 12h|2|mezcla + nivel": {
+          "adaptación 0-18 h": 82.95,
+          "estable 18-54 h": 85.89,
+          "todo": 84.88
+        },
+        "sc 14d semivida 24h|2|mezcla + nivel": {
+          "adaptación 0-18 h": 83.01,
+          "estable 18-54 h": 86.1,
+          "todo": 85.0
+        },
+        "norm3 14d|2|mezcla + nivel": {
+          "adaptación 0-18 h": 82.15,
+          "estable 18-54 h": 84.33,
+          "todo": 83.58
+        },
+        "norm3 14d semivida 12h|2|mezcla + nivel": {
+          "adaptación 0-18 h": 82.92,
+          "estable 18-54 h": 86.29,
+          "todo": 85.13
+        },
+        "norm3 14d semivida 24h|2|mezcla + nivel": {
+          "adaptación 0-18 h": 82.91,
+          "estable 18-54 h": 86.07,
+          "todo": 84.96
+        },
+        "congelado|2|mezcla + nivel": {
+          "adaptación 0-18 h": 81.12,
+          "estable 18-54 h": 79.49,
+          "todo": 80.14
+        },
+        "selector 24 h|2|mezcla + nivel": {
+          "adaptación 0-18 h": 82.57,
+          "estable 18-54 h": 86.0,
+          "todo": 84.84
+        },
+        "sc 14d (champion)|6|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 82.5,
+          "estable 18-54 h": 84.77,
+          "todo": 83.97
+        },
+        "sc 3d|6|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 81.72,
+          "estable 18-54 h": 86.17,
+          "todo": 84.58
+        },
+        "sc 14d semivida 6h|6|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 83.77,
+          "estable 18-54 h": 86.39,
+          "todo": 85.5
+        },
+        "sc 14d semivida 12h|6|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 83.58,
+          "estable 18-54 h": 86.67,
+          "todo": 85.59
+        },
+        "sc 14d semivida 24h|6|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 83.59,
+          "estable 18-54 h": 86.61,
+          "todo": 85.56
+        },
+        "norm3 14d|6|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 82.62,
+          "estable 18-54 h": 85.14,
+          "todo": 84.24
+        },
+        "norm3 14d semivida 12h|6|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 83.56,
+          "estable 18-54 h": 87.35,
+          "todo": 86.02
+        },
+        "norm3 14d semivida 24h|6|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 83.47,
+          "estable 18-54 h": 87.05,
+          "todo": 85.79
+        },
+        "congelado|6|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 82.09,
+          "estable 18-54 h": 80.79,
+          "todo": 81.33
+        },
+        "selector 24 h|6|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 83.65,
+          "estable 18-54 h": 87.08,
+          "todo": 85.9
+        },
+        "sc 14d (champion)|2|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 82.6,
+          "estable 18-54 h": 85.46,
+          "todo": 84.44
+        },
+        "sc 3d|2|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 81.82,
+          "estable 18-54 h": 86.73,
+          "todo": 84.95
+        },
+        "sc 14d semivida 6h|2|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 83.79,
+          "estable 18-54 h": 86.58,
+          "todo": 85.62
+        },
+        "sc 14d semivida 12h|2|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 83.8,
+          "estable 18-54 h": 86.81,
+          "todo": 85.76
+        },
+        "sc 14d semivida 24h|2|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 83.7,
+          "estable 18-54 h": 87.0,
+          "todo": 85.83
+        },
+        "norm3 14d|2|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 82.8,
+          "estable 18-54 h": 85.53,
+          "todo": 84.55
+        },
+        "norm3 14d semivida 12h|2|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 84.01,
+          "estable 18-54 h": 87.63,
+          "todo": 86.36
+        },
+        "norm3 14d semivida 24h|2|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 83.69,
+          "estable 18-54 h": 87.47,
+          "todo": 86.12
+        },
+        "congelado|2|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 82.11,
+          "estable 18-54 h": 80.79,
+          "todo": 81.34
+        },
+        "selector 24 h|2|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 83.9,
+          "estable 18-54 h": 87.65,
+          "todo": 86.33
+        }
+      }
+    },
+    "2026-09-01T06:00|severo": {
+      "transformacion": {
+        "02300": "amplitud x0.4",
+        "03000": "corre -90 min",
+        "05000": "corre -90 min",
+        "05100": "corre -120 min",
+        "06000": "amplitud x1.8",
+        "06111": "invierte (+11 h)",
+        "07105": "amplitud x1.8",
+        "07107": "corre -120 min",
+        "07111": "nivel x1.5 y amplitud x1.3",
+        "09000": "corre +90 min",
+        "09122": "corre +90 min",
+        "10009": "corre +120 min"
+      },
+      "tabla": {
+        "sc 14d (champion)|6|sin capas": {
+          "adaptación 0-18 h": 60.84,
+          "estable 18-54 h": 65.81,
+          "todo": 64.07
+        },
+        "sc 3d|6|sin capas": {
+          "adaptación 0-18 h": 59.59,
+          "estable 18-54 h": 72.22,
+          "todo": 67.73
+        },
+        "sc 14d semivida 6h|6|sin capas": {
+          "adaptación 0-18 h": 63.44,
+          "estable 18-54 h": 75.35,
+          "todo": 71.2
+        },
+        "sc 14d semivida 12h|6|sin capas": {
+          "adaptación 0-18 h": 62.95,
+          "estable 18-54 h": 76.11,
+          "todo": 71.47
+        },
+        "sc 14d semivida 24h|6|sin capas": {
+          "adaptación 0-18 h": 62.74,
+          "estable 18-54 h": 74.12,
+          "todo": 70.11
+        },
+        "norm3 14d|6|sin capas": {
+          "adaptación 0-18 h": 62.52,
+          "estable 18-54 h": 67.7,
+          "todo": 65.82
+        },
+        "norm3 14d semivida 12h|6|sin capas": {
+          "adaptación 0-18 h": 65.4,
+          "estable 18-54 h": 78.07,
+          "todo": 73.58
+        },
+        "norm3 14d semivida 24h|6|sin capas": {
+          "adaptación 0-18 h": 65.01,
+          "estable 18-54 h": 75.71,
+          "todo": 71.91
+        },
+        "congelado|6|sin capas": {
+          "adaptación 0-18 h": 60.44,
+          "estable 18-54 h": 48.05,
+          "todo": 52.54
+        },
+        "selector 24 h|6|sin capas": {
+          "adaptación 0-18 h": 65.02,
+          "estable 18-54 h": 78.07,
+          "todo": 73.45
+        },
+        "sc 14d (champion)|2|sin capas": {
+          "adaptación 0-18 h": 61.7,
+          "estable 18-54 h": 67.7,
+          "todo": 65.59
+        },
+        "sc 3d|2|sin capas": {
+          "adaptación 0-18 h": 59.96,
+          "estable 18-54 h": 72.97,
+          "todo": 68.3
+        },
+        "sc 14d semivida 6h|2|sin capas": {
+          "adaptación 0-18 h": 66.98,
+          "estable 18-54 h": 76.73,
+          "todo": 73.31
+        },
+        "sc 14d semivida 12h|2|sin capas": {
+          "adaptación 0-18 h": 65.25,
+          "estable 18-54 h": 77.5,
+          "todo": 73.19
+        },
+        "sc 14d semivida 24h|2|sin capas": {
+          "adaptación 0-18 h": 65.02,
+          "estable 18-54 h": 76.24,
+          "todo": 72.28
+        },
+        "norm3 14d|2|sin capas": {
+          "adaptación 0-18 h": 63.5,
+          "estable 18-54 h": 69.29,
+          "todo": 67.23
+        },
+        "norm3 14d semivida 12h|2|sin capas": {
+          "adaptación 0-18 h": 67.32,
+          "estable 18-54 h": 78.95,
+          "todo": 74.82
+        },
+        "norm3 14d semivida 24h|2|sin capas": {
+          "adaptación 0-18 h": 66.43,
+          "estable 18-54 h": 77.44,
+          "todo": 73.53
+        },
+        "congelado|2|sin capas": {
+          "adaptación 0-18 h": 60.46,
+          "estable 18-54 h": 48.05,
+          "todo": 52.55
+        },
+        "selector 24 h|2|sin capas": {
+          "adaptación 0-18 h": 67.24,
+          "estable 18-54 h": 78.95,
+          "todo": 74.79
+        },
+        "sc 14d (champion)|6|mezcla": {
+          "adaptación 0-18 h": 70.26,
+          "estable 18-54 h": 72.92,
+          "todo": 71.97
+        },
+        "sc 3d|6|mezcla": {
+          "adaptación 0-18 h": 69.53,
+          "estable 18-54 h": 76.17,
+          "todo": 73.83
+        },
+        "sc 14d semivida 6h|6|mezcla": {
+          "adaptación 0-18 h": 71.58,
+          "estable 18-54 h": 76.59,
+          "todo": 74.92
+        },
+        "sc 14d semivida 12h|6|mezcla": {
+          "adaptación 0-18 h": 71.31,
+          "estable 18-54 h": 77.3,
+          "todo": 75.24
+        },
+        "sc 14d semivida 24h|6|mezcla": {
+          "adaptación 0-18 h": 71.27,
+          "estable 18-54 h": 76.71,
+          "todo": 74.81
+        },
+        "norm3 14d|6|mezcla": {
+          "adaptación 0-18 h": 71.23,
+          "estable 18-54 h": 73.99,
+          "todo": 72.98
+        },
+        "norm3 14d semivida 12h|6|mezcla": {
+          "adaptación 0-18 h": 72.59,
+          "estable 18-54 h": 78.68,
+          "todo": 76.54
+        },
+        "norm3 14d semivida 24h|6|mezcla": {
+          "adaptación 0-18 h": 72.38,
+          "estable 18-54 h": 77.65,
+          "todo": 75.78
+        },
+        "congelado|6|mezcla": {
+          "adaptación 0-18 h": 70.01,
+          "estable 18-54 h": 63.25,
+          "todo": 65.68
+        },
+        "selector 24 h|6|mezcla": {
+          "adaptación 0-18 h": 72.51,
+          "estable 18-54 h": 78.68,
+          "todo": 76.51
+        },
+        "sc 14d (champion)|2|mezcla": {
+          "adaptación 0-18 h": 70.77,
+          "estable 18-54 h": 73.81,
+          "todo": 72.73
+        },
+        "sc 3d|2|mezcla": {
+          "adaptación 0-18 h": 69.8,
+          "estable 18-54 h": 76.73,
+          "todo": 74.26
+        },
+        "sc 14d semivida 6h|2|mezcla": {
+          "adaptación 0-18 h": 73.23,
+          "estable 18-54 h": 77.2,
+          "todo": 75.85
+        },
+        "sc 14d semivida 12h|2|mezcla": {
+          "adaptación 0-18 h": 72.54,
+          "estable 18-54 h": 77.96,
+          "todo": 76.1
+        },
+        "sc 14d semivida 24h|2|mezcla": {
+          "adaptación 0-18 h": 72.51,
+          "estable 18-54 h": 77.56,
+          "todo": 75.81
+        },
+        "norm3 14d|2|mezcla": {
+          "adaptación 0-18 h": 71.76,
+          "estable 18-54 h": 74.81,
+          "todo": 73.71
+        },
+        "norm3 14d semivida 12h|2|mezcla": {
+          "adaptación 0-18 h": 73.46,
+          "estable 18-54 h": 78.89,
+          "todo": 76.97
+        },
+        "norm3 14d semivida 24h|2|mezcla": {
+          "adaptación 0-18 h": 73.04,
+          "estable 18-54 h": 78.45,
+          "todo": 76.53
+        },
+        "congelado|2|mezcla": {
+          "adaptación 0-18 h": 70.03,
+          "estable 18-54 h": 63.25,
+          "todo": 65.68
+        },
+        "selector 24 h|2|mezcla": {
+          "adaptación 0-18 h": 73.42,
+          "estable 18-54 h": 78.89,
+          "todo": 76.95
+        },
+        "sc 14d (champion)|6|mezcla + nivel": {
+          "adaptación 0-18 h": 72.12,
+          "estable 18-54 h": 69.98,
+          "todo": 70.62
+        },
+        "sc 3d|6|mezcla + nivel": {
+          "adaptación 0-18 h": 71.27,
+          "estable 18-54 h": 73.15,
+          "todo": 72.44
+        },
+        "sc 14d semivida 6h|6|mezcla + nivel": {
+          "adaptación 0-18 h": 72.74,
+          "estable 18-54 h": 72.59,
+          "todo": 72.75
+        },
+        "sc 14d semivida 12h|6|mezcla + nivel": {
+          "adaptación 0-18 h": 72.37,
+          "estable 18-54 h": 73.31,
+          "todo": 73.04
+        },
+        "sc 14d semivida 24h|6|mezcla + nivel": {
+          "adaptación 0-18 h": 72.44,
+          "estable 18-54 h": 72.68,
+          "todo": 72.59
+        },
+        "norm3 14d|6|mezcla + nivel": {
+          "adaptación 0-18 h": 72.5,
+          "estable 18-54 h": 71.25,
+          "todo": 71.6
+        },
+        "norm3 14d semivida 12h|6|mezcla + nivel": {
+          "adaptación 0-18 h": 73.04,
+          "estable 18-54 h": 74.85,
+          "todo": 74.24
+        },
+        "norm3 14d semivida 24h|6|mezcla + nivel": {
+          "adaptación 0-18 h": 73.18,
+          "estable 18-54 h": 74.2,
+          "todo": 73.84
+        },
+        "congelado|6|mezcla + nivel": {
+          "adaptación 0-18 h": 71.96,
+          "estable 18-54 h": 63.1,
+          "todo": 66.06
+        },
+        "selector 24 h|6|mezcla + nivel": {
+          "adaptación 0-18 h": 73.15,
+          "estable 18-54 h": 74.94,
+          "todo": 74.32
+        },
+        "sc 14d (champion)|2|mezcla + nivel": {
+          "adaptación 0-18 h": 72.98,
+          "estable 18-54 h": 71.22,
+          "todo": 71.74
+        },
+        "sc 3d|2|mezcla + nivel": {
+          "adaptación 0-18 h": 71.36,
+          "estable 18-54 h": 73.72,
+          "todo": 72.87
+        },
+        "sc 14d semivida 6h|2|mezcla + nivel": {
+          "adaptación 0-18 h": 74.19,
+          "estable 18-54 h": 73.67,
+          "todo": 74.01
+        },
+        "sc 14d semivida 12h|2|mezcla + nivel": {
+          "adaptación 0-18 h": 73.92,
+          "estable 18-54 h": 74.43,
+          "todo": 74.35
+        },
+        "sc 14d semivida 24h|2|mezcla + nivel": {
+          "adaptación 0-18 h": 73.37,
+          "estable 18-54 h": 73.85,
+          "todo": 73.78
+        },
+        "norm3 14d|2|mezcla + nivel": {
+          "adaptación 0-18 h": 73.04,
+          "estable 18-54 h": 71.46,
+          "todo": 71.97
+        },
+        "norm3 14d semivida 12h|2|mezcla + nivel": {
+          "adaptación 0-18 h": 74.0,
+          "estable 18-54 h": 75.74,
+          "todo": 75.18
+        },
+        "norm3 14d semivida 24h|2|mezcla + nivel": {
+          "adaptación 0-18 h": 74.07,
+          "estable 18-54 h": 74.92,
+          "todo": 74.64
+        },
+        "congelado|2|mezcla + nivel": {
+          "adaptación 0-18 h": 71.98,
+          "estable 18-54 h": 63.1,
+          "todo": 66.06
+        },
+        "selector 24 h|2|mezcla + nivel": {
+          "adaptación 0-18 h": 73.49,
+          "estable 18-54 h": 75.57,
+          "todo": 74.9
+        },
+        "sc 14d (champion)|6|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 73.67,
+          "estable 18-54 h": 74.32,
+          "todo": 74.05
+        },
+        "sc 3d|6|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 72.67,
+          "estable 18-54 h": 76.84,
+          "todo": 75.35
+        },
+        "sc 14d semivida 6h|6|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 74.46,
+          "estable 18-54 h": 76.05,
+          "todo": 75.59
+        },
+        "sc 14d semivida 12h|6|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 74.24,
+          "estable 18-54 h": 76.92,
+          "todo": 76.05
+        },
+        "sc 14d semivida 24h|6|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 74.21,
+          "estable 18-54 h": 76.68,
+          "todo": 75.84
+        },
+        "norm3 14d|6|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 74.32,
+          "estable 18-54 h": 75.54,
+          "todo": 75.06
+        },
+        "norm3 14d semivida 12h|6|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 75.08,
+          "estable 18-54 h": 78.44,
+          "todo": 77.28
+        },
+        "norm3 14d semivida 24h|6|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 75.06,
+          "estable 18-54 h": 78.03,
+          "todo": 76.98
+        },
+        "congelado|6|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 73.51,
+          "estable 18-54 h": 68.12,
+          "todo": 69.98
+        },
+        "selector 24 h|6|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 75.0,
+          "estable 18-54 h": 78.44,
+          "todo": 77.25
+        },
+        "sc 14d (champion)|2|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 74.18,
+          "estable 18-54 h": 74.95,
+          "todo": 74.64
+        },
+        "sc 3d|2|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 72.83,
+          "estable 18-54 h": 77.39,
+          "todo": 75.75
+        },
+        "sc 14d semivida 6h|2|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 75.82,
+          "estable 18-54 h": 77.1,
+          "todo": 76.72
+        },
+        "sc 14d semivida 12h|2|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 75.25,
+          "estable 18-54 h": 77.7,
+          "todo": 76.91
+        },
+        "sc 14d semivida 24h|2|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 75.06,
+          "estable 18-54 h": 77.77,
+          "todo": 76.86
+        },
+        "norm3 14d|2|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 74.69,
+          "estable 18-54 h": 76.01,
+          "todo": 75.5
+        },
+        "norm3 14d semivida 12h|2|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 75.72,
+          "estable 18-54 h": 78.76,
+          "todo": 77.7
+        },
+        "norm3 14d semivida 24h|2|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 75.6,
+          "estable 18-54 h": 78.52,
+          "todo": 77.48
+        },
+        "congelado|2|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 73.54,
+          "estable 18-54 h": 68.12,
+          "todo": 69.99
+        },
+        "selector 24 h|2|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 75.64,
+          "estable 18-54 h": 78.66,
+          "todo": 77.61
+        }
+      }
+    },
+    "2026-09-15T12:00|corrimiento": {
+      "transformacion": {
+        "02300": "corre +60 min",
+        "03000": "corre -60 min",
+        "05000": "corre -60 min",
+        "05100": "corre -60 min",
+        "06000": "corre +90 min",
+        "06111": "corre -60 min",
+        "07105": "corre +90 min",
+        "07107": "corre -60 min",
+        "07111": "corre -60 min",
+        "09000": "corre -90 min",
+        "09122": "corre -60 min",
+        "10009": "corre -60 min"
+      },
+      "tabla": {
+        "sc 14d (champion)|6|sin capas": {
+          "adaptación 0-18 h": 74.82,
+          "estable 18-54 h": 70.16,
+          "todo": 72.66
+        },
+        "sc 3d|6|sin capas": {
+          "adaptación 0-18 h": 66.58,
+          "estable 18-54 h": 71.84,
+          "todo": 70.83
+        },
+        "sc 14d semivida 6h|6|sin capas": {
+          "adaptación 0-18 h": 75.07,
+          "estable 18-54 h": 78.29,
+          "todo": 77.27
+        },
+        "sc 14d semivida 12h|6|sin capas": {
+          "adaptación 0-18 h": 76.18,
+          "estable 18-54 h": 78.7,
+          "todo": 78.04
+        },
+        "sc 14d semivida 24h|6|sin capas": {
+          "adaptación 0-18 h": 75.87,
+          "estable 18-54 h": 76.51,
+          "todo": 76.76
+        },
+        "norm3 14d|6|sin capas": {
+          "adaptación 0-18 h": 75.37,
+          "estable 18-54 h": 73.82,
+          "todo": 74.94
+        },
+        "norm3 14d semivida 12h|6|sin capas": {
+          "adaptación 0-18 h": 77.15,
+          "estable 18-54 h": 81.02,
+          "todo": 79.99
+        },
+        "norm3 14d semivida 24h|6|sin capas": {
+          "adaptación 0-18 h": 77.22,
+          "estable 18-54 h": 79.67,
+          "todo": 79.14
+        },
+        "congelado|6|sin capas": {
+          "adaptación 0-18 h": 74.11,
+          "estable 18-54 h": 59.74,
+          "todo": 63.59
+        },
+        "selector 24 h|6|sin capas": {
+          "adaptación 0-18 h": 77.09,
+          "estable 18-54 h": 80.88,
+          "todo": 79.88
+        },
+        "sc 14d (champion)|2|sin capas": {
+          "adaptación 0-18 h": 74.47,
+          "estable 18-54 h": 71.65,
+          "todo": 73.42
+        },
+        "sc 3d|2|sin capas": {
+          "adaptación 0-18 h": 66.53,
+          "estable 18-54 h": 73.04,
+          "todo": 71.66
+        },
+        "sc 14d semivida 6h|2|sin capas": {
+          "adaptación 0-18 h": 74.74,
+          "estable 18-54 h": 78.61,
+          "todo": 77.38
+        },
+        "sc 14d semivida 12h|2|sin capas": {
+          "adaptación 0-18 h": 75.63,
+          "estable 18-54 h": 79.15,
+          "todo": 78.09
+        },
+        "sc 14d semivida 24h|2|sin capas": {
+          "adaptación 0-18 h": 75.24,
+          "estable 18-54 h": 77.28,
+          "todo": 76.93
+        },
+        "norm3 14d|2|sin capas": {
+          "adaptación 0-18 h": 75.38,
+          "estable 18-54 h": 74.85,
+          "todo": 75.62
+        },
+        "norm3 14d semivida 12h|2|sin capas": {
+          "adaptación 0-18 h": 77.28,
+          "estable 18-54 h": 81.56,
+          "todo": 80.35
+        },
+        "norm3 14d semivida 24h|2|sin capas": {
+          "adaptación 0-18 h": 76.98,
+          "estable 18-54 h": 80.66,
+          "todo": 79.7
+        },
+        "congelado|2|sin capas": {
+          "adaptación 0-18 h": 74.08,
+          "estable 18-54 h": 59.74,
+          "todo": 63.59
+        },
+        "selector 24 h|2|sin capas": {
+          "adaptación 0-18 h": 77.07,
+          "estable 18-54 h": 81.56,
+          "todo": 80.29
+        },
+        "sc 14d (champion)|6|mezcla": {
+          "adaptación 0-18 h": 79.1,
+          "estable 18-54 h": 76.59,
+          "todo": 78.0
+        },
+        "sc 3d|6|mezcla": {
+          "adaptación 0-18 h": 74.12,
+          "estable 18-54 h": 77.78,
+          "todo": 77.02
+        },
+        "sc 14d semivida 6h|6|mezcla": {
+          "adaptación 0-18 h": 78.34,
+          "estable 18-54 h": 80.73,
+          "todo": 79.99
+        },
+        "sc 14d semivida 12h|6|mezcla": {
+          "adaptación 0-18 h": 79.06,
+          "estable 18-54 h": 81.14,
+          "todo": 80.59
+        },
+        "sc 14d semivida 24h|6|mezcla": {
+          "adaptación 0-18 h": 79.06,
+          "estable 18-54 h": 79.87,
+          "todo": 79.87
+        },
+        "norm3 14d|6|mezcla": {
+          "adaptación 0-18 h": 79.02,
+          "estable 18-54 h": 78.52,
+          "todo": 79.07
+        },
+        "norm3 14d semivida 12h|6|mezcla": {
+          "adaptación 0-18 h": 79.42,
+          "estable 18-54 h": 82.11,
+          "todo": 81.37
+        },
+        "norm3 14d semivida 24h|6|mezcla": {
+          "adaptación 0-18 h": 79.63,
+          "estable 18-54 h": 81.49,
+          "todo": 81.02
+        },
+        "congelado|6|mezcla": {
+          "adaptación 0-18 h": 78.69,
+          "estable 18-54 h": 67.94,
+          "todo": 72.69
+        },
+        "selector 24 h|6|mezcla": {
+          "adaptación 0-18 h": 79.41,
+          "estable 18-54 h": 81.83,
+          "todo": 81.21
+        },
+        "sc 14d (champion)|2|mezcla": {
+          "adaptación 0-18 h": 78.76,
+          "estable 18-54 h": 77.11,
+          "todo": 78.14
+        },
+        "sc 3d|2|mezcla": {
+          "adaptación 0-18 h": 73.99,
+          "estable 18-54 h": 78.31,
+          "todo": 77.35
+        },
+        "sc 14d semivida 6h|2|mezcla": {
+          "adaptación 0-18 h": 78.02,
+          "estable 18-54 h": 80.7,
+          "todo": 79.87
+        },
+        "sc 14d semivida 12h|2|mezcla": {
+          "adaptación 0-18 h": 78.52,
+          "estable 18-54 h": 81.28,
+          "todo": 80.45
+        },
+        "sc 14d semivida 24h|2|mezcla": {
+          "adaptación 0-18 h": 78.56,
+          "estable 18-54 h": 80.29,
+          "todo": 79.89
+        },
+        "norm3 14d|2|mezcla": {
+          "adaptación 0-18 h": 78.97,
+          "estable 18-54 h": 79.06,
+          "todo": 79.37
+        },
+        "norm3 14d semivida 12h|2|mezcla": {
+          "adaptación 0-18 h": 79.42,
+          "estable 18-54 h": 82.29,
+          "todo": 81.46
+        },
+        "norm3 14d semivida 24h|2|mezcla": {
+          "adaptación 0-18 h": 79.52,
+          "estable 18-54 h": 81.95,
+          "todo": 81.28
+        },
+        "congelado|2|mezcla": {
+          "adaptación 0-18 h": 78.67,
+          "estable 18-54 h": 67.94,
+          "todo": 72.68
+        },
+        "selector 24 h|2|mezcla": {
+          "adaptación 0-18 h": 79.5,
+          "estable 18-54 h": 82.17,
+          "todo": 81.42
+        },
+        "sc 14d (champion)|6|mezcla + nivel": {
+          "adaptación 0-18 h": 79.01,
+          "estable 18-54 h": 79.38,
+          "todo": 79.3
+        },
+        "sc 3d|6|mezcla + nivel": {
+          "adaptación 0-18 h": 73.24,
+          "estable 18-54 h": 79.11,
+          "todo": 77.55
+        },
+        "sc 14d semivida 6h|6|mezcla + nivel": {
+          "adaptación 0-18 h": 78.44,
+          "estable 18-54 h": 80.74,
+          "todo": 80.17
+        },
+        "sc 14d semivida 12h|6|mezcla + nivel": {
+          "adaptación 0-18 h": 78.62,
+          "estable 18-54 h": 81.25,
+          "todo": 80.58
+        },
+        "sc 14d semivida 24h|6|mezcla + nivel": {
+          "adaptación 0-18 h": 78.51,
+          "estable 18-54 h": 80.86,
+          "todo": 80.2
+        },
+        "norm3 14d|6|mezcla + nivel": {
+          "adaptación 0-18 h": 79.51,
+          "estable 18-54 h": 79.68,
+          "todo": 79.72
+        },
+        "norm3 14d semivida 12h|6|mezcla + nivel": {
+          "adaptación 0-18 h": 79.1,
+          "estable 18-54 h": 81.3,
+          "todo": 80.63
+        },
+        "norm3 14d semivida 24h|6|mezcla + nivel": {
+          "adaptación 0-18 h": 79.13,
+          "estable 18-54 h": 81.11,
+          "todo": 80.47
+        },
+        "congelado|6|mezcla + nivel": {
+          "adaptación 0-18 h": 78.85,
+          "estable 18-54 h": 76.41,
+          "todo": 77.3
+        },
+        "selector 24 h|6|mezcla + nivel": {
+          "adaptación 0-18 h": 79.38,
+          "estable 18-54 h": 80.1,
+          "todo": 80.11
+        },
+        "sc 14d (champion)|2|mezcla + nivel": {
+          "adaptación 0-18 h": 78.94,
+          "estable 18-54 h": 78.95,
+          "todo": 79.03
+        },
+        "sc 3d|2|mezcla + nivel": {
+          "adaptación 0-18 h": 73.68,
+          "estable 18-54 h": 79.02,
+          "todo": 77.75
+        },
+        "sc 14d semivida 6h|2|mezcla + nivel": {
+          "adaptación 0-18 h": 77.62,
+          "estable 18-54 h": 80.5,
+          "todo": 79.66
+        },
+        "sc 14d semivida 12h|2|mezcla + nivel": {
+          "adaptación 0-18 h": 78.21,
+          "estable 18-54 h": 80.88,
+          "todo": 80.17
+        },
+        "sc 14d semivida 24h|2|mezcla + nivel": {
+          "adaptación 0-18 h": 78.38,
+          "estable 18-54 h": 80.74,
+          "todo": 80.02
+        },
+        "norm3 14d|2|mezcla + nivel": {
+          "adaptación 0-18 h": 79.37,
+          "estable 18-54 h": 79.6,
+          "todo": 79.66
+        },
+        "norm3 14d semivida 12h|2|mezcla + nivel": {
+          "adaptación 0-18 h": 78.78,
+          "estable 18-54 h": 81.59,
+          "todo": 80.72
+        },
+        "norm3 14d semivida 24h|2|mezcla + nivel": {
+          "adaptación 0-18 h": 78.88,
+          "estable 18-54 h": 81.3,
+          "todo": 80.57
+        },
+        "congelado|2|mezcla + nivel": {
+          "adaptación 0-18 h": 78.86,
+          "estable 18-54 h": 76.41,
+          "todo": 77.31
+        },
+        "selector 24 h|2|mezcla + nivel": {
+          "adaptación 0-18 h": 79.27,
+          "estable 18-54 h": 80.55,
+          "todo": 80.23
+        },
+        "sc 14d (champion)|6|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 81.18,
+          "estable 18-54 h": 80.56,
+          "todo": 81.13
+        },
+        "sc 3d|6|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 76.83,
+          "estable 18-54 h": 80.84,
+          "todo": 79.99
+        },
+        "sc 14d semivida 6h|6|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 80.34,
+          "estable 18-54 h": 82.44,
+          "todo": 81.89
+        },
+        "sc 14d semivida 12h|6|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 80.94,
+          "estable 18-54 h": 82.64,
+          "todo": 82.3
+        },
+        "sc 14d semivida 24h|6|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 80.88,
+          "estable 18-54 h": 82.18,
+          "todo": 81.99
+        },
+        "norm3 14d|6|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 81.31,
+          "estable 18-54 h": 81.48,
+          "todo": 81.74
+        },
+        "norm3 14d semivida 12h|6|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 81.08,
+          "estable 18-54 h": 83.07,
+          "todo": 82.56
+        },
+        "norm3 14d semivida 24h|6|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 81.27,
+          "estable 18-54 h": 82.85,
+          "todo": 82.48
+        },
+        "congelado|6|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 80.88,
+          "estable 18-54 h": 75.96,
+          "todo": 78.31
+        },
+        "selector 24 h|6|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 81.14,
+          "estable 18-54 h": 82.42,
+          "todo": 82.18
+        },
+        "sc 14d (champion)|2|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 80.92,
+          "estable 18-54 h": 80.47,
+          "todo": 80.94
+        },
+        "sc 3d|2|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 76.79,
+          "estable 18-54 h": 80.75,
+          "todo": 79.95
+        },
+        "sc 14d semivida 6h|2|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 79.92,
+          "estable 18-54 h": 82.28,
+          "todo": 81.6
+        },
+        "sc 14d semivida 12h|2|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 80.5,
+          "estable 18-54 h": 82.49,
+          "todo": 82.01
+        },
+        "sc 14d semivida 24h|2|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 80.53,
+          "estable 18-54 h": 82.03,
+          "todo": 81.74
+        },
+        "norm3 14d|2|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 81.22,
+          "estable 18-54 h": 81.66,
+          "todo": 81.8
+        },
+        "norm3 14d semivida 12h|2|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 80.99,
+          "estable 18-54 h": 83.16,
+          "todo": 82.57
+        },
+        "norm3 14d semivida 24h|2|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 81.06,
+          "estable 18-54 h": 83.05,
+          "todo": 82.55
+        },
+        "congelado|2|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 80.86,
+          "estable 18-54 h": 75.96,
+          "todo": 78.31
+        },
+        "selector 24 h|2|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 81.13,
+          "estable 18-54 h": 82.66,
+          "todo": 82.35
+        }
+      }
+    },
+    "2026-09-15T12:00|amplitud": {
+      "transformacion": {
+        "02300": "amplitud x1.6",
+        "03000": "amplitud x0.5",
+        "05000": "amplitud x0.5",
+        "05100": "amplitud x0.5",
+        "06000": "amplitud x1.6",
+        "06111": "amplitud x0.5",
+        "07105": "amplitud x1.6",
+        "07107": "amplitud x0.5",
+        "07111": "amplitud x0.5",
+        "09000": "amplitud x0.5",
+        "09122": "amplitud x0.5",
+        "10009": "amplitud x0.5"
+      },
+      "tabla": {
+        "sc 14d (champion)|6|sin capas": {
+          "adaptación 0-18 h": 71.1,
+          "estable 18-54 h": 74.76,
+          "todo": 74.34
+        },
+        "sc 3d|6|sin capas": {
+          "adaptación 0-18 h": 66.95,
+          "estable 18-54 h": 76.5,
+          "todo": 74.06
+        },
+        "sc 14d semivida 6h|6|sin capas": {
+          "adaptación 0-18 h": 74.84,
+          "estable 18-54 h": 81.14,
+          "todo": 79.51
+        },
+        "sc 14d semivida 12h|6|sin capas": {
+          "adaptación 0-18 h": 75.51,
+          "estable 18-54 h": 81.15,
+          "todo": 79.88
+        },
+        "sc 14d semivida 24h|6|sin capas": {
+          "adaptación 0-18 h": 74.04,
+          "estable 18-54 h": 79.25,
+          "todo": 78.26
+        },
+        "norm3 14d|6|sin capas": {
+          "adaptación 0-18 h": 71.99,
+          "estable 18-54 h": 77.22,
+          "todo": 76.13
+        },
+        "norm3 14d semivida 12h|6|sin capas": {
+          "adaptación 0-18 h": 75.78,
+          "estable 18-54 h": 84.31,
+          "todo": 81.98
+        },
+        "norm3 14d semivida 24h|6|sin capas": {
+          "adaptación 0-18 h": 74.9,
+          "estable 18-54 h": 83.64,
+          "todo": 81.22
+        },
+        "congelado|6|sin capas": {
+          "adaptación 0-18 h": 70.67,
+          "estable 18-54 h": 60.21,
+          "todo": 63.27
+        },
+        "selector 24 h|6|sin capas": {
+          "adaptación 0-18 h": 75.6,
+          "estable 18-54 h": 84.31,
+          "todo": 81.92
+        },
+        "sc 14d (champion)|2|sin capas": {
+          "adaptación 0-18 h": 72.73,
+          "estable 18-54 h": 76.12,
+          "todo": 75.61
+        },
+        "sc 3d|2|sin capas": {
+          "adaptación 0-18 h": 69.0,
+          "estable 18-54 h": 77.23,
+          "todo": 75.14
+        },
+        "sc 14d semivida 6h|2|sin capas": {
+          "adaptación 0-18 h": 79.3,
+          "estable 18-54 h": 81.93,
+          "todo": 81.36
+        },
+        "sc 14d semivida 12h|2|sin capas": {
+          "adaptación 0-18 h": 78.46,
+          "estable 18-54 h": 82.4,
+          "todo": 81.5
+        },
+        "sc 14d semivida 24h|2|sin capas": {
+          "adaptación 0-18 h": 77.15,
+          "estable 18-54 h": 80.91,
+          "todo": 80.03
+        },
+        "norm3 14d|2|sin capas": {
+          "adaptación 0-18 h": 73.48,
+          "estable 18-54 h": 78.4,
+          "todo": 77.26
+        },
+        "norm3 14d semivida 12h|2|sin capas": {
+          "adaptación 0-18 h": 78.98,
+          "estable 18-54 h": 85.19,
+          "todo": 83.41
+        },
+        "norm3 14d semivida 24h|2|sin capas": {
+          "adaptación 0-18 h": 77.88,
+          "estable 18-54 h": 84.51,
+          "todo": 82.62
+        },
+        "congelado|2|sin capas": {
+          "adaptación 0-18 h": 70.62,
+          "estable 18-54 h": 60.21,
+          "todo": 63.25
+        },
+        "selector 24 h|2|sin capas": {
+          "adaptación 0-18 h": 78.95,
+          "estable 18-54 h": 84.52,
+          "todo": 82.96
+        },
+        "sc 14d (champion)|6|mezcla": {
+          "adaptación 0-18 h": 78.45,
+          "estable 18-54 h": 81.43,
+          "todo": 81.01
+        },
+        "sc 3d|6|mezcla": {
+          "adaptación 0-18 h": 75.56,
+          "estable 18-54 h": 82.44,
+          "todo": 80.73
+        },
+        "sc 14d semivida 6h|6|mezcla": {
+          "adaptación 0-18 h": 80.09,
+          "estable 18-54 h": 84.39,
+          "todo": 83.34
+        },
+        "sc 14d semivida 12h|6|mezcla": {
+          "adaptación 0-18 h": 80.61,
+          "estable 18-54 h": 84.53,
+          "todo": 83.7
+        },
+        "sc 14d semivida 24h|6|mezcla": {
+          "adaptación 0-18 h": 79.8,
+          "estable 18-54 h": 83.49,
+          "todo": 82.78
+        },
+        "norm3 14d|6|mezcla": {
+          "adaptación 0-18 h": 78.69,
+          "estable 18-54 h": 82.76,
+          "todo": 81.87
+        },
+        "norm3 14d semivida 12h|6|mezcla": {
+          "adaptación 0-18 h": 80.48,
+          "estable 18-54 h": 86.02,
+          "todo": 84.53
+        },
+        "norm3 14d semivida 24h|6|mezcla": {
+          "adaptación 0-18 h": 80.09,
+          "estable 18-54 h": 85.92,
+          "todo": 84.32
+        },
+        "congelado|6|mezcla": {
+          "adaptación 0-18 h": 78.19,
+          "estable 18-54 h": 71.34,
+          "todo": 74.46
+        },
+        "selector 24 h|6|mezcla": {
+          "adaptación 0-18 h": 80.21,
+          "estable 18-54 h": 85.98,
+          "todo": 84.44
+        },
+        "sc 14d (champion)|2|mezcla": {
+          "adaptación 0-18 h": 79.47,
+          "estable 18-54 h": 82.28,
+          "todo": 81.78
+        },
+        "sc 3d|2|mezcla": {
+          "adaptación 0-18 h": 76.82,
+          "estable 18-54 h": 82.64,
+          "todo": 81.21
+        },
+        "sc 14d semivida 6h|2|mezcla": {
+          "adaptación 0-18 h": 82.62,
+          "estable 18-54 h": 84.69,
+          "todo": 84.27
+        },
+        "sc 14d semivida 12h|2|mezcla": {
+          "adaptación 0-18 h": 82.38,
+          "estable 18-54 h": 85.22,
+          "todo": 84.62
+        },
+        "sc 14d semivida 24h|2|mezcla": {
+          "adaptación 0-18 h": 81.69,
+          "estable 18-54 h": 84.6,
+          "todo": 83.94
+        },
+        "norm3 14d|2|mezcla": {
+          "adaptación 0-18 h": 79.61,
+          "estable 18-54 h": 83.44,
+          "todo": 82.53
+        },
+        "norm3 14d semivida 12h|2|mezcla": {
+          "adaptación 0-18 h": 82.53,
+          "estable 18-54 h": 86.56,
+          "todo": 85.43
+        },
+        "norm3 14d semivida 24h|2|mezcla": {
+          "adaptación 0-18 h": 81.94,
+          "estable 18-54 h": 86.3,
+          "todo": 85.06
+        },
+        "congelado|2|mezcla": {
+          "adaptación 0-18 h": 78.15,
+          "estable 18-54 h": 71.34,
+          "todo": 74.45
+        },
+        "selector 24 h|2|mezcla": {
+          "adaptación 0-18 h": 82.51,
+          "estable 18-54 h": 86.61,
+          "todo": 85.44
+        },
+        "sc 14d (champion)|6|mezcla + nivel": {
+          "adaptación 0-18 h": 81.89,
+          "estable 18-54 h": 86.38,
+          "todo": 84.94
+        },
+        "sc 3d|6|mezcla + nivel": {
+          "adaptación 0-18 h": 80.24,
+          "estable 18-54 h": 86.51,
+          "todo": 84.61
+        },
+        "sc 14d semivida 6h|6|mezcla + nivel": {
+          "adaptación 0-18 h": 82.47,
+          "estable 18-54 h": 85.49,
+          "todo": 84.58
+        },
+        "sc 14d semivida 12h|6|mezcla + nivel": {
+          "adaptación 0-18 h": 83.52,
+          "estable 18-54 h": 86.58,
+          "todo": 85.68
+        },
+        "sc 14d semivida 24h|6|mezcla + nivel": {
+          "adaptación 0-18 h": 83.04,
+          "estable 18-54 h": 86.53,
+          "todo": 85.42
+        },
+        "norm3 14d|6|mezcla + nivel": {
+          "adaptación 0-18 h": 81.85,
+          "estable 18-54 h": 86.41,
+          "todo": 84.9
+        },
+        "norm3 14d semivida 12h|6|mezcla + nivel": {
+          "adaptación 0-18 h": 82.9,
+          "estable 18-54 h": 86.57,
+          "todo": 85.42
+        },
+        "norm3 14d semivida 24h|6|mezcla + nivel": {
+          "adaptación 0-18 h": 82.52,
+          "estable 18-54 h": 86.98,
+          "todo": 85.58
+        },
+        "congelado|6|mezcla + nivel": {
+          "adaptación 0-18 h": 81.97,
+          "estable 18-54 h": 82.43,
+          "todo": 82.28
+        },
+        "selector 24 h|6|mezcla + nivel": {
+          "adaptación 0-18 h": 82.82,
+          "estable 18-54 h": 87.15,
+          "todo": 85.87
+        },
+        "sc 14d (champion)|2|mezcla + nivel": {
+          "adaptación 0-18 h": 82.84,
+          "estable 18-54 h": 86.49,
+          "todo": 85.33
+        },
+        "sc 3d|2|mezcla + nivel": {
+          "adaptación 0-18 h": 80.68,
+          "estable 18-54 h": 86.18,
+          "todo": 84.55
+        },
+        "sc 14d semivida 6h|2|mezcla + nivel": {
+          "adaptación 0-18 h": 83.07,
+          "estable 18-54 h": 86.09,
+          "todo": 85.31
+        },
+        "sc 14d semivida 12h|2|mezcla + nivel": {
+          "adaptación 0-18 h": 83.58,
+          "estable 18-54 h": 86.12,
+          "todo": 85.47
+        },
+        "sc 14d semivida 24h|2|mezcla + nivel": {
+          "adaptación 0-18 h": 83.16,
+          "estable 18-54 h": 86.61,
+          "todo": 85.57
+        },
+        "norm3 14d|2|mezcla + nivel": {
+          "adaptación 0-18 h": 82.82,
+          "estable 18-54 h": 86.32,
+          "todo": 85.2
+        },
+        "norm3 14d semivida 12h|2|mezcla + nivel": {
+          "adaptación 0-18 h": 83.6,
+          "estable 18-54 h": 86.7,
+          "todo": 85.77
+        },
+        "norm3 14d semivida 24h|2|mezcla + nivel": {
+          "adaptación 0-18 h": 82.88,
+          "estable 18-54 h": 86.52,
+          "todo": 85.4
+        },
+        "congelado|2|mezcla + nivel": {
+          "adaptación 0-18 h": 81.99,
+          "estable 18-54 h": 82.43,
+          "todo": 82.29
+        },
+        "selector 24 h|2|mezcla + nivel": {
+          "adaptación 0-18 h": 83.56,
+          "estable 18-54 h": 86.17,
+          "todo": 85.29
+        },
+        "sc 14d (champion)|6|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 82.21,
+          "estable 18-54 h": 86.23,
+          "todo": 85.28
+        },
+        "sc 3d|6|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 79.59,
+          "estable 18-54 h": 86.45,
+          "todo": 84.59
+        },
+        "sc 14d semivida 6h|6|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 82.56,
+          "estable 18-54 h": 86.85,
+          "todo": 85.73
+        },
+        "sc 14d semivida 12h|6|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 83.33,
+          "estable 18-54 h": 87.34,
+          "todo": 86.35
+        },
+        "sc 14d semivida 24h|6|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 83.18,
+          "estable 18-54 h": 87.02,
+          "todo": 86.06
+        },
+        "norm3 14d|6|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 82.42,
+          "estable 18-54 h": 86.89,
+          "todo": 85.74
+        },
+        "norm3 14d semivida 12h|6|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 83.42,
+          "estable 18-54 h": 88.29,
+          "todo": 86.92
+        },
+        "norm3 14d semivida 24h|6|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 83.16,
+          "estable 18-54 h": 88.42,
+          "todo": 86.93
+        },
+        "congelado|6|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 82.21,
+          "estable 18-54 h": 80.62,
+          "todo": 81.65
+        },
+        "selector 24 h|6|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 83.05,
+          "estable 18-54 h": 88.42,
+          "todo": 86.9
+        },
+        "sc 14d (champion)|2|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 82.74,
+          "estable 18-54 h": 86.55,
+          "todo": 85.59
+        },
+        "sc 3d|2|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 80.43,
+          "estable 18-54 h": 86.34,
+          "todo": 84.78
+        },
+        "sc 14d semivida 6h|2|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 83.84,
+          "estable 18-54 h": 87.28,
+          "todo": 86.4
+        },
+        "sc 14d semivida 12h|2|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 83.96,
+          "estable 18-54 h": 87.59,
+          "todo": 86.68
+        },
+        "sc 14d semivida 24h|2|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 83.73,
+          "estable 18-54 h": 87.51,
+          "todo": 86.5
+        },
+        "norm3 14d|2|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 82.94,
+          "estable 18-54 h": 87.21,
+          "todo": 86.07
+        },
+        "norm3 14d semivida 12h|2|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 84.38,
+          "estable 18-54 h": 88.42,
+          "todo": 87.29
+        },
+        "norm3 14d semivida 24h|2|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 83.88,
+          "estable 18-54 h": 88.44,
+          "todo": 87.15
+        },
+        "congelado|2|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 82.18,
+          "estable 18-54 h": 80.62,
+          "todo": 81.65
+        },
+        "selector 24 h|2|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 84.29,
+          "estable 18-54 h": 88.44,
+          "todo": 87.18
+        }
+      }
+    },
+    "2026-09-15T12:00|severo": {
+      "transformacion": {
+        "02300": "amplitud x0.4",
+        "03000": "corre -90 min",
+        "05000": "corre -90 min",
+        "05100": "corre -120 min",
+        "06000": "amplitud x1.8",
+        "06111": "invierte (+11 h)",
+        "07105": "amplitud x1.8",
+        "07107": "corre -120 min",
+        "07111": "nivel x1.5 y amplitud x1.3",
+        "09000": "corre +90 min",
+        "09122": "corre +90 min",
+        "10009": "corre +120 min"
+      },
+      "tabla": {
+        "sc 14d (champion)|6|sin capas": {
+          "adaptación 0-18 h": 61.55,
+          "estable 18-54 h": 67.55,
+          "todo": 66.82
+        },
+        "sc 3d|6|sin capas": {
+          "adaptación 0-18 h": 54.72,
+          "estable 18-54 h": 69.3,
+          "todo": 65.56
+        },
+        "sc 14d semivida 6h|6|sin capas": {
+          "adaptación 0-18 h": 66.48,
+          "estable 18-54 h": 75.91,
+          "todo": 73.28
+        },
+        "sc 14d semivida 12h|6|sin capas": {
+          "adaptación 0-18 h": 66.91,
+          "estable 18-54 h": 77.21,
+          "todo": 74.22
+        },
+        "sc 14d semivida 24h|6|sin capas": {
+          "adaptación 0-18 h": 66.03,
+          "estable 18-54 h": 75.23,
+          "todo": 72.92
+        },
+        "norm3 14d|6|sin capas": {
+          "adaptación 0-18 h": 64.85,
+          "estable 18-54 h": 72.34,
+          "todo": 70.9
+        },
+        "norm3 14d semivida 12h|6|sin capas": {
+          "adaptación 0-18 h": 69.12,
+          "estable 18-54 h": 80.28,
+          "todo": 76.91
+        },
+        "norm3 14d semivida 24h|6|sin capas": {
+          "adaptación 0-18 h": 68.51,
+          "estable 18-54 h": 79.13,
+          "todo": 76.01
+        },
+        "congelado|6|sin capas": {
+          "adaptación 0-18 h": 61.0,
+          "estable 18-54 h": 47.12,
+          "todo": 51.03
+        },
+        "selector 24 h|6|sin capas": {
+          "adaptación 0-18 h": 68.41,
+          "estable 18-54 h": 80.28,
+          "todo": 76.67
+        },
+        "sc 14d (champion)|2|sin capas": {
+          "adaptación 0-18 h": 62.35,
+          "estable 18-54 h": 70.07,
+          "todo": 68.65
+        },
+        "sc 3d|2|sin capas": {
+          "adaptación 0-18 h": 56.04,
+          "estable 18-54 h": 71.37,
+          "todo": 67.15
+        },
+        "sc 14d semivida 6h|2|sin capas": {
+          "adaptación 0-18 h": 69.51,
+          "estable 18-54 h": 74.65,
+          "todo": 73.69
+        },
+        "sc 14d semivida 12h|2|sin capas": {
+          "adaptación 0-18 h": 69.07,
+          "estable 18-54 h": 77.35,
+          "todo": 75.11
+        },
+        "sc 14d semivida 24h|2|sin capas": {
+          "adaptación 0-18 h": 67.48,
+          "estable 18-54 h": 76.3,
+          "todo": 74.15
+        },
+        "norm3 14d|2|sin capas": {
+          "adaptación 0-18 h": 65.42,
+          "estable 18-54 h": 74.04,
+          "todo": 72.09
+        },
+        "norm3 14d semivida 12h|2|sin capas": {
+          "adaptación 0-18 h": 71.21,
+          "estable 18-54 h": 80.72,
+          "todo": 77.84
+        },
+        "norm3 14d semivida 24h|2|sin capas": {
+          "adaptación 0-18 h": 70.41,
+          "estable 18-54 h": 79.86,
+          "todo": 77.12
+        },
+        "congelado|2|sin capas": {
+          "adaptación 0-18 h": 60.98,
+          "estable 18-54 h": 47.12,
+          "todo": 51.02
+        },
+        "selector 24 h|2|sin capas": {
+          "adaptación 0-18 h": 70.87,
+          "estable 18-54 h": 80.72,
+          "todo": 77.76
+        },
+        "sc 14d (champion)|6|mezcla": {
+          "adaptación 0-18 h": 70.78,
+          "estable 18-54 h": 74.47,
+          "todo": 74.08
+        },
+        "sc 3d|6|mezcla": {
+          "adaptación 0-18 h": 66.64,
+          "estable 18-54 h": 75.63,
+          "todo": 73.44
+        },
+        "sc 14d semivida 6h|6|mezcla": {
+          "adaptación 0-18 h": 73.36,
+          "estable 18-54 h": 78.32,
+          "todo": 77.06
+        },
+        "sc 14d semivida 12h|6|mezcla": {
+          "adaptación 0-18 h": 73.64,
+          "estable 18-54 h": 79.36,
+          "todo": 77.82
+        },
+        "sc 14d semivida 24h|6|mezcla": {
+          "adaptación 0-18 h": 73.1,
+          "estable 18-54 h": 78.3,
+          "todo": 77.13
+        },
+        "norm3 14d|6|mezcla": {
+          "adaptación 0-18 h": 72.6,
+          "estable 18-54 h": 76.88,
+          "todo": 76.16
+        },
+        "norm3 14d semivida 12h|6|mezcla": {
+          "adaptación 0-18 h": 74.72,
+          "estable 18-54 h": 80.96,
+          "todo": 79.12
+        },
+        "norm3 14d semivida 24h|6|mezcla": {
+          "adaptación 0-18 h": 74.42,
+          "estable 18-54 h": 80.4,
+          "todo": 78.69
+        },
+        "congelado|6|mezcla": {
+          "adaptación 0-18 h": 70.37,
+          "estable 18-54 h": 60.04,
+          "todo": 64.86
+        },
+        "selector 24 h|6|mezcla": {
+          "adaptación 0-18 h": 74.04,
+          "estable 18-54 h": 80.96,
+          "todo": 78.89
+        },
+        "sc 14d (champion)|2|mezcla": {
+          "adaptación 0-18 h": 71.17,
+          "estable 18-54 h": 75.84,
+          "todo": 75.05
+        },
+        "sc 3d|2|mezcla": {
+          "adaptación 0-18 h": 67.39,
+          "estable 18-54 h": 76.68,
+          "todo": 74.25
+        },
+        "sc 14d semivida 6h|2|mezcla": {
+          "adaptación 0-18 h": 74.86,
+          "estable 18-54 h": 77.2,
+          "todo": 77.0
+        },
+        "sc 14d semivida 12h|2|mezcla": {
+          "adaptación 0-18 h": 74.71,
+          "estable 18-54 h": 79.18,
+          "todo": 78.08
+        },
+        "sc 14d semivida 24h|2|mezcla": {
+          "adaptación 0-18 h": 73.74,
+          "estable 18-54 h": 78.74,
+          "todo": 77.62
+        },
+        "norm3 14d|2|mezcla": {
+          "adaptación 0-18 h": 72.83,
+          "estable 18-54 h": 77.92,
+          "todo": 76.84
+        },
+        "norm3 14d semivida 12h|2|mezcla": {
+          "adaptación 0-18 h": 75.9,
+          "estable 18-54 h": 81.0,
+          "todo": 79.48
+        },
+        "norm3 14d semivida 24h|2|mezcla": {
+          "adaptación 0-18 h": 75.47,
+          "estable 18-54 h": 80.81,
+          "todo": 79.3
+        },
+        "congelado|2|mezcla": {
+          "adaptación 0-18 h": 70.34,
+          "estable 18-54 h": 60.04,
+          "todo": 64.85
+        },
+        "selector 24 h|2|mezcla": {
+          "adaptación 0-18 h": 75.79,
+          "estable 18-54 h": 81.05,
+          "todo": 79.47
+        },
+        "sc 14d (champion)|6|mezcla + nivel": {
+          "adaptación 0-18 h": 73.53,
+          "estable 18-54 h": 75.24,
+          "todo": 74.92
+        },
+        "sc 3d|6|mezcla + nivel": {
+          "adaptación 0-18 h": 70.39,
+          "estable 18-54 h": 75.79,
+          "todo": 74.4
+        },
+        "sc 14d semivida 6h|6|mezcla + nivel": {
+          "adaptación 0-18 h": 74.72,
+          "estable 18-54 h": 77.26,
+          "todo": 76.7
+        },
+        "sc 14d semivida 12h|6|mezcla + nivel": {
+          "adaptación 0-18 h": 74.96,
+          "estable 18-54 h": 77.93,
+          "todo": 77.25
+        },
+        "sc 14d semivida 24h|6|mezcla + nivel": {
+          "adaptación 0-18 h": 74.67,
+          "estable 18-54 h": 76.93,
+          "todo": 76.52
+        },
+        "norm3 14d|6|mezcla + nivel": {
+          "adaptación 0-18 h": 75.35,
+          "estable 18-54 h": 76.54,
+          "todo": 76.48
+        },
+        "norm3 14d semivida 12h|6|mezcla + nivel": {
+          "adaptación 0-18 h": 76.07,
+          "estable 18-54 h": 78.29,
+          "todo": 77.61
+        },
+        "norm3 14d semivida 24h|6|mezcla + nivel": {
+          "adaptación 0-18 h": 75.87,
+          "estable 18-54 h": 77.81,
+          "todo": 77.28
+        },
+        "congelado|6|mezcla + nivel": {
+          "adaptación 0-18 h": 73.63,
+          "estable 18-54 h": 69.52,
+          "todo": 71.38
+        },
+        "selector 24 h|6|mezcla + nivel": {
+          "adaptación 0-18 h": 75.73,
+          "estable 18-54 h": 78.04,
+          "todo": 77.38
+        },
+        "sc 14d (champion)|2|mezcla + nivel": {
+          "adaptación 0-18 h": 74.27,
+          "estable 18-54 h": 75.64,
+          "todo": 75.48
+        },
+        "sc 3d|2|mezcla + nivel": {
+          "adaptación 0-18 h": 71.57,
+          "estable 18-54 h": 76.57,
+          "todo": 75.34
+        },
+        "sc 14d semivida 6h|2|mezcla + nivel": {
+          "adaptación 0-18 h": 76.18,
+          "estable 18-54 h": 75.24,
+          "todo": 75.98
+        },
+        "sc 14d semivida 12h|2|mezcla + nivel": {
+          "adaptación 0-18 h": 76.15,
+          "estable 18-54 h": 76.9,
+          "todo": 76.98
+        },
+        "sc 14d semivida 24h|2|mezcla + nivel": {
+          "adaptación 0-18 h": 75.28,
+          "estable 18-54 h": 76.37,
+          "todo": 76.27
+        },
+        "norm3 14d|2|mezcla + nivel": {
+          "adaptación 0-18 h": 75.71,
+          "estable 18-54 h": 77.07,
+          "todo": 76.96
+        },
+        "norm3 14d semivida 12h|2|mezcla + nivel": {
+          "adaptación 0-18 h": 76.89,
+          "estable 18-54 h": 78.32,
+          "todo": 77.89
+        },
+        "norm3 14d semivida 24h|2|mezcla + nivel": {
+          "adaptación 0-18 h": 76.36,
+          "estable 18-54 h": 78.23,
+          "todo": 77.78
+        },
+        "congelado|2|mezcla + nivel": {
+          "adaptación 0-18 h": 73.66,
+          "estable 18-54 h": 69.52,
+          "todo": 71.4
+        },
+        "selector 24 h|2|mezcla + nivel": {
+          "adaptación 0-18 h": 76.71,
+          "estable 18-54 h": 78.46,
+          "todo": 77.93
+        },
+        "sc 14d (champion)|6|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 75.82,
+          "estable 18-54 h": 77.72,
+          "todo": 77.67
+        },
+        "sc 3d|6|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 72.67,
+          "estable 18-54 h": 78.35,
+          "todo": 77.08
+        },
+        "sc 14d semivida 6h|6|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 76.97,
+          "estable 18-54 h": 80.32,
+          "todo": 79.54
+        },
+        "sc 14d semivida 12h|6|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 77.09,
+          "estable 18-54 h": 80.89,
+          "todo": 80.04
+        },
+        "sc 14d semivida 24h|6|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 76.99,
+          "estable 18-54 h": 80.39,
+          "todo": 79.75
+        },
+        "norm3 14d|6|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 77.28,
+          "estable 18-54 h": 79.52,
+          "todo": 79.29
+        },
+        "norm3 14d semivida 12h|6|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 78.08,
+          "estable 18-54 h": 82.11,
+          "todo": 80.95
+        },
+        "norm3 14d semivida 24h|6|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 77.94,
+          "estable 18-54 h": 81.62,
+          "todo": 80.62
+        },
+        "congelado|6|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 75.69,
+          "estable 18-54 h": 69.06,
+          "todo": 72.61
+        },
+        "selector 24 h|6|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 77.83,
+          "estable 18-54 h": 82.11,
+          "todo": 80.83
+        },
+        "sc 14d (champion)|2|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 75.98,
+          "estable 18-54 h": 78.3,
+          "todo": 78.13
+        },
+        "sc 3d|2|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 73.32,
+          "estable 18-54 h": 79.11,
+          "todo": 77.77
+        },
+        "sc 14d semivida 6h|2|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 78.28,
+          "estable 18-54 h": 78.72,
+          "todo": 79.14
+        },
+        "sc 14d semivida 12h|2|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 78.06,
+          "estable 18-54 h": 80.64,
+          "todo": 80.21
+        },
+        "sc 14d semivida 24h|2|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 77.54,
+          "estable 18-54 h": 80.34,
+          "todo": 79.87
+        },
+        "norm3 14d|2|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 77.37,
+          "estable 18-54 h": 79.99,
+          "todo": 79.59
+        },
+        "norm3 14d semivida 12h|2|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 78.78,
+          "estable 18-54 h": 81.9,
+          "todo": 81.02
+        },
+        "norm3 14d semivida 24h|2|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 78.53,
+          "estable 18-54 h": 81.73,
+          "todo": 80.9
+        },
+        "congelado|2|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 75.68,
+          "estable 18-54 h": 69.06,
+          "todo": 72.61
+        },
+        "selector 24 h|2|mezcla + nivel sin quiebre": {
+          "adaptación 0-18 h": 78.62,
+          "estable 18-54 h": 82.02,
+          "todo": 81.05
+        }
+      }
+    }
+  },
+  "promedio": {
+    "congelado|2|mezcla": {
+      "adaptación 0-18 h": 75.94,
+      "estable 18-54 h": 68.54,
+      "todo": 71.64
+    },
+    "congelado|2|mezcla + nivel": {
+      "adaptación 0-18 h": 77.39,
+      "estable 18-54 h": 73.16,
+      "todo": 74.68
+    },
+    "congelado|2|mezcla + nivel sin quiebre": {
+      "adaptación 0-18 h": 78.91,
+      "estable 18-54 h": 74.74,
+      "todo": 76.59
+    },
+    "congelado|2|sin capas": {
+      "adaptación 0-18 h": 69.17,
+      "estable 18-54 h": 57.9,
+      "todo": 61.45
+    },
+    "congelado|6|mezcla": {
+      "adaptación 0-18 h": 75.94,
+      "estable 18-54 h": 68.54,
+      "todo": 71.64
+    },
+    "congelado|6|mezcla + nivel": {
+      "adaptación 0-18 h": 77.36,
+      "estable 18-54 h": 73.16,
+      "todo": 74.67
+    },
+    "congelado|6|mezcla + nivel sin quiebre": {
+      "adaptación 0-18 h": 78.91,
+      "estable 18-54 h": 74.74,
+      "todo": 76.58
+    },
+    "congelado|6|sin capas": {
+      "adaptación 0-18 h": 69.17,
+      "estable 18-54 h": 57.9,
+      "todo": 61.45
+    },
+    "norm3 14d semivida 12h|2|mezcla": {
+      "adaptación 0-18 h": 78.92,
+      "estable 18-54 h": 82.76,
+      "todo": 81.52
+    },
+    "norm3 14d semivida 12h|2|mezcla + nivel": {
+      "adaptación 0-18 h": 79.01,
+      "estable 18-54 h": 81.19,
+      "todo": 80.48
+    },
+    "norm3 14d semivida 12h|2|mezcla + nivel sin quiebre": {
+      "adaptación 0-18 h": 80.62,
+      "estable 18-54 h": 83.46,
+      "todo": 82.57
+    },
+    "norm3 14d semivida 12h|2|sin capas": {
+      "adaptación 0-18 h": 75.11,
+      "estable 18-54 h": 82.52,
+      "todo": 80.06
+    },
+    "norm3 14d semivida 12h|6|mezcla": {
+      "adaptación 0-18 h": 78.04,
+      "estable 18-54 h": 82.46,
+      "todo": 81.06
+    },
+    "norm3 14d semivida 12h|6|mezcla + nivel": {
+      "adaptación 0-18 h": 78.44,
+      "estable 18-54 h": 80.76,
+      "todo": 79.98
+    },
+    "norm3 14d semivida 12h|6|mezcla + nivel sin quiebre": {
+      "adaptación 0-18 h": 80.13,
+      "estable 18-54 h": 83.25,
+      "todo": 82.28
+    },
+    "norm3 14d semivida 12h|6|sin capas": {
+      "adaptación 0-18 h": 73.52,
+      "estable 18-54 h": 81.82,
+      "todo": 79.12
+    },
+    "norm3 14d semivida 24h|2|mezcla": {
+      "adaptación 0-18 h": 78.6,
+      "estable 18-54 h": 82.33,
+      "todo": 81.15
+    },
+    "norm3 14d semivida 24h|2|mezcla + nivel": {
+      "adaptación 0-18 h": 78.83,
+      "estable 18-54 h": 80.74,
+      "todo": 80.13
+    },
+    "norm3 14d semivida 24h|2|mezcla + nivel sin quiebre": {
+      "adaptación 0-18 h": 80.41,
+      "estable 18-54 h": 83.23,
+      "todo": 82.36
+    },
+    "norm3 14d semivida 24h|2|sin capas": {
+      "adaptación 0-18 h": 74.38,
+      "estable 18-54 h": 81.4,
+      "todo": 79.12
+    },
+    "norm3 14d semivida 24h|6|mezcla": {
+      "adaptación 0-18 h": 77.92,
+      "estable 18-54 h": 81.86,
+      "todo": 80.63
+    },
+    "norm3 14d semivida 24h|6|mezcla + nivel": {
+      "adaptación 0-18 h": 78.35,
+      "estable 18-54 h": 80.43,
+      "todo": 79.74
+    },
+    "norm3 14d semivida 24h|6|mezcla + nivel sin quiebre": {
+      "adaptación 0-18 h": 80.09,
+      "estable 18-54 h": 82.96,
+      "todo": 82.08
+    },
+    "norm3 14d semivida 24h|6|sin capas": {
+      "adaptación 0-18 h": 73.15,
+      "estable 18-54 h": 80.41,
+      "todo": 78.08
+    },
+    "norm3 14d|2|mezcla": {
+      "adaptación 0-18 h": 77.16,
+      "estable 18-54 h": 79.25,
+      "todo": 78.74
+    },
+    "norm3 14d|2|mezcla + nivel": {
+      "adaptación 0-18 h": 78.35,
+      "estable 18-54 h": 78.66,
+      "todo": 78.62
+    },
+    "norm3 14d|2|mezcla + nivel sin quiebre": {
+      "adaptación 0-18 h": 79.72,
+      "estable 18-54 h": 81.28,
+      "todo": 80.91
+    },
+    "norm3 14d|2|sin capas": {
+      "adaptación 0-18 h": 71.54,
+      "estable 18-54 h": 75.04,
+      "todo": 74.15
+    },
+    "norm3 14d|6|mezcla": {
+      "adaptación 0-18 h": 76.83,
+      "estable 18-54 h": 78.59,
+      "todo": 78.23
+    },
+    "norm3 14d|6|mezcla + nivel": {
+      "adaptación 0-18 h": 77.95,
+      "estable 18-54 h": 78.44,
+      "todo": 78.32
+    },
+    "norm3 14d|6|mezcla + nivel sin quiebre": {
+      "adaptación 0-18 h": 79.52,
+      "estable 18-54 h": 80.95,
+      "todo": 80.64
+    },
+    "norm3 14d|6|sin capas": {
+      "adaptación 0-18 h": 70.91,
+      "estable 18-54 h": 73.86,
+      "todo": 73.21
+    },
+    "sc 14d (champion)|2|mezcla": {
+      "adaptación 0-18 h": 76.56,
+      "estable 18-54 h": 78.13,
+      "todo": 77.86
+    },
+    "sc 14d (champion)|2|mezcla + nivel": {
+      "adaptación 0-18 h": 77.9,
+      "estable 18-54 h": 78.22,
+      "todo": 78.14
+    },
+    "sc 14d (champion)|2|mezcla + nivel sin quiebre": {
+      "adaptación 0-18 h": 79.27,
+      "estable 18-54 h": 80.44,
+      "todo": 80.23
+    },
+    "sc 14d (champion)|2|sin capas": {
+      "adaptación 0-18 h": 70.23,
+      "estable 18-54 h": 72.91,
+      "todo": 72.4
+    },
+    "sc 14d (champion)|6|mezcla": {
+      "adaptación 0-18 h": 76.28,
+      "estable 18-54 h": 77.32,
+      "todo": 77.28
+    },
+    "sc 14d (champion)|6|mezcla + nivel": {
+      "adaptación 0-18 h": 77.46,
+      "estable 18-54 h": 77.86,
+      "todo": 77.74
+    },
+    "sc 14d (champion)|6|mezcla + nivel sin quiebre": {
+      "adaptación 0-18 h": 79.1,
+      "estable 18-54 h": 80.08,
+      "todo": 79.95
+    },
+    "sc 14d (champion)|6|sin capas": {
+      "adaptación 0-18 h": 69.7,
+      "estable 18-54 h": 71.37,
+      "todo": 71.28
+    },
+    "sc 14d semivida 12h|2|mezcla": {
+      "adaptación 0-18 h": 78.23,
+      "estable 18-54 h": 81.72,
+      "todo": 80.66
+    },
+    "sc 14d semivida 12h|2|mezcla + nivel": {
+      "adaptación 0-18 h": 78.68,
+      "estable 18-54 h": 80.3,
+      "todo": 79.86
+    },
+    "sc 14d semivida 12h|2|mezcla + nivel sin quiebre": {
+      "adaptación 0-18 h": 80.17,
+      "estable 18-54 h": 82.55,
+      "todo": 81.89
+    },
+    "sc 14d semivida 12h|2|sin capas": {
+      "adaptación 0-18 h": 73.72,
+      "estable 18-54 h": 80.45,
+      "todo": 78.27
+    },
+    "sc 14d semivida 12h|6|mezcla": {
+      "adaptación 0-18 h": 77.62,
+      "estable 18-54 h": 81.41,
+      "todo": 80.27
+    },
+    "sc 14d semivida 12h|6|mezcla + nivel": {
+      "adaptación 0-18 h": 78.08,
+      "estable 18-54 h": 80.34,
+      "todo": 79.67
+    },
+    "sc 14d semivida 12h|6|mezcla + nivel sin quiebre": {
+      "adaptación 0-18 h": 79.8,
+      "estable 18-54 h": 82.37,
+      "todo": 81.67
+    },
+    "sc 14d semivida 12h|6|sin capas": {
+      "adaptación 0-18 h": 72.48,
+      "estable 18-54 h": 79.7,
+      "todo": 77.39
+    },
+    "sc 14d semivida 24h|2|mezcla": {
+      "adaptación 0-18 h": 77.95,
+      "estable 18-54 h": 81.24,
+      "todo": 80.27
+    },
+    "sc 14d semivida 24h|2|mezcla + nivel": {
+      "adaptación 0-18 h": 78.43,
+      "estable 18-54 h": 80.16,
+      "todo": 79.64
+    },
+    "sc 14d semivida 24h|2|mezcla + nivel sin quiebre": {
+      "adaptación 0-18 h": 80.0,
+      "estable 18-54 h": 82.42,
+      "todo": 81.74
+    },
+    "sc 14d semivida 24h|2|sin capas": {
+      "adaptación 0-18 h": 73.09,
+      "estable 18-54 h": 79.28,
+      "todo": 77.35
+    },
+    "sc 14d semivida 24h|6|mezcla": {
+      "adaptación 0-18 h": 77.35,
+      "estable 18-54 h": 80.59,
+      "todo": 79.7
+    },
+    "sc 14d semivida 24h|6|mezcla + nivel": {
+      "adaptación 0-18 h": 77.96,
+      "estable 18-54 h": 79.82,
+      "todo": 79.26
+    },
+    "sc 14d semivida 24h|6|mezcla + nivel sin quiebre": {
+      "adaptación 0-18 h": 79.73,
+      "estable 18-54 h": 82.02,
+      "todo": 81.41
+    },
+    "sc 14d semivida 24h|6|sin capas": {
+      "adaptación 0-18 h": 71.88,
+      "estable 18-54 h": 78.05,
+      "todo": 76.22
+    },
+    "sc 14d semivida 6h|2|mezcla": {
+      "adaptación 0-18 h": 78.41,
+      "estable 18-54 h": 81.06,
+      "todo": 80.3
+    },
+    "sc 14d semivida 6h|2|mezcla + nivel": {
+      "adaptación 0-18 h": 78.58,
+      "estable 18-54 h": 79.71,
+      "todo": 79.48
+    },
+    "sc 14d semivida 6h|2|mezcla + nivel sin quiebre": {
+      "adaptación 0-18 h": 80.22,
+      "estable 18-54 h": 82.02,
+      "todo": 81.57
+    },
+    "sc 14d semivida 6h|2|sin capas": {
+      "adaptación 0-18 h": 74.3,
+      "estable 18-54 h": 79.72,
+      "todo": 78.01
+    },
+    "sc 14d semivida 6h|6|mezcla": {
+      "adaptación 0-18 h": 77.43,
+      "estable 18-54 h": 81.05,
+      "todo": 79.96
+    },
+    "sc 14d semivida 6h|6|mezcla + nivel": {
+      "adaptación 0-18 h": 77.99,
+      "estable 18-54 h": 79.65,
+      "todo": 79.21
+    },
+    "sc 14d semivida 6h|6|mezcla + nivel sin quiebre": {
+      "adaptación 0-18 h": 79.6,
+      "estable 18-54 h": 81.97,
+      "todo": 81.32
+    },
+    "sc 14d semivida 6h|6|sin capas": {
+      "adaptación 0-18 h": 72.26,
+      "estable 18-54 h": 79.39,
+      "todo": 77.09
+    },
+    "sc 3d|2|mezcla": {
+      "adaptación 0-18 h": 74.35,
+      "estable 18-54 h": 79.82,
+      "todo": 78.2
+    },
+    "sc 3d|2|mezcla + nivel": {
+      "adaptación 0-18 h": 75.6,
+      "estable 18-54 h": 79.67,
+      "todo": 78.43
+    },
+    "sc 3d|2|mezcla + nivel sin quiebre": {
+      "adaptación 0-18 h": 77.27,
+      "estable 18-54 h": 81.59,
+      "todo": 80.34
+    },
+    "sc 3d|2|sin capas": {
+      "adaptación 0-18 h": 66.43,
+      "estable 18-54 h": 75.87,
+      "todo": 72.96
+    },
+    "sc 3d|6|mezcla": {
+      "adaptación 0-18 h": 73.94,
+      "estable 18-54 h": 79.34,
+      "todo": 77.78
+    },
+    "sc 3d|6|mezcla + nivel": {
+      "adaptación 0-18 h": 75.22,
+      "estable 18-54 h": 79.32,
+      "todo": 78.05
+    },
+    "sc 3d|6|mezcla + nivel sin quiebre": {
+      "adaptación 0-18 h": 76.99,
+      "estable 18-54 h": 81.3,
+      "todo": 80.06
+    },
+    "sc 3d|6|sin capas": {
+      "adaptación 0-18 h": 65.74,
+      "estable 18-54 h": 74.96,
+      "todo": 72.17
+    },
+    "selector 24 h|2|mezcla": {
+      "adaptación 0-18 h": 78.83,
+      "estable 18-54 h": 82.7,
+      "todo": 81.45
+    },
+    "selector 24 h|2|mezcla + nivel": {
+      "adaptación 0-18 h": 78.86,
+      "estable 18-54 h": 80.86,
+      "todo": 80.2
+    },
+    "selector 24 h|2|mezcla + nivel sin quiebre": {
+      "adaptación 0-18 h": 80.52,
+      "estable 18-54 h": 83.39,
+      "todo": 82.48
+    },
+    "selector 24 h|2|sin capas": {
+      "adaptación 0-18 h": 74.87,
+      "estable 18-54 h": 82.33,
+      "todo": 79.87
+    },
+    "selector 24 h|6|mezcla": {
+      "adaptación 0-18 h": 77.83,
+      "estable 18-54 h": 82.28,
+      "todo": 80.89
+    },
+    "selector 24 h|6|mezcla + nivel": {
+      "adaptación 0-18 h": 78.36,
+      "estable 18-54 h": 80.36,
+      "todo": 79.77
+    },
+    "selector 24 h|6|mezcla + nivel sin quiebre": {
+      "adaptación 0-18 h": 80.02,
+      "estable 18-54 h": 83.06,
+      "todo": 82.12
+    },
+    "selector 24 h|6|sin capas": {
+      "adaptación 0-18 h": 73.2,
+      "estable 18-54 h": 81.69,
+      "todo": 78.92
+    }
+  }
+}

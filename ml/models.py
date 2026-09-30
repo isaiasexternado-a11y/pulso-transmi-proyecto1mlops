@@ -127,10 +127,21 @@ class GBMconPerfil(Modelo):
                   "roll1h", "roll24h", "roll7d", "perfil")
     PISO_ESCALA = 1.0
 
-    def __init__(self, nombre=None, por_estacion=False, cols=None, escalas=None, **kw):
+    def __init__(self, nombre=None, por_estacion=False, cols=None, escalas=None,
+                 semivida_h=None, perfil_dias=None, **kw):
         if nombre:
             self.nombre = nombre
         self.por_estacion = por_estacion
+        # Adaptación a un cambio de FORMA (revisión 2 del drift, 30-sep). Una
+        # ventana de 14 días aprende sobre todo la forma vieja; estas dos
+        # perillas hacen que lo reciente pese más sin tirar la historia:
+        #   semivida_h:  cada fila pesa 0,5^(edad / semivida) en el ajuste.
+        #   perfil_dias: la variable `perfil` se calcula sólo con los últimos
+        #                días (lo que falte se completa con la ventana entera).
+        # Sólo actúan en `fit`: `predict` no cambia, así que el artefacto sigue
+        # cargando con el `models.py` de main.
+        self.semivida_h = semivida_h
+        self.perfil_dias = perfil_dias
         self.cols = cols        # None = COLS_NUM completo
         # Normalización por nivel reciente. Con `escalas` (columnas de
         # `features`, p. ej. ("roll24h",)) el modelo no predice pasajeros sino
@@ -156,12 +167,31 @@ class GBMconPerfil(Modelo):
                 X[c] = X[c].to_numpy(dtype=float) / s
         return X, s
 
+    def _pesos(self, train: pd.DataFrame) -> np.ndarray | None:
+        semivida = getattr(self, "semivida_h", None)
+        if not semivida:
+            return None     # sin pesos: idéntico a como se entrenaba antes
+        t = pd.DatetimeIndex(train["target_at"])
+        edad_h = (t.max() - t).total_seconds().to_numpy() / 3600.0
+        return 0.5 ** (edad_h / float(semivida))
+
+    def _tabla_perfil(self, train: pd.DataFrame) -> pd.Series:
+        tabla = train.groupby(self.claves_)["y"].mean().rename("p")
+        dias = getattr(self, "perfil_dias", None)
+        if not dias:
+            return tabla
+        t = pd.DatetimeIndex(train["target_at"])
+        reciente = train[t > t.max() - pd.to_timedelta(dias, unit="D")]
+        corta = reciente.groupby(self.claves_)["y"].mean().rename("p")
+        return corta.combine_first(tabla)
+
     def fit(self, train):
         from sklearn.ensemble import HistGradientBoostingRegressor
         from features import COLS_NUM
         self.claves_ = ["station_id", "slot", "es_finde"]
-        self.tabla_ = train.groupby(self.claves_)["y"].mean().rename("p")
+        self.tabla_ = self._tabla_perfil(train)
         self.global_ = float(train["y"].mean())
+        w = self._pesos(train)
         # `cols_` es atributo de instancia, no de clase, y ahí está la gracia:
         # al deserializar se restaura tal cual, así que un artefacto entrenado
         # con menos columnas predice bien aunque el `main` que lo carga tenga
@@ -177,13 +207,16 @@ class GBMconPerfil(Modelo):
             for e in self.escalas:
                 X, s = self._normalizado(t, e)
                 self.est_[e] = HistGradientBoostingRegressor(**self.kw).fit(
-                    X, t["y"].to_numpy(dtype=float) / s, sample_weight=s)
+                    X, t["y"].to_numpy(dtype=float) / s, sample_weight=s if w is None else s * w)
             return self
         if self.por_estacion:
-            self.est_ = {e: HistGradientBoostingRegressor(**self.kw).fit(g[self.cols_], g["y"])
+            self.est_ = {e: HistGradientBoostingRegressor(**self.kw).fit(
+                             g[self.cols_], g["y"],
+                             sample_weight=None if w is None else w[t.index.get_indexer(g.index)])
                          for e, g in t.groupby("station_id")}
         else:
-            self.est_ = HistGradientBoostingRegressor(**self.kw).fit(t[self.cols_], t["y"])
+            self.est_ = HistGradientBoostingRegressor(**self.kw).fit(
+                t[self.cols_], t["y"], sample_weight=w)
         return self
 
     def predict(self, frame):
