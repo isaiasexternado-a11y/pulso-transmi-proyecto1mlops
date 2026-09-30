@@ -105,6 +105,16 @@ El histórico semilla (45 días, 51.840 obs, 2026-07-26 → 2026-09-08) se extie
   en la continuación 76,24 → 85,30 %, sin costo sin drift; 05100 de 2,9 % a 77 %.
   La idea viene de los punteros del leaderboard, que corrigen con ventanas de 1–2 h.
 - El cierre de la competencia es el **viernes 2 de octubre 23:59 Bogotá**.
+- Desde el 2026-09-30 03:00Z **`train.yml` corre cada 2 h** y el champion se renueva solo. Además de los
+  folds, `ml/entrenar.py` mide cada receta en las últimas 24 h (`medir_vivo`) y hay tres rutas a
+  `candidate`: historia (folds), cambio de receta (gana ≥0,30 en lo vivo sin perder >0,30 en folds) y
+  refresco (la receta del champion con datos nuevos). Entre los elegibles gana el mejor en lo vivo.
+  La receta del champion se lee de `hyperparams.receta`. Primer resultado: `gbm + perfil por estacion`
+  (`20260930T025733Z`), 87,82 vs 86,03 del GBM congelado en las últimas 24 h.
+- **Se entrena con 6 h de reserva** (`RESERVA_H`). Sin ella, un modelo recién entrenado reproduce las
+  últimas horas, los backcasts de la corrección de nivel salen in-sample y el quiebre se apaga: cada 2 h
+  sin reserva quedaba por debajo del congelado (84,72 vs 85,47); con reserva, 86,87
+  (`ml/experimento_reentreno.py --cada 2 --reserva 6`).
 - **El contexto de la API está congelado** en 2026-09-08 23:45-05 mientras las observaciones avanzan.
   `ml/data.py` arrastra el último valor conocido.
 - El monitoreo corre: `evaluate.yml` llena `model_metrics`, `drift_signals` (wape_24h, wape_7d,
