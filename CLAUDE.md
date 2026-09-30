@@ -158,7 +158,8 @@ El histórico semilla (45 días, 51.840 obs, 2026-07-26 → 2026-09-08) se extie
    Desde el 2026-09-29 `ml/entrenar.py` mide cada receta CON las capas del champion y veta al candidato que no le
    gane en los últimos 3 días (`--sin-capas` reproduce la comparación vieja).
 3. ~~Candidato sin contexto~~: champion desde el 2026-09-30 17:10Z. Vigilar que siga ganando en lo vivo.
-4. Dashboard en Vercel (bono).
+4. ~~Dashboard en Vercel (bono)~~: en https://pulso-transmi-proyecto1mlops.vercel.app, se redespliega solo con cada push a `main`
+   (integración Git de Vercel, sirve `dashboard/` sin build). Lee Supabase con la llave publicable; RLS bloquea escrituras.
 
 ### Vocabularios que impone el esquema
 
