@@ -508,6 +508,7 @@ def main(dry_run: bool) -> None:
         ingestar_leaderboard(sb, base, key)
         registrar_reloj(sb, base, key)
         cerrar_run(sb, run_id, "success")
+        anunciar("keep")
         return
 
     print(f"scores  : {len(scores)} pares predicción/realidad  "
