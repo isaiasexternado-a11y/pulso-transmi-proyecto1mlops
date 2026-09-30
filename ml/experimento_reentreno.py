@@ -73,7 +73,7 @@ def recetas() -> dict:
     }
 
 
-def main(desde: pd.Timestamp, cada_h: int) -> None:
+def main(desde: pd.Timestamp, cada_h: int, reserva_h: int = 0) -> None:
     sb = Supabase()
     ancha, ctx, _ = cargar(origen="supabase")
     congelado, ficha = champion(sb)
@@ -95,7 +95,9 @@ def main(desde: pd.Timestamp, cada_h: int) -> None:
         if bloque.empty:
             continue
         evaluar = (bloque["origen"] >= corte).to_numpy()
-        train_full = todo[todo["target_at"] <= corte].dropna()
+        # Reserva: las últimas horas antes del corte no entran al entrenamiento,
+        # para que los backcasts de la corrección de nivel no sean in-sample.
+        train_full = todo[todo["target_at"] <= corte - pd.to_timedelta(reserva_h, unit="h")].dropna()
         preds = {"congelado": congelado.predict(bloque)}
         for nombre, (crear, dias) in recetas().items():
             tr = train_full
@@ -138,12 +140,12 @@ def main(desde: pd.Timestamp, cada_h: int) -> None:
     gana = int((por_ciclo[mejor] > por_ciclo["congelado"]).sum())
     print(f"\n{mejor} gana en {gana} de {len(por_ciclo)} ciclos de la continuación")
 
-    salida = RAIZ / "ml/resultados/experimento_reentreno.json"
+    salida = RAIZ / f"ml/resultados/experimento_reentreno_c{cada_h}_r{reserva_h}.json"
     salida.parent.mkdir(parents=True, exist_ok=True)
     salida.write_text(json.dumps({
         "calculado": datetime.now(timezone.utc).isoformat(),
         "champion": ficha["hyperparams"]["version"], "capas": list(capas),
-        "desde": str(desde), "cada_h": cada_h, "fin": str(fin),
+        "desde": str(desde), "cada_h": cada_h, "reserva_h": reserva_h, "fin": str(fin),
         "tabla": tabla.to_dict(orient="index"),
         "continuacion_por_estacion": est.to_dict(orient="index"),
         "mejor": mejor, "gana_ciclos": [gana, len(por_ciclo)],
@@ -155,5 +157,7 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--desde", default=str(INICIO_DRIFT))
     ap.add_argument("--cada", type=int, default=6)
+    ap.add_argument("--reserva", type=int, default=0,
+                    help="horas finales que no entran al entrenamiento")
     a = ap.parse_args()
-    main(pd.Timestamp(a.desde), a.cada)
+    main(pd.Timestamp(a.desde), a.cada, a.reserva)

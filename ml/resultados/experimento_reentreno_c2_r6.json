@@ -1,0 +1,126 @@
+{
+  "calculado": "2026-09-30T02:48:46.766536+00:00",
+  "champion": "20260918T202534Z-pers-06-04-02-02-nivq-02-050",
+  "capas": [
+    "mezcla_persistencia",
+    "correccion_nivel"
+  ],
+  "desde": "2026-09-16 13:00:00+00:00",
+  "cada_h": 2,
+  "reserva_h": 6,
+  "fin": "2026-09-17 04:30:00-05:00",
+  "tabla": {
+    "congelado": {
+      "continuación": 85.47,
+      "todo": 85.47,
+      "ciclos cont.": 20
+    },
+    "gbm + perfil (todo)": {
+      "continuación": 86.17,
+      "todo": 86.17,
+      "ciclos cont.": 20
+    },
+    "gbm + perfil sin contexto": {
+      "continuación": 86.23,
+      "todo": 86.23,
+      "ciclos cont.": 20
+    },
+    "gbm + perfil sin contexto · 14d": {
+      "continuación": 86.85,
+      "todo": 86.85,
+      "ciclos cont.": 20
+    },
+    "normalizado 24h": {
+      "continuación": 86.16,
+      "todo": 86.16,
+      "ciclos cont.": 20
+    },
+    "normalizado 3 escalas": {
+      "continuación": 86.62,
+      "todo": 86.62,
+      "ciclos cont.": 20
+    },
+    "normalizado 3 escalas · 14d": {
+      "continuación": 86.87,
+      "todo": 86.87,
+      "ciclos cont.": 20
+    },
+    "perfil": {
+      "continuación": 85.68,
+      "todo": 85.68,
+      "ciclos cont.": 20
+    },
+    "perfil · 14d": {
+      "continuación": 86.13,
+      "todo": 86.13,
+      "ciclos cont.": 20
+    }
+  },
+  "continuacion_por_estacion": {
+    "02300": {
+      "congelado": 82.0,
+      "normalizado 3 escalas · 14d": 80.3,
+      "delta": -1.7000000000000028
+    },
+    "03000": {
+      "congelado": 82.5,
+      "normalizado 3 escalas · 14d": 83.0,
+      "delta": 0.5
+    },
+    "05000": {
+      "congelado": 73.8,
+      "normalizado 3 escalas · 14d": 80.7,
+      "delta": 6.900000000000006
+    },
+    "05100": {
+      "congelado": 77.8,
+      "normalizado 3 escalas · 14d": 78.3,
+      "delta": 0.5
+    },
+    "06000": {
+      "congelado": 89.0,
+      "normalizado 3 escalas · 14d": 90.3,
+      "delta": 1.2999999999999972
+    },
+    "06111": {
+      "congelado": 88.9,
+      "normalizado 3 escalas · 14d": 89.3,
+      "delta": 0.3999999999999915
+    },
+    "07105": {
+      "congelado": 91.7,
+      "normalizado 3 escalas · 14d": 91.9,
+      "delta": 0.20000000000000284
+    },
+    "07107": {
+      "congelado": 86.0,
+      "normalizado 3 escalas · 14d": 88.8,
+      "delta": 2.799999999999997
+    },
+    "07111": {
+      "congelado": 86.1,
+      "normalizado 3 escalas · 14d": 88.7,
+      "delta": 2.6000000000000085
+    },
+    "09000": {
+      "congelado": 91.6,
+      "normalizado 3 escalas · 14d": 89.8,
+      "delta": -1.7999999999999972
+    },
+    "09122": {
+      "congelado": 84.6,
+      "normalizado 3 escalas · 14d": 90.1,
+      "delta": 5.5
+    },
+    "10009": {
+      "congelado": 91.8,
+      "normalizado 3 escalas · 14d": 91.4,
+      "delta": -0.3999999999999915
+    }
+  },
+  "mejor": "normalizado 3 escalas · 14d",
+  "gana_ciclos": [
+    16,
+    20
+  ]
+}

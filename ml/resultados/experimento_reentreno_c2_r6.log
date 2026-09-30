@@ -1,0 +1,43 @@
+champion: 20260918T202534Z-pers-06-04-02-02-nivq-02-050  capas: mezcla_persistencia, correccion_nivel
+bloque 1/11  09-16 08:00 -> 09-16 10:00  congelado=82.56  gbm + perfil s=81.38  normalizado 3 =83.85  perfil=82.67
+bloque 2/11  09-16 10:00 -> 09-16 12:00  congelado=81.59  gbm + perfil s=83.87  normalizado 3 =82.43  perfil=81.47
+bloque 3/11  09-16 12:00 -> 09-16 14:00  congelado=87.60  gbm + perfil s=89.03  normalizado 3 =88.89  perfil=87.74
+bloque 4/11  09-16 14:00 -> 09-16 16:00  congelado=84.43  gbm + perfil s=85.54  normalizado 3 =86.88  perfil=84.48
+bloque 5/11  09-16 16:00 -> 09-16 18:00  congelado=86.16  gbm + perfil s=87.69  normalizado 3 =87.88  perfil=86.36
+bloque 6/11  09-16 18:00 -> 09-16 20:00  congelado=85.51  gbm + perfil s=88.68  normalizado 3 =87.99  perfil=85.96
+bloque 7/11  09-16 20:00 -> 09-16 22:00  congelado=86.90  gbm + perfil s=84.97  normalizado 3 =86.21  perfil=86.97
+bloque 8/11  09-16 22:00 -> 09-17 00:00  congelado=87.46  gbm + perfil s=87.50  normalizado 3 =87.92  perfil=88.16
+bloque 9/11  09-17 00:00 -> 09-17 02:00  congelado=88.39  gbm + perfil s=88.91  normalizado 3 =87.15  perfil=88.69
+bloque 10/11  09-17 02:00 -> 09-17 04:00  congelado=85.69  gbm + perfil s=87.94  normalizado 3 =86.88  perfil=86.40
+bloque 11/11  09-17 04:00 -> 09-17 04:30  congelado=nan  gbm + perfil s=nan  normalizado 3 =nan  perfil=nan
+
+                                 continuación   todo  ciclos cont.
+normalizado 3 escalas · 14d             86.87  86.87            20
+gbm + perfil sin contexto · 14d         86.85  86.85            20
+normalizado 3 escalas                   86.62  86.62            20
+gbm + perfil sin contexto               86.23  86.23            20
+gbm + perfil (todo)                     86.17  86.17            20
+normalizado 24h                         86.16  86.16            20
+perfil · 14d                            86.13  86.13            20
+perfil                                  85.68  85.68            20
+congelado                               85.47  85.47            20
+
+continuación por estación:
+            congelado  normalizado 3 escalas · 14d  delta
+station_id                                               
+02300            82.0                         80.3   -1.7
+03000            82.5                         83.0    0.5
+05000            73.8                         80.7    6.9
+05100            77.8                         78.3    0.5
+06000            89.0                         90.3    1.3
+06111            88.9                         89.3    0.4
+07105            91.7                         91.9    0.2
+07107            86.0                         88.8    2.8
+07111            86.1                         88.7    2.6
+09000            91.6                         89.8   -1.8
+09122            84.6                         90.1    5.5
+10009            91.8                         91.4   -0.4
+
+normalizado 3 escalas · 14d gana en 16 de 20 ciclos de la continuación
+
+detalle -> /home/isaias/code/proyecto1/ml/resultados/experimento_reentreno_c2_r6.json

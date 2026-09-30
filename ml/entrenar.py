@@ -365,6 +365,14 @@ def comparar(ancha, ctx, n_folds: int, capas: dict) -> dict[str, dict]:
 HORAS_VIVO = 24
 CALENTAR_H = 5              # 2 · ventana de nivel (2 h) + holgura
 MARGEN_VIVO = 0.30          # para cambiar de receta hay que ganar esto en lo vivo
+
+# Reserva: las últimas horas no entran al entrenamiento. La corrección de nivel
+# compara lo observado contra backcasts del propio modelo en las últimas 2-4 h;
+# si el modelo acaba de entrenar con esas horas las reproduce casi exactas, el
+# factor sale ~1 y la corrección se apaga. Medido en la continuación con
+# reentreno cada 2 h: sin reserva los GBM caían por debajo del congelado
+# (`ml/experimento_reentreno.py --cada 2`).
+RESERVA_H = 6
 TOLERANCIA_HISTORIA = 0.30  # y no perder más que esto en los folds
 
 
@@ -386,7 +394,8 @@ def medir_vivo(sb: Supabase, ancha, ctx, capas: dict) -> dict:
     evaluar = ((val["target_at"] - val["horizon"] * PASO) >= corte).to_numpy()
     o_train = origenes_por_hora(ancha, ancha.index[0], corte)
     train_full = construir(ancha, ctx, o_train).dropna()
-    train_full = train_full[train_full["target_at"] <= corte]
+    train_full = train_full[train_full["target_at"]
+                            <= corte - pd.to_timedelta(RESERVA_H, unit="h")]
 
     def medir(pred) -> float:
         entregado = aplicar_capas(val, pred, capas)
@@ -539,6 +548,7 @@ def registrar(sb: Supabase, ancha, ctx, ganador: dict, tabla: dict,
     fin = ancha.index[-1]
     o_full = origenes_por_hora(ancha, ancha.index[0], fin)
     full = construir(ancha, ctx, o_full).dropna()
+    full = full[full["target_at"] <= fin - pd.to_timedelta(RESERVA_H, unit="h")]
     if r.dias is not None:
         full = full[full["target_at"] >= fin - pd.to_timedelta(r.dias, unit="D")]
 
@@ -582,7 +592,7 @@ def registrar(sb: Supabase, ancha, ctx, ganador: dict, tabla: dict,
         "feature_set": "fs-v2-sin-contexto" if sin_contexto else "fs-v1",
         "feature_list": cols,
         "train_start": str(full["target_at"].min()),
-        "train_end": str(fin),
+        "train_end": str(full["target_at"].max()),
         "n_train_rows": int(len(full)),
         "artifact_uri": f"supabase://{BUCKET}/{ruta}",
         "artifact_sha256": sha,
@@ -596,6 +606,7 @@ def registrar(sb: Supabase, ancha, ctx, ganador: dict, tabla: dict,
             "version": version,
             "sklearn": __import__("sklearn").__version__,
             "ventana_dias": r.dias,
+            "reserva_h": RESERVA_H,
             "receta": r.etiqueta,
             "validacion_accuracy": ganador["accuracy_media"],
             "validacion_peor_fold": ganador["accuracy_min"],
