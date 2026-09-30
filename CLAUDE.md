@@ -117,7 +117,14 @@ El histórico semilla (45 días, 51.840 obs, 2026-07-26 → 2026-09-08) se extie
   (`20260930T025733Z`), 87,82 vs 86,03 del GBM congelado en las últimas 24 h.
 - Desde el 2026-09-30 17:10Z el champion es `gbm + perfil sin contexto · 14d` (`fs-v2-sin-contexto`), por
   cambio de receta: 86,99 vs 86,77 en las últimas 24 h. Ya no depende de las 5 features de contexto congeladas.
-- **Se entrena con 6 h de reserva** (`RESERVA_H`). Sin ella, un modelo recién entrenado reproduce las
+- **Revisión 2 del drift** (activada el 2026-09-30 14:52 Bogotá, `docs/drift-operations.md` del profe): cambia la
+  FORMA de la demanda (`peak_shift` del generador), 6 h de transición y régimen estable hasta el cierre. Se notó
+  desde el ciclo 04:00Z virtual del 18 (87 → 68 %). Respuesta, medida en `ml/experimento_forma.py` (cambio de forma
+  sintético, 2 anclas x 3 escenarios, reentreno cada 2 h): recetas con **pesos por recencia** (`semivida_h`),
+  **reserva 2 h** y corrección de nivel **sin quiebre** (le gana a con quiebre 12 de 12). Contra la configuración
+  anterior, +2,35 a +7,08 en los 6 escenarios. `medir_vivo` además mide cada receta con y sin nivel y el candidato
+  hereda el estado que gane (`correccion_nivel_apagada` guarda la apagada). Activo desde 2026-09-30 22:46Z.
+- Antes del 2026-09-30 22:46Z **se entrenaba con 6 h de reserva** (`RESERVA_H`). Sin ella, un modelo recién entrenado reproduce las
   últimas horas, los backcasts de la corrección de nivel salen in-sample y el quiebre se apaga: cada 2 h
   sin reserva quedaba por debajo del congelado (84,72 vs 85,47); con reserva, 86,87
   (`ml/experimento_reentreno.py --cada 2 --reserva 6`).
