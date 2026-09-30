@@ -2,7 +2,7 @@
 #
 # Separado de la inferencia a propósito: un fallo entrenando no puede bloquear
 # una entrega. Lo dispara `evaluate.yml` cuando `retrain_decisions` dice
-# `retrain`, o una programación diaria, o una mano humana.
+# `retrain`, o la programación cada 2 h, o una mano humana.
 #
 # Dos jobs y dos ramas, y eso es el punto:
 #
@@ -18,7 +18,11 @@ name: pulso-transmi-train
 on:
   workflow_dispatch:
   schedule:
-    - cron: "15 6 * * *"    # un entrenamiento diario, aunque no haya drift
+    # Cada 2 h, aunque no haya drift. Con el escenario cambiando en horas, un
+    # entrenamiento diario dejaba al champion días detrás del régimen vivo.
+    # Correr no es promover: `ml.entrenar` sólo registra si una ruta lo permite
+    # (historia, cambio de receta o refresco; ver sus compuertas).
+    - cron: "15 */2 * * *"
 
 concurrency:
   group: pulso-transmi-train
