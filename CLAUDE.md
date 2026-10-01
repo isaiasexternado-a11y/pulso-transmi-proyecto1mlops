@@ -129,6 +129,14 @@ El histórico semilla (45 días, 51.840 obs, 2026-07-26 → 2026-09-08) se extie
   ~55 % incluso adaptativas, y entre las horas 18-30 recuperan ~84 %. Es la que se ve desde el ciclo 04:00Z virtual.
   El repo sigue diciendo cierre viernes 2-oct 23:59; el equipo oyó que podría ser el domingo: la autoridad es el reloj
   de la API. Vigía en la nube cada 2 h (routine `trig_012tAcmDaGKiLSSo1qmwdkxx`): sólo diagnostica y avisa por Gmail.
+- Desde el 2026-10-01 el interruptor de capas cubre mezcla y nivel: `medir_vivo` prueba todas las combinaciones y la
+  ficha guarda la apagada en `<capa>_apagada`. Con la revisión 3 (picos de 1-2 h en la madrugada) el champion
+  normalizado con semivida quedó **sin capas** (82,97 vs 81,92 con mezcla): el modelo normalizado ya sigue la escala
+  y las capas contaban dos veces.
+- **Vigilancia de tipología** (el profe anunció que cambiará la tipología de los datos): `pipeline/vigilar.py` corre en
+  cada evaluate.yml y deja en `data_watch` huellas del formato de la API, de las revisiones del profe y de caídas
+  bruscas. Dashboard: banner rojo + sección "Vigilancia de datos". El vigía en la nube corre cada hora y manda correo
+  '[Pulso TransMi] CAMBIO EN LOS DATOS'. Tras adaptarse a un formato nuevo: `python -m pipeline.vigilar --aceptar`.
 - Antes del 2026-09-30 22:46Z **se entrenaba con 6 h de reserva** (`RESERVA_H`). Sin ella, un modelo recién entrenado reproduce las
   últimas horas, los backcasts de la corrección de nivel salen in-sample y el quiebre se apaga: cada 2 h
   sin reserva quedaba por debajo del congelado (84,72 vs 85,47); con reserva, 86,87
