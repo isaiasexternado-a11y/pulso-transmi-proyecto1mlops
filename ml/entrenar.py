@@ -251,26 +251,34 @@ def capas_vigentes(sb: Supabase) -> dict:
     return capas
 
 
-def nivel_guardado(sb: Supabase) -> dict | None:
-    """La corrección de nivel del champion, esté prendida o apagada.
+def capas_guardadas(sb: Supabase) -> dict:
+    """Todas las capas del champion, prendidas o apagadas.
 
-    Apagada vive en `correccion_nivel_apagada`: `pipeline/entregar.py` sólo lee
-    `correccion_nivel`, así que no se aplica, pero la receta sigue en la ficha
+    Una capa apagada vive en `<capa>_apagada`: `pipeline/entregar.py` sólo lee
+    el nombre sin sufijo, así que no se aplica, pero la receta sigue en la ficha
     para que un reentreno posterior pueda volver a prenderla si en lo vivo
     vuelve a ganar.
     """
     fila = sb.seleccionar("models", select="hyperparams", status="eq.active", limit=1)
     hp = (fila[0]["hyperparams"] or {}) if fila else {}
-    return _sin_quiebre(hp.get("correccion_nivel") or hp.get("correccion_nivel_apagada"))
+    out = {}
+    for k in CAPAS:
+        v = hp.get(k) or hp.get(f"{k}_apagada")
+        if k == "correccion_nivel":
+            v = _sin_quiebre(v)
+        if v:
+            out[k] = v
+    return out
 
 
-def alternar_nivel(capas: dict, nivel: dict | None) -> dict | None:
-    """Las mismas capas con la corrección de nivel en el estado contrario."""
-    if not nivel:
-        return None
-    if "correccion_nivel" in capas:
-        return {k: v for k, v in capas.items() if k != "correccion_nivel"}
-    return {**capas, "correccion_nivel": nivel}
+def combinaciones_capas(guardadas: dict) -> list[dict]:
+    """Cada subconjunto de las capas guardadas: todas prendidas, cada una
+    apagada, ninguna."""
+    import itertools
+    claves = list(guardadas)
+    return [{k: guardadas[k] for k in sub}
+            for n in range(len(claves), -1, -1)
+            for sub in itertools.combinations(claves, n)]
 
 
 def aplicar_capas(val: pd.DataFrame, pred, capas: dict) -> np.ndarray:
@@ -432,6 +440,12 @@ HORAS_VIVO = 24
 # Cada corrida mide cada receta con y sin ella en lo vivo; se cambia de estado
 # sólo si el otro gana por este margen, para no parpadear entre corridas.
 MARGEN_CAPAS = 0.10
+# Desde el 2026-10-01 el interruptor cubre también la mezcla con persistencia.
+# En la revisión 3 la demanda trae picos de 1-2 h en la madrugada, y en los dos
+# primeros ciclos fuera de muestra el champion sin mezcla le ganaba al
+# champion con mezcla (46,9 vs 41,9 y 48,2 vs 46,1): apoyarse en el último
+# observado también persigue el pico. Son dos ciclos, así que no se apaga a
+# mano: se mide en cada corrida y decide lo vivo.
 CALENTAR_H = 5              # 2 · ventana de nivel (2 h) + holgura
 MARGEN_VIVO = 0.10          # para cambiar de receta hay que ganar esto en lo vivo
 # Era 0,30. Se bajó el 2026-09-30: todo elegible ya pasó las compuertas de
@@ -453,7 +467,7 @@ RESERVA_H = 2
 TOLERANCIA_HISTORIA = 0.30  # y no perder más que esto en los folds
 
 
-def medir_vivo(sb: Supabase, ancha, ctx, capas: dict, nivel: dict | None = None) -> dict:
+def medir_vivo(sb: Supabase, ancha, ctx, capas: dict, guardadas: dict | None = None) -> dict:
     """Accuracy de cada receta en las últimas HORAS_VIVO horas, y la vara.
 
     La vara es lo que se entregaría sin promover nada: el artefacto activo,
@@ -480,29 +494,39 @@ def medir_vivo(sb: Supabase, ancha, ctx, capas: dict, nivel: dict | None = None)
 
     print(f"\nvivo: entrenado hasta {corte:%m-%d %H:%M}, "
           f"{int(evaluar.sum() / 48)} ciclos evaluados")
-    otras = alternar_nivel(capas, nivel)
-    con_nivel_hoy = "correccion_nivel" in capas
+    estado_hoy = tuple(sorted(capas))
+    alternativas = [c for c in combinaciones_capas(guardadas or {})
+                    if tuple(sorted(c)) != estado_hoy]
+
+    def nombre(c: dict) -> str:
+        return " + ".join({"mezcla_persistencia": "mezcla",
+                           "correccion_nivel": "nivel"}[k] for k in sorted(c)) or "sin capas"
 
     def medir_con(pred, cs) -> float:
         entregado = aplicar_capas(val, pred, cs)
         return resumen(val[evaluar].assign(y_pred=entregado[evaluar]))["accuracy"]
 
-    por_receta, nivel_por_receta = {}, {}
+    por_receta, capas_por_receta = {}, {}
     for r in recetas():
         tr = train_full
         if r.dias is not None:
             tr = tr[tr["target_at"] > corte - pd.to_timedelta(r.dias, unit="D")]
         pred = r.crear().fit(tr).predict(val)
         hoy = medir(pred)
-        por_receta[r.etiqueta], nivel_por_receta[r.etiqueta] = hoy, con_nivel_hoy
-        nota = ""
-        if otras is not None:
-            alt = medir_con(pred, otras)
-            nota = f"   {'sin' if con_nivel_hoy else 'con'} nivel {alt:6.2f}"
-            if alt >= hoy + MARGEN_CAPAS:
-                por_receta[r.etiqueta], nivel_por_receta[r.etiqueta] = alt, not con_nivel_hoy
-                nota += "  <- cambia"
-        print(f"   {r.etiqueta:40} vivo {hoy:6.2f}{nota}")
+        por_receta[r.etiqueta], capas_por_receta[r.etiqueta] = hoy, list(estado_hoy)
+        notas = []
+        mejor_alt, mejor_acc = None, float("-inf")
+        for c in alternativas:
+            a = medir_con(pred, c)
+            notas.append(f"{nombre(c)} {a:6.2f}")
+            if a > mejor_acc:
+                mejor_alt, mejor_acc = c, a
+        nota = ("   | " + " · ".join(notas)) if notas else ""
+        if mejor_alt is not None and mejor_acc >= hoy + MARGEN_CAPAS:
+            por_receta[r.etiqueta] = mejor_acc
+            capas_por_receta[r.etiqueta] = sorted(mejor_alt)
+            nota += f"  <- {nombre(mejor_alt)}"
+        print(f"   {r.etiqueta:40} vivo {hoy:6.2f} ({nombre(capas)}){nota}")
 
     modelo, ficha = champion(sb)
     if pd.Timestamp(ficha["train_end"]) <= corte:
@@ -512,7 +536,7 @@ def medir_vivo(sb: Supabase, ancha, ctx, capas: dict, nivel: dict | None = None)
         vara, fuente = por_receta[etiqueta], f"receta del champion al corte ({etiqueta})"
     print(f"   {'vara: ' + fuente:40} vivo {vara:6.2f}")
     return {"corte": str(corte), "ciclos": int(evaluar.sum() / 48),
-            "por_receta": por_receta, "nivel_por_receta": nivel_por_receta,
+            "por_receta": por_receta, "capas_por_receta": capas_por_receta,
             "vara": vara, "fuente_vara": fuente}
 
 
@@ -676,12 +700,17 @@ def registrar(sb: Supabase, ancha, ctx, ganador: dict, tabla: dict,
     # que nadie lo decida. El backtest ya lo midió CON esas capas, así que
     # heredarlas es entregar exactamente lo que ganó.
     hp_previo = (previo[0]["hyperparams"] or {}) if previo else {}
-    mezcla = hp_previo.get("mezcla_persistencia")
-    nivel = _sin_quiebre(hp_previo.get("correccion_nivel") or hp_previo.get("correccion_nivel_apagada"))
-    # Prendida o apagada según lo que ganó en lo vivo (`medir_vivo`); sin
-    # prueba viva, como estaba en el champion.
-    nivel_on = (vivo or {}).get("nivel_por_receta", {}).get(
-        r.etiqueta, "correccion_nivel" in hp_previo)
+    # Cada capa se hereda prendida o apagada según lo que ganó en lo vivo
+    # (`medir_vivo`); sin prueba viva, como estaba en el champion.
+    prendidas = set((vivo or {}).get("capas_por_receta", {}).get(
+        r.etiqueta, [k for k in CAPAS if hp_previo.get(k)]))
+    capas_ficha = {}
+    for k in CAPAS:
+        v = hp_previo.get(k) or hp_previo.get(f"{k}_apagada")
+        if k == "correccion_nivel":
+            v = _sin_quiebre(v)
+        if v:
+            capas_ficha[k if k in prendidas else f"{k}_apagada"] = v
     sin_contexto = not any(c.startswith(("rain", "temp", "evento")) for c in cols)
 
     fila = {
@@ -723,9 +752,7 @@ def registrar(sb: Supabase, ancha, ctx, ganador: dict, tabla: dict,
                  if v["receta"].es_champion), None),
             "folds": N_FOLDS,
             "dias_validacion": DIAS_VALIDACION,
-            **({"mezcla_persistencia": mezcla} if mezcla else {}),
-            **({("correccion_nivel" if nivel_on else "correccion_nivel_apagada"): nivel}
-               if nivel else {}),
+            **capas_ficha,
         },
     }
     creado = sb.insertar("models", [fila], devolver=True)[0]
@@ -787,7 +814,7 @@ def main(dry_run: bool, n_folds: int, sin_capas: bool, sin_vivo: bool = False) -
     print("=" * 86)
 
     vivo = None if sin_vivo else medir_vivo(sb, ancha, ctx, capas,
-                                            None if sin_capas else nivel_guardado(sb))
+                                            None if sin_capas else capas_guardadas(sb))
     etiqueta, razones, ruta = elegir(tabla, vivo)
     print("\ncompuertas:")
     for r in razones:
