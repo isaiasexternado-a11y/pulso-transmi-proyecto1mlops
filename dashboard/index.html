@@ -285,6 +285,15 @@
   #pista .k { width: 12px; height: 2px; border-radius: 1px; flex: none; }
   #pista .n { color: var(--tinta-mute); font-size: 12px; margin-top: 5px; font-style: italic; }
 
+  .banner-cambio { border: 2px solid var(--critico); border-radius: 14px; padding: 14px 18px;
+    margin-bottom: 20px; background: color-mix(in srgb, var(--critico) 10%, var(--superficie)); }
+  .banner-cambio h2 { margin: 0 0 6px; font-size: 17px; color: var(--critico-texto); }
+  .banner-cambio ul { margin: 6px 0 0; padding-left: 20px; font-size: 14px; }
+  .banner-cambio .nota { margin-top: 8px; }
+  .vigia-fila { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: baseline;
+    padding: 6px 0; border-bottom: 1px solid var(--borde, rgba(127,127,127,.18)); font-size: 13.5px; }
+  .vigia-fila:last-child { border-bottom: 0; }
+  .vigia-fila .comp { font-weight: 620; min-width: 9ch; }
   .vacio { color: var(--tinta-mute); font-size: 13px; padding: 24px 0; text-align: center; }
   .pie-nota { color: var(--tinta-mute); font-size: 12.5px; line-height: 1.6;
     margin: 12px 0 0; display: flex; gap: 8px; align-items: flex-start; }
@@ -330,6 +339,8 @@
 </header>
 
 <main class="envoltura" id="principal">
+
+  <div id="banner-cambio" role="alert"></div>
 
   <section class="tarjeta">
     <div class="cab-tarjeta">
@@ -400,6 +411,13 @@
     <p class="nota">Reentrenar es una consecuencia registrada, no un impulso. Las decisiones
       idénticas seguidas se agrupan.</p>
     <div id="decisiones"></div>
+  </section>
+
+  <section class="tarjeta seccion">
+    <h2>Vigilancia de datos</h2>
+    <p class="nota">Huella del formato que entrega la API, de los documentos del profesor y de
+      caídas bruscas, revisada en cada evaluación. Si algo cambia aparece arriba en rojo.</p>
+    <div id="vigia-datos"></div>
   </section>
 
   <section class="tarjeta seccion">
@@ -864,6 +882,56 @@ const ICONOS = {
   entreno: `<path d="M21 12a9 9 0 1 1-2.64-6.36L21 8"/><path d="M21 3v5h-5"/>`,
 };
 
+// ------------------------------------------------------- vigilancia de datos
+// `pipeline/vigilar.py` deja en `data_watch` una huella por componente. Una
+// huella en `alerta` es un cambio que nadie ha dado por bueno todavía: el
+// formato de la API cambió, el profesor publicó una revisión nueva, o el
+// accuracy se desplomó. Se avisa arriba de todo, porque es lo que obliga a
+// entrar a intervenir a mano. Las caídas dejan de mostrarse a las 12 h.
+const VIGIA_FRESCO_MIN = 150;   // evaluate corre cada ~50 min
+const NOMBRE_KIND = { formato: "Formato de la API", profe: "Documentos del profe", patron: "Patrón" };
+
+function pintarVigia(vigia) {
+  const caja = $("#vigia-datos"), banner = $("#banner-cambio");
+  if (vigia === null) {
+    banner.innerHTML = "";
+    caja.innerHTML = `<p class="vacio">Falta la tabla <code>data_watch</code>
+      (migración <code>sql/20261001_data_watch.sql</code>).</p>`;
+    return;
+  }
+  const horas = (iso) => (Date.now() - new Date(iso).getTime()) / 3.6e6;
+  const alertas = vigia.filter(r => r.status === "alerta"
+    && (r.kind !== "patron" || horas(r.last_seen_at) < 12));
+  banner.innerHTML = alertas.length ? `<section class="banner-cambio">
+      <h2>⚠ Cambio en los datos detectado</h2>
+      <ul>${alertas.map(r => `<li><b>${esc(NOMBRE_KIND[r.kind] ?? r.kind)}:</b> ${esc(r.title)}
+        <span style="color:var(--tinta-mute)"> · desde ${esc(fechaHora(r.first_seen_at))}</span></li>`).join("")}</ul>
+      <p class="nota">Revisar con Claude antes del próximo ciclo. Cuando el pipeline ya esté adaptado:
+        <code>python -m pipeline.vigilar --aceptar</code>.</p>
+    </section>` : "";
+
+  const ultima = vigia.reduce((m, r) => (!m || r.last_seen_at > m ? r.last_seen_at : m), null);
+  const viva = ultima && horas(ultima) * 60 < VIGIA_FRESCO_MIN;
+  // Lo vigente de cada componente: la huella vista más recientemente.
+  const vigente = new Map();
+  for (const r of vigia) {
+    const comp = r.kind === "formato" ? r.fingerprint.split(":")[0] : r.kind;
+    const clave = `${r.kind}|${comp}`;
+    if (!vigente.has(clave)) vigente.set(clave, { ...r, comp });
+  }
+  const filas = [...vigente.values()].sort((a, b) => a.kind.localeCompare(b.kind));
+  const color = (st) => st === "alerta" ? "critico" : "bien";
+  caja.innerHTML = `
+    <div class="pie-flujo" style="margin:0 0 10px">${estadoHTML(viva ? "bien" : "aviso",
+      viva ? "vigilando" : "sin revisar hace rato")}
+      <span style="color:var(--tinta-mute)"> · última revisión ${esc(hace(ultima))}</span></div>
+    ${filas.length ? filas.map(r => `<div class="vigia-fila">
+      <span class="comp">${esc(r.kind === "formato" ? r.comp : NOMBRE_KIND[r.kind])}</span>
+      ${estadoHTML(color(r.status), r.status === "alerta" ? "cambió" : r.status === "aceptada" ? "aceptado" : "sin cambios")}
+      <span style="color:var(--tinta-mute)">${esc(r.status === "alerta" ? r.title : `vigente desde ${fechaHora(r.first_seen_at)}`)}</span>
+    </div>`).join("") : `<p class="vacio">Todavía sin revisiones.</p>`}`;
+}
+
 // --------------------------------------------------------------- entrenamiento
 // La cadencia es de ~2 h (evaluate.yml dispara train.yml pasados 110 min, y
 // evaluate despierta cada ~50). Más de 3 h sin arrancar uno es un disparo
@@ -953,7 +1021,7 @@ const icono = (n) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
 async function pintar() {
   $("#principal").classList.add("recargando");
   guardadoDesde = null;
-  const [lb, metricasTodas, senales, decisiones, runs, subs, champion, estaciones, scores, relojes, entrenos] =
+  const [lb, metricasTodas, senales, decisiones, runs, subs, champion, estaciones, scores, relojes, entrenos, vigia] =
     await Promise.all([
       pedir("leaderboard_snapshots?select=*&order=captured_at.asc"),
       pedir("model_metrics?select=*&split=eq.production"),
@@ -968,6 +1036,7 @@ async function pintar() {
       pedir("api_clock?select=*").catch(() => []),
       // null (no []) si la tabla no existe: "sin registro" no es "nunca entrenó".
       pedir("training_runs?select=*&order=started_at.desc&limit=30").catch(() => null),
+      pedir("data_watch?select=*&order=last_seen_at.desc&limit=100").catch(() => null),
     ]);
   const est = new Map(estaciones.map(e => [e.station_id, e]));
   const nombreEst = (id) => est.get(id)?.station_name ?? id;
@@ -1242,6 +1311,7 @@ async function pintar() {
   }
 
   pintarEntrenamientos(entrenos);
+  pintarVigia(vigia);
 
   // --- decisiones: una línea de tiempo que agrupa las repeticiones seguidas
   const COLOR_DEC = { keep: "bien", blocked: "aviso", retrain: "serio", rollback: "critico" };

@@ -92,3 +92,18 @@ jobs:
           else
             echo "todavía no toca: faltan $(( CADA_MIN - minutos )) min"
           fi
+
+      # Vigila la tipología de los datos (formato de la API, documentos del
+      # profesor, caída brusca) y deja las huellas en `data_watch`, de donde
+      # salen el banner del dashboard y el correo del vigía. Sólo detecta: un
+      # fallo aquí no puede tumbar la evaluación ni el entrenamiento.
+      - name: Vigilar la tipología de los datos
+        if: ${{ !cancelled() }}
+        continue-on-error: true
+        env:
+          PULSO_API_BASE: ${{ vars.PULSO_API_BASE }}
+          PULSO_API_KEY: ${{ secrets.PULSO_API_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+          GH_TOKEN: ${{ github.token }}
+        run: python -m pipeline.vigilar
