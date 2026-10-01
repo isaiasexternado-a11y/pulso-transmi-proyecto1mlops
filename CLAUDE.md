@@ -139,6 +139,11 @@ El histórico semilla (45 días, 51.840 obs, 2026-07-26 → 2026-09-08) se extie
   con el promedio de lo observado P y 2P antes: peso 1 bajo WAPE 0,15, 0 sobre 0,25. En régimen normal el mejor
   rezago corto da 0,44-0,56 y no se prende. Ciclos 18-21Z virtuales: 77,7/73,6/72,2/74,2 -> 86,3/91,1/92,6/92,2.
   `ml/entrenar.py::registrar` la hereda tal cual. Promovida sobre el champion semivida 12h (`…-est`).
+  Desde las 16:07Z la ventana de detección es de **6 h** (antes 12): se prende 5 h antes tras un cambio de régimen y
+  se apaga igual de rápido; en régimen normal el mejor rezago corto con 6 h nunca baja de 0,326 (con 4 h llega a 0,215,
+  descartada). Entre períodos casi empatados (4 h y 8 h) gana el más corto (`EMPATE` = 25 %). La idea de los
+  rezagos periódicos la tuvo antes Mateo Hoyos (`Jhaycoltez512/pulso-transmi-mlops`, ensamble MAE^-6 de rezagos 2-6 h
+  con ventana de 4 h, ~90 % por ciclo desde las 08:21Z).
 - **Vigilancia de tipología** (el profe anunció que cambiará la tipología de los datos): `pipeline/vigilar.py` corre en
   cada evaluate.yml y deja en `data_watch` huellas del formato de la API, de las revisiones del profe y de caídas
   bruscas. Dashboard: banner rojo + sección "Vigilancia de datos". El vigía en la nube corre cada hora y manda correo
