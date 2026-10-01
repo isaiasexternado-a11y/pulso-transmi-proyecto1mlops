@@ -711,6 +711,11 @@ def registrar(sb: Supabase, ancha, ctx, ganador: dict, tabla: dict,
             v = _sin_quiebre(v)
         if v:
             capas_ficha[k if k in prendidas else f"{k}_apagada"] = v
+    # La capa estacional (pipeline/entregar.py::estacional) se prende y se
+    # apaga sola en cada ciclo según la periodicidad que detecta; aquí sólo se
+    # hereda tal cual. Si un modelo nuevo no la heredara, promoverlo la apagaría.
+    if hp_previo.get("estacional"):
+        capas_ficha["estacional"] = hp_previo["estacional"]
     sin_contexto = not any(c.startswith(("rain", "temp", "evento")) for c in cols)
 
     fila = {
