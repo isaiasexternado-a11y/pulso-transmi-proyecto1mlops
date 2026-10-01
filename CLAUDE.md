@@ -133,6 +133,12 @@ El histórico semilla (45 días, 51.840 obs, 2026-07-26 → 2026-09-08) se extie
   ficha guarda la apagada en `<capa>_apagada`. Con la revisión 3 (picos de 1-2 h en la madrugada) el champion
   normalizado con semivida quedó **sin capas** (82,97 vs 81,92 con mezcla): el modelo normalizado ya sigue la escala
   y las capas contaban dos veces.
+- **Capa estacional** (2026-10-01 15:20Z, `hyperparams.estacional`, `pipeline/entregar.py::estacional`): la revisión 3
+  dejó una demanda que se repite **cada 4 h** (rezago 4 h: WAPE 0,096; cualquier otro rezago corto 0,7-1,0). En cada
+  ciclo la capa busca el período de 2-12 h que mejor explica las últimas 12 h (sólo datos hasta el corte) y predice
+  con el promedio de lo observado P y 2P antes: peso 1 bajo WAPE 0,15, 0 sobre 0,25. En régimen normal el mejor
+  rezago corto da 0,44-0,56 y no se prende. Ciclos 18-21Z virtuales: 77,7/73,6/72,2/74,2 -> 86,3/91,1/92,6/92,2.
+  `ml/entrenar.py::registrar` la hereda tal cual. Promovida sobre el champion semivida 12h (`…-est`).
 - **Vigilancia de tipología** (el profe anunció que cambiará la tipología de los datos): `pipeline/vigilar.py` corre en
   cada evaluate.yml y deja en `data_watch` huellas del formato de la API, de las revisiones del profe y de caídas
   bruscas. Dashboard: banner rojo + sección "Vigilancia de datos". El vigía en la nube corre cada hora y manda correo
