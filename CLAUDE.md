@@ -124,6 +124,11 @@ El histórico semilla (45 días, 51.840 obs, 2026-07-26 → 2026-09-08) se extie
   **reserva 2 h** y corrección de nivel **sin quiebre** (le gana a con quiebre 12 de 12). Contra la configuración
   anterior, +2,35 a +7,08 en los 6 escenarios. `medir_vivo` además mide cada receta con y sin nivel y el candidato
   hereda el estado que gane (`correccion_nivel_apagada` guarda la apagada). Activo desde 2026-09-30 22:46Z.
+- **Revisión 3** (commit del profe 2026-09-30 20:32Z, `private-continuation-v1.2.0`): más exigente, transición de
+  2 h virtuales, régimen estable después. Referencias del profe en 48 h: fija 55 %, adaptativa 80 %; las primeras 6 h
+  ~55 % incluso adaptativas, y entre las horas 18-30 recuperan ~84 %. Es la que se ve desde el ciclo 04:00Z virtual.
+  El repo sigue diciendo cierre viernes 2-oct 23:59; el equipo oyó que podría ser el domingo: la autoridad es el reloj
+  de la API. Vigía en la nube cada 2 h (routine `trig_012tAcmDaGKiLSSo1qmwdkxx`): sólo diagnostica y avisa por Gmail.
 - Antes del 2026-09-30 22:46Z **se entrenaba con 6 h de reserva** (`RESERVA_H`). Sin ella, un modelo recién entrenado reproduce las
   últimas horas, los backcasts de la corrección de nivel salen in-sample y el quiebre se apaga: cada 2 h
   sin reserva quedaba por debajo del congelado (84,72 vs 85,47); con reserva, 86,87
