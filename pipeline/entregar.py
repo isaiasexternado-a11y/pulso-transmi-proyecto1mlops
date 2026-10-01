@@ -443,6 +443,20 @@ def guardar_recibo(sb: Supabase, ciclo: dict, ficha: dict, llave: str,
         conflicto="run_id,station_id,target_at")
     print(f"recibo guardado: {sub_id}  (origen {origen})")
 
+    # El último intento válido reemplaza al anterior como entrega oficial:
+    # sin esto, cada reenvío deja dos o tres filas oficiales por ciclo.
+    # Va al final y no puede tumbar el turno: el recibo y las predicciones
+    # ya quedaron guardados, esto sólo corrige la marca de los anteriores.
+    if cuerpo.get("is_official"):
+        try:
+            sb.actualizar("submissions",
+                          {"cycle_id": f"eq.{ciclo['cycle_id']}",
+                           "submission_id": f"neq.{sub_id}",
+                           "is_official": "is.true"},
+                          {"is_official": False})
+        except Exception as e:
+            print(f"AVISO: no se pudo desmarcar intentos anteriores: {e}")
+
 
 # ---------------------------------------------------------------------- main
 
