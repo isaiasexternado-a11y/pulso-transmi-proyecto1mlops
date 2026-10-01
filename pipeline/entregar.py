@@ -182,6 +182,9 @@ def predecir(modelo: object, ficha: dict, ancha, ctx, origen, objetivos) -> list
     return valores
 
 
+EMPATE = 0.25    # tolerancia relativa para preferir el período más corto
+
+
 def detectar_periodo(ancha, origen, cfg: dict) -> tuple[int | None, float]:
     """El período corto (en pasos) que mejor explica las últimas horas.
 
@@ -208,12 +211,15 @@ def detectar_periodo(ancha, origen, cfg: dict) -> tuple[int | None, float]:
     total = np.nansum(reciente)
     if total <= 0:
         return None, float("inf")
-    mejor, wape = None, float("inf")
-    for p in range(pmin, pmax + 1):
-        w = np.nansum(np.abs(reciente - v[-ventana - p:-p])) / total
-        if w < wape:
-            mejor, wape = p, w
-    return mejor, float(wape)
+    wapes = {p: float(np.nansum(np.abs(reciente - v[-ventana - p:-p])) / total)
+             for p in range(pmin, pmax + 1)}
+    minimo = min(wapes.values())
+    # Los múltiplos del período verdadero empatan casi exacto (4 h y 8 h en la
+    # revisión 3). Gana el más corto entre los que quedan a menos de
+    # EMPATE del mínimo: con 8 h, el promedio de dos períodos miraría 16 h
+    # atrás y caería en la transición. Con ventana de 6 h el mínimo puro elegía 8 h.
+    mejor = min(p for p, w in wapes.items() if w <= minimo * (1 + EMPATE))
+    return mejor, wapes[mejor]
 
 
 def estacional(ancha, origen, objetivos, valores, cfg: dict) -> list[float]:
