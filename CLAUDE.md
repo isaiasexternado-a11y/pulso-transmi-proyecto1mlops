@@ -144,6 +144,11 @@ El histórico semilla (45 días, 51.840 obs, 2026-07-26 → 2026-09-08) se extie
   descartada). Entre períodos casi empatados (4 h y 8 h) gana el más corto (`EMPATE` = 25 %). La idea de los
   rezagos periódicos la tuvo antes Mateo Hoyos (`Jhaycoltez512/pulso-transmi-mlops`, ensamble MAE^-6 de rezagos 2-6 h
   con ventana de 4 h, ~90 % por ciclo desde las 08:21Z).
+  Desde el 2026-10-02 ~15:30Z, con la capa prendida, un **selector** (`selector_estacional`) elige cada ciclo entre
+  `estK` (promedio de K oscilaciones) y `plantK` (forma de onda común a las 12 estaciones, desfasada y escalada por
+  nivel), K=1..6, el de mejor accuracy en los 3 ciclos resueltos previos. Idea de John Bernal (1.º del leaderboard,
+  `alejobernalg/pulso-transmi-equipo`). Replay en ciclos reales 18-19 virtual: 91,03 -> 92,47 (últimos 12: 91,31 -> 93,03).
+  `hyperparams.estacional.selector = false` lo apaga.
 - **Vigilancia de tipología** (el profe anunció que cambiará la tipología de los datos): `pipeline/vigilar.py` corre en
   cada evaluate.yml y deja en `data_watch` huellas del formato de la API, de las revisiones del profe y de caídas
   bruscas. Dashboard: banner rojo + sección "Vigilancia de datos". El vigía en la nube corre cada hora y manda correo

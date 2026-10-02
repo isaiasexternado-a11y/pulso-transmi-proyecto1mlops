@@ -237,6 +237,10 @@ def estacional(ancha, origen, objetivos, valores, cfg: dict) -> list[float]:
     if p is None or peso == 0:
         return valores
     paso = ancha.index[1] - ancha.index[0]
+    if cfg.get("selector", True):
+        elegido = selector_estacional(ancha, origen, objetivos, p)
+        if elegido is not None:
+            return [(1 - peso) * v + peso * e for v, e in zip(valores, elegido)]
     n = int(cfg.get("n", 2))
     out = []
     for (est, t), v in zip(objetivos, valores):
@@ -247,6 +251,88 @@ def estacional(ancha, origen, objetivos, valores, cfg: dict) -> list[float]:
             continue
         out.append((1 - peso) * v + peso * float(sum(previos)) / len(previos))
     return out
+
+
+SELECTOR_K = range(1, 7)   # oscilaciones que promedia cada experto
+SELECTOR_CICLOS = 3        # ciclos ya resueltos con que se puntúa cada experto
+
+
+def _expertos_periodicos(Y, o: int, p: int, hs: list[int]) -> dict:
+    """{nombre: {h: valor por estación}} desde el origen `o`, con período `p`.
+
+    - `estK`: promedio de lo observado P, 2P, …, KP antes del objetivo.
+    - `plantK`: las estaciones repiten la misma onda, desfasada y escalada por
+      su nivel. Se estima una forma común con las últimas K oscilaciones de
+      todas alineadas y cada una la usa con su fase y su nivel: doce veces más
+      datos que su propia historia. Idea de John Bernal
+      (`alejobernalg/pulso-transmi-equipo`, `template_forecast`).
+    Sólo lee Y[:o + 1].
+    """
+    import numpy as np
+
+    out = {}
+    for k in SELECTOR_K:
+        if o + 1 - p * k < 0:
+            break
+        out[f"est{k}"] = {h: np.mean([Y[o + h - p * j] for j in range(1, k + 1)], axis=0) for h in hs}
+        prof = np.nanmean(Y[o - p * k + 1:o + 1].reshape(k, p, -1), axis=0)
+        nivel = prof.mean(axis=0)
+        if not np.all(nivel > 0):
+            continue
+        forma = prof / nivel
+        ref = forma[:, int(np.argmax(nivel))]   # la estación más grande, la menos ruidosa
+        desfases = [min(range(p), key=lambda s: np.nansum(np.abs(np.roll(forma[:, j], -s) - ref)))
+                    for j in range(forma.shape[1])]
+        comun = np.nanmean([np.roll(forma[:, j], -s) for j, s in enumerate(desfases)], axis=0)
+        out[f"plant{k}"] = {h: np.array([comun[(h - 1 - s) % p] for s in desfases]) * nivel for h in hs}
+    return out
+
+
+def selector_estacional(ancha, origen, objetivos, p: int) -> list[float] | None:
+    """El experto periódico con mejor accuracy en los últimos ciclos resueltos.
+
+    Entre `estK` y `plantK` (K = 1..6) gana el de mejor accuracy promedio en
+    los `SELECTOR_CICLOS` orígenes horarios previos, cuyos objetivos ya están
+    observados al corte. Justo tras un cambio de régimen gana K chico; ya
+    maduro, promediar más oscilaciones quita ruido. Replay del 18-19 virtual
+    (ciclos reales): 92,97 vs 91,48 del promedio fijo de P y 2P; últimos 12
+    ciclos 93,03 vs 91,31. None si no hay con qué puntuar.
+    """
+    import numpy as np
+
+    hasta = ancha.loc[:origen]
+    Y = hasta.to_numpy(dtype=float)
+    o = len(Y) - 1
+    paso = ancha.index[1] - ancha.index[0]
+    cols = {c: i for i, c in enumerate(hasta.columns)}
+    hs = sorted({int(round((t - origen) / paso)) for _, t in objetivos})
+    if not hs or hs[0] < 1:
+        return None
+
+    def accuracy(real, pred):
+        wape = np.sum(np.abs(real - pred), axis=0) / np.sum(real, axis=0)
+        return float(np.mean(100 * np.maximum(0, 1 - wape)))
+
+    puntajes: dict[str, list[float]] = {}
+    for c in range(1, SELECTOR_CICLOS + 1):
+        oc = o - hs[-1] * c
+        real = np.stack([Y[oc + h] for h in hs])
+        if np.isnan(real).any():
+            return None
+        for nombre, val in _expertos_periodicos(Y, oc, p, hs).items():
+            pred = np.stack([val[h] for h in hs])
+            puntajes.setdefault(nombre, []).append(np.nan if np.isnan(pred).any() else accuracy(real, pred))
+    validos = {e: float(np.mean(v)) for e, v in puntajes.items()
+               if len(v) == SELECTOR_CICLOS and np.isfinite(v).all()}
+    actuales = _expertos_periodicos(Y, o, p, hs)
+    validos = {e: s for e, s in validos.items() if e in actuales}
+    if not validos:
+        return None
+    mejor = max(validos, key=validos.get)
+    print(f"estacional: experto {mejor} ({validos[mejor]:.1f} en los últimos {SELECTOR_CICLOS} ciclos)")
+    val = actuales[mejor]
+    salida = [float(val[int(round((t - origen) / paso))][cols[est]]) for est, t in objetivos]
+    return None if any(np.isnan(salida)) else salida
 
 
 def factores_nivel(modelo: object, ficha: dict, ancha, ctx, origen,
