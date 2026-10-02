@@ -361,7 +361,7 @@
       <div class="cab-tarjeta">
         <div>
           <h2>Accuracy por estación · últimas 24 h</h2>
-          <p class="nota">Distancia de cada estación al piso de 87 %. El promedio oficial no
+          <p class="nota">Distancia de cada estación al piso de 83,11 % (naive s-1). El promedio oficial no
             pondera por volumen: una estación pequeña pesa igual que un portal.</p>
         </div>
         <div class="leyenda">
@@ -1021,17 +1021,16 @@ const icono = (n) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
 async function pintar() {
   $("#principal").classList.add("recargando");
   guardadoDesde = null;
-  const [lb, metricasTodas, senales, decisiones, runs, subs, champion, estaciones, scores, relojes, entrenos, vigia] =
+  const [lb, senales, decisiones, runs, subs, champion, estaciones, scoresTodos, relojes, entrenos, vigia] =
     await Promise.all([
       pedir("leaderboard_snapshots?select=*&order=captured_at.asc"),
-      pedir("model_metrics?select=*&split=eq.production"),
       pedir("drift_signals?select=*&order=computed_at.desc&limit=400"),
       pedir("retrain_decisions?select=*&order=decided_at.desc&limit=30"),
       pedir("pipeline_runs?select=*&order=run_id.desc&limit=40"),
       pedir("submissions?select=cycle_id,is_official,attempt,http_status,submitted_at&order=submitted_at.desc"),
       pedir("v_active_model?select=*"),
       pedir("stations?select=station_id,station_name,corridor,latitude,longitude,is_portal"),
-      pedir("v_prediction_scores?select=station_id,issued_at,y_pred,y_true,abs_error&order=issued_at.asc"),
+      pedir("v_prediction_scores?select=run_id,station_id,issued_at,target_at,y_pred,y_true,abs_error&order=issued_at.asc"),
       // Sin esta tabla el panel sigue: sólo pierde la capacidad de reconocer una pausa.
       pedir("api_clock?select=*").catch(() => []),
       // null (no []) si la tabla no existe: "sin registro" no es "nunca entrenó".
@@ -1039,16 +1038,40 @@ async function pintar() {
       pedir("data_watch?select=*&order=last_seen_at.desc&limit=100").catch(() => null),
     ]);
   const est = new Map(estaciones.map(e => [e.station_id, e]));
+  // La vista trae TODAS las predicciones, también las de un ciclo reenviado
+  // (al promover un champion con la ventana abierta se entrega otra vez). La
+  // API se queda con el último envío válido, así que aquí también: por ciclo,
+  // sólo la corrida más reciente. Sin esto un ciclo reenviado sumaba 96 filas
+  // y todos los de 48 se dibujaban como "en evaluación".
+  const ultimaCorrida = new Map();
+  for (const s of scoresTodos)
+    if ((ultimaCorrida.get(s.issued_at) ?? -Infinity) < s.run_id) ultimaCorrida.set(s.issued_at, s.run_id);
+  const scores = scoresTodos.filter(s => s.run_id === ultimaCorrida.get(s.issued_at));
   const nombreEst = (id) => est.get(id)?.station_name ?? id;
   // `model_metrics` guarda una fila por estación para CADA modelo que ha sido
   // champion. Sin este filtro, cada promoción repite las 12 estaciones y la
   // accuracy global sale de un modelo cualquiera, no del que está entregando.
-  const metricas = metricasTodas.filter(m => m.model_id === champion[0]?.model_id);
+  // Desde que el champion se refresca cada 2 h, el recién promovido pasa su
+  // primera hora sin nada resuelto y el panel quedaba vacío. La accuracy de
+  // 24 h se calcula entonces sobre lo ENTREGADO (lo que ve la API), con la
+  // misma ventana que pipeline/evaluar.py: 24 h hacia atrás desde el último
+  // target_at resuelto, que es el reloj virtual.
+  const accPorEst = (filas) => {
+    const a = new Map();
+    for (const s of filas) {
+      const e = a.get(s.station_id) || { err: 0, real: 0 };
+      e.err += s.abs_error; e.real += s.y_true; a.set(s.station_id, e);
+    }
+    return new Map([...a].filter(([, e]) => e.real > 0)
+      .map(([id, e]) => [id, 100 * Math.max(0, 1 - e.err / e.real)]));
+  };
+  const promedio = (m) => m.size ? [...m.values()].reduce((p, x) => p + x, 0) / m.size : null;
+  const finVentana = scores.reduce((m, s) => s.target_at > m ? s.target_at : m, "");
+  const desde24 = finVentana && new Date(new Date(finVentana).getTime() - 24 * 3600e3).toISOString();
+  const acc24Est = accPorEst(scores.filter(s => new Date(s.target_at).toISOString() >= desde24));
+  const acc24 = promedio(acc24Est), accAcum = promedio(accPorEst(scores));
 
   const ult = lb.at(-1) || null, previo = lb.at(-2) || null;
-  const glob = (fold, metric) => metricas.find(
-    m => m.fold === fold && m.station_id === null && m.metric === metric)?.value;
-  const acc24 = glob(1, "accuracy"), accAcum = glob(0, "accuracy");
 
   // --- semáforos del pipeline
   const collector = runs.find(r => r.rows_ingested > 0);
@@ -1192,11 +1215,10 @@ async function pintar() {
   const firmesCiclo = serieCiclos.filter(p => !p.parcial);
 
   // --- accuracy por estación (24 h), con nombre y coordenadas
-  const porEst = metricas
-    .filter(m => m.fold === 1 && m.station_id && m.metric === "accuracy")
-    .map(m => { const e = est.get(m.station_id) || {};
-      return { id: m.station_id, nombre: e.station_name ?? m.station_id, corredor: e.corridor,
-               lat: e.latitude, lon: e.longitude, portal: e.is_portal, valor: m.value }; })
+  const porEst = [...acc24Est]
+    .map(([id, valor]) => { const e = est.get(id) || {};
+      return { id, nombre: e.station_name ?? id, corredor: e.corridor,
+               lat: e.latitude, lon: e.longitude, portal: e.is_portal, valor }; })
     .sort((a, b) => a.valor - b.valor);
   const sobre = porEst.filter(f => f.valor >= UMBRAL_ACC).length;
 
@@ -1210,7 +1232,7 @@ async function pintar() {
   const dPiso = acc24 != null ? acc24 - UMBRAL_ACC : null;
   $("#tiles").innerHTML = `
     <section class="tarjeta tile">
-      <div class="etq">Accuracy del modelo · 24 h</div>
+      <div class="etq">Accuracy entregada · 24 h</div>
       <div class="cifra">${num(acc24)}<small> %</small></div>
       <div class="pie">${dPiso != null ? `<span class="delta ${dPiso >= 0 ? "sube" : "baja"}">${dPiso >= 0 ? "▲" : "▼"} ${num(Math.abs(dPiso))} pts</span>
         ${dPiso >= 0 ? "sobre" : "bajo"} el piso · acumulada ${num(accAcum)} %` : "sin evaluación"}</div>
