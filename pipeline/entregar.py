@@ -264,8 +264,8 @@ def _expertos_periodicos(Y, o: int, p: int, hs: list[int]) -> dict:
     - `plantK`: las estaciones repiten la misma onda, desfasada y escalada por
       su nivel. Se estima una forma común con las últimas K oscilaciones de
       todas alineadas y cada una la usa con su fase y su nivel: doce veces más
-      datos que su propia historia. Idea de John Bernal
-      (`alejobernalg/pulso-transmi-equipo`, `template_forecast`).
+      datos que su propia historia. Idea tomada de la retroalimentación
+      compartida en el curso y adaptada a esta capa.
     Sólo lee Y[:o + 1].
     """
     import numpy as np

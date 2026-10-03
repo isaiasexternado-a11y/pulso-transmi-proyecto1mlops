@@ -103,7 +103,7 @@ El histórico semilla (45 días, 51.840 obs, 2026-07-26 → 2026-09-08) se extie
   (`correccion_nivel.quiebre`). Responde a la continuación del escenario del 16 virtual 08:00
   (02300/05000 a 2–4,7×, 05100 a 0,15×, 03000 a 0,4×). Evidencia en `ml/experimento_nivel_corto.py`:
   en la continuación 76,24 → 85,30 %, sin costo sin drift; 05100 de 2,9 % a 77 %.
-  La idea viene de los punteros del leaderboard, que corrigen con ventanas de 1–2 h.
+  La idea sale de la retroalimentación compartida en el curso (corregir con ventanas de 1–2 h); la adaptamos y medimos aquí.
 - El cierre de la competencia es el **viernes 2 de octubre 23:59 Bogotá**.
   **Pausa**: el último tick salió 2026-10-03 04:50Z (23:50 Bogotá) y desde ahí `/v1/clock` responde sólo
   `{state: "waiting", server_time}`, sin ciclo abierto. El profe dijo en clase que el proyecto va hasta el
@@ -146,12 +146,11 @@ El histórico semilla (45 días, 51.840 obs, 2026-07-26 → 2026-09-08) se extie
   Desde las 16:07Z la ventana de detección es de **6 h** (antes 12): se prende 5 h antes tras un cambio de régimen y
   se apaga igual de rápido; en régimen normal el mejor rezago corto con 6 h nunca baja de 0,326 (con 4 h llega a 0,215,
   descartada). Entre períodos casi empatados (4 h y 8 h) gana el más corto (`EMPATE` = 25 %). La idea de los
-  rezagos periódicos la tuvo antes Mateo Hoyos (`Jhaycoltez512/pulso-transmi-mlops`, ensamble MAE^-6 de rezagos 2-6 h
-  con ventana de 4 h, ~90 % por ciclo desde las 08:21Z).
+  rezagos periódicos sale de la retroalimentación compartida en el curso; la adaptamos a nuestra capa y la medimos aquí.
   Desde el 2026-10-02 ~15:30Z, con la capa prendida, un **selector** (`selector_estacional`) elige cada ciclo entre
   `estK` (promedio de K oscilaciones) y `plantK` (forma de onda común a las 12 estaciones, desfasada y escalada por
-  nivel), K=1..6, el de mejor accuracy en los 3 ciclos resueltos previos. Idea de John Bernal (1.º del leaderboard,
-  `alejobernalg/pulso-transmi-equipo`). Replay en ciclos reales 18-19 virtual: 91,03 -> 92,47 (últimos 12: 91,31 -> 93,03).
+  nivel), K=1..6, el de mejor accuracy en los 3 ciclos resueltos previos. Idea tomada de la
+  retroalimentación compartida en el curso y adaptada a nuestro pipeline. Replay en ciclos reales 18-19 virtual: 91,03 -> 92,47 (últimos 12: 91,31 -> 93,03).
   `hyperparams.estacional.selector = false` lo apaga. Evidencia en `ml/experimento_selector.py` (rama ML).
 - **Vigilancia de tipología** (el profe anunció que cambiará la tipología de los datos): `pipeline/vigilar.py` corre en
   cada evaluate.yml y deja en `data_watch` huellas del formato de la API, de las revisiones del profe y de caídas
