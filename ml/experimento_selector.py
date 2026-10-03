@@ -3,9 +3,8 @@
 La revisión 3 del drift dejó una demanda que se repite cada 4 h. La capa
 estacional de `pipeline/entregar.py` (en `main`) la detecta sola y, en su
 primera versión, predecía con el promedio de lo observado P y 2P antes
-(`n = 2`). El 2026-10-02 el primero del leaderboard, John Bernal
-(`alejobernalg/pulso-transmi-equipo`, `template_forecast` y `select_expert`),
-iba ~2 puntos arriba en las últimas 24 h con dos ideas:
+(`n = 2`). El 2026-10-02, de la retroalimentación compartida en el curso,
+salieron dos ideas que adaptamos y medimos aquí:
 
     estK      promedio de lo observado P, 2P, …, KP antes del objetivo (K=1..6).
     plantK    las 12 estaciones repiten la misma onda, desfasada y escalada

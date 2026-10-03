@@ -103,7 +103,7 @@ El histórico semilla (45 días, 51.840 obs, 2026-07-26 → 2026-09-08) se extie
   (`correccion_nivel.quiebre`). Responde a la continuación del escenario del 16 virtual 08:00
   (02300/05000 a 2–4,7×, 05100 a 0,15×, 03000 a 0,4×). Evidencia en `ml/experimento_nivel_corto.py`:
   en la continuación 76,24 → 85,30 %, sin costo sin drift; 05100 de 2,9 % a 77 %.
-  La idea viene de los punteros del leaderboard, que corrigen con ventanas de 1–2 h.
+  La idea sale de la retroalimentación compartida en el curso (corregir con ventanas de 1–2 h); la adaptamos y medimos aquí.
 - El cierre de la competencia es el **viernes 2 de octubre 23:59 Bogotá**.
 - Desde el 2026-09-30 03:00Z **`train.yml` corre cada 2 h** y el champion se renueva solo. Además de los
   folds, `ml/entrenar.py` mide cada receta en las últimas 24 h (`medir_vivo`) y hay tres rutas a
