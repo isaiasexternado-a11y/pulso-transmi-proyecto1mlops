@@ -590,6 +590,14 @@ def main(dry_run: bool) -> None:
 
     ancha, ctx, _ = cargar(origen="supabase")
     origen = pd.Timestamp(ciclo["data_cutoff"]).tz_convert(ancha.index.tz)
+    # Si en el corte faltaron las 12 estaciones (faltantes v2 de la fase
+    # final), el collector no guardó nada para esos minutos: se arrastra el
+    # último valor observado, sólo si el hueco es corto.
+    if origen not in ancha.index and ancha.index[-1] < origen <= ancha.index[-1] + pd.Timedelta("1h"):
+        print(f"aviso   : sin observaciones de {ancha.index[-1]} a {origen}; "
+              f"se arrastra el último valor observado")
+        grilla = pd.date_range(ancha.index[0], origen, freq="15min", name=ancha.index.name)
+        ancha, ctx = ancha.reindex(grilla).ffill(), ctx.reindex(grilla).ffill()
     if origen not in ancha.index:
         raise SystemExit(
             f"el corte {origen} no está en el histórico; el último dato es "

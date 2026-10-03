@@ -108,6 +108,19 @@ def cargar(origen: str | None = None) -> tuple[pd.DataFrame, pd.DataFrame, pd.Da
 
     ancha = obs.pivot(index="observed_at", columns="station_id",
                       values="demand").sort_index()
+
+    # Fase final (0.9.0): el stream v2 señala faltantes y el collector no los
+    # guarda (un faltante no es un cero). Quedan huecos por estación o, si
+    # faltan todas, timestamps enteros. Se completa la grilla de 15 min y se
+    # arrastra el último valor observado de cada estación: sólo pasado, sin
+    # fuga temporal. Faltantes al inicio de la serie no tienen pasado y quedan.
+    esperado = pd.date_range(ancha.index[0], ancha.index[-1], freq="15min")
+    huecos = int(ancha.reindex(esperado).isna().sum().sum())
+    if huecos:
+        print(f"[data] {huecos} observaciones faltantes; se arrastra el último "
+              f"valor observado de cada estación.", file=sys.stderr)
+        ancha = ancha.reindex(esperado).ffill()
+        ancha.index.name = "observed_at"
     ctx = ctx.set_index("observed_at").sort_index().reindex(ancha.index)
 
     # La API publica observaciones nuevas cada ciclo pero dejó el contexto
@@ -126,7 +139,6 @@ def cargar(origen: str | None = None) -> tuple[pd.DataFrame, pd.DataFrame, pd.Da
               f"sin clima. Se arrastra el último valor conocido.", file=sys.stderr)
         ctx = ctx.ffill()
 
-    esperado = pd.date_range(ancha.index[0], ancha.index[-1], freq="15min")
     if not ancha.index.equals(esperado):
         faltan = esperado.difference(ancha.index)
         raise ValueError(
