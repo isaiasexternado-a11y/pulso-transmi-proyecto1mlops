@@ -109,6 +109,13 @@ El histórico semilla (45 días, 51.840 obs, 2026-07-26 → 2026-09-08) se extie
   `{state: "waiting", server_time}`, sin ciclo abierto. El profe dijo en clase que el proyecto va hasta el
   domingo, pero no hay commits ni cambios de `meta` que lo confirmen. Los workflows siguen despertando y
   retoman solos cuando el reloj vuelva. Ambas formas del reloj ya están aceptadas en `data_watch`.
+- **Fase final** (API 0.9.0, revisión 4, `docs/fase-final.md` del profe): reabrió el 2026-10-03 22:49Z, **cierre
+  domingo 4-oct 23:59 Bogotá** (`2026-10-05T04:59Z`), régimen de demanda nuevo. Lo observado después de
+  2026-09-20T12:00Z virtual llega como **stream v2**: sin `demand`, con `schema_version: 2` y
+  `measurement = {value: "546.00" | null, unit: "passengers", quality: "observed" | "missing"}`; una página
+  mezcla v1 y v2. Un faltante no es cero: `collector/recolectar.py::demanda` no lo guarda, `ml/data.py::cargar`
+  rellena la grilla con el último valor observado de cada estación y `pipeline/entregar.py` extiende hasta el
+  corte si faltan las 12 (hueco ≤ 1 h). Primeras filas v2 ingestadas 23:20Z (run 983), 24/24 `observed`.
 - Desde el 2026-09-30 03:00Z **`train.yml` corre cada 2 h** y el champion se renueva solo.
   La cadencia la lleva `evaluate.yml`, no el cron (GitHub se saltó 5 de 6 el 30-sep): en cada corrida
   mira el último run de `train.yml` y lo dispara si pasaron ≥110 min y no hay uno en cola o corriendo.
