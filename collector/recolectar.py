@@ -151,6 +151,27 @@ def en_lotes(filas: list, tam: int = LOTE):
         yield filas[i:i + tam]
 
 
+def demanda(o: dict) -> int | None:
+    """Demanda de una fila del stream, en v1 o v2; None si es un faltante.
+
+    Fase final (0.9.0, `docs/fase-final.md` del profe): lo observado después de
+    2026-09-20T12:00Z virtual llega como v2, sin `demand` plano:
+    `measurement = {value: "341.00" | null, unit: "passengers",
+    quality: "observed" | "missing"}`. Una página puede mezclar versiones.
+    Una forma desconocida revienta aquí, antes de mover el cursor.
+    """
+    if "measurement" not in o:
+        return o["demand"]
+    m = o["measurement"]
+    if o.get("schema_version") != 2 or m.get("unit") != "passengers":
+        raise ValueError(f"observación con formato desconocido: {o}")
+    if m["quality"] == "missing" or m["value"] is None:
+        return None
+    if m["quality"] != "observed":
+        raise ValueError(f"quality desconocida: {o}")
+    return round(float(m["value"]))
+
+
 def main(dry_run: bool) -> None:
     base, key = exigir("PULSO_API_BASE", "PULSO_API_KEY")
     sb = Supabase()
@@ -193,10 +214,15 @@ def main(dry_run: bool) -> None:
 
     try:
         # `released_at` es del stream, no de la tabla: se queda afuera.
+        # Los faltantes v2 no se guardan: un faltante no es un cero.
         filas_obs = [{"station_id": o["station_id"],
                       "observed_at": o["observed_at"],
-                      "demand": o["demand"],
-                      "run_id": run_id} for o in obs]
+                      "demand": d,
+                      "run_id": run_id} for o in obs
+                     if (d := demanda(o)) is not None]
+        faltantes = len(obs) - len(filas_obs)
+        if faltantes:
+            print(f"faltantes v2  : {faltantes} filas con quality=missing (no se guardan)")
         for lote in en_lotes(filas_obs):
             sb.upsert("observations", lote, conflicto="station_id,observed_at")
 
