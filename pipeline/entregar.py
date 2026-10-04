@@ -171,8 +171,10 @@ def predecir(modelo: object, ficha: dict, ancha, ctx, origen, objetivos) -> list
 
     La promoción la reusa por la misma razón que `cargar_artefacto`.
     """
-    valores = _mezclado(modelo, ficha, ancha, ctx, origen, objetivos)
     hp = ficha.get("hyperparams") or {}
+    if hp.get("ar"):
+        return autorregresivo(ancha, origen, objetivos, hp["ar"])
+    valores = _mezclado(modelo, ficha, ancha, ctx, origen, objetivos)
     nivel = hp.get("correccion_nivel")
     if nivel:
         factor = factores_nivel(modelo, ficha, ancha, ctx, origen, nivel)
@@ -180,6 +182,63 @@ def predecir(modelo: object, ficha: dict, ancha, ctx, origen, objetivos) -> list
     if hp.get("estacional"):
         valores = estacional(ancha, origen, objetivos, valores, hp["estacional"])
     return valores
+
+
+def autorregresivo(ancha, origen, objetivos, cfg: dict) -> list[float]:
+    """AR común a las estaciones, reajustado en cada ciclo con el régimen vigente.
+
+    `hyperparams.ar` = {rezagos, lam, desde, ventana_h}. Reemplaza al modelo y a
+    las capas. Fase final (2026-10-04): desde 2026-09-20T12:00Z virtual cada
+    estación oscila con su propio período de 7-9 h y el histórico no se parece
+    (correlación 0,2 con d-1 y s-1). Para cada horizonte h se ajusta una ridge
+    con las 12 estaciones juntas:
+
+        (y[t+h] - y[t]) / e[t]  ~  (y[t-k] - y[t-k-1]) / e[t],  k = 0..rezagos-1
+
+    con `e[t]` el promedio de la estación en las últimas 4 h (mínimo 20). Los
+    ejemplos y sus rezagos caen desde max(`desde`, origen - `ventana_h`) (cruzar al
+    régimen anterior cuesta 3 puntos) y su objetivo t+h no pasa del origen:
+    sólo datos hasta el corte. Con pocos ejemplos repite el
+    último valor. Backtest causal en 29 orígenes del régimen nuevo (15:00Z a
+    22:00Z virtual): 78,5 % vs 72,4 % de la persistencia.
+    """
+    import numpy as np
+    import pandas as pd
+
+    K = int(cfg.get("rezagos", 8))
+    lam = float(cfg.get("lam", 1.0))
+    est = list(ancha.columns)
+    Y = ancha.loc[:origen, est].to_numpy(dtype=float)
+    o = len(Y) - 1
+    paso = ancha.index[1] - ancha.index[0]
+    inicio = origen - pd.Timedelta(hours=float(cfg.get("ventana_h", 24)))
+    if cfg.get("desde"):
+        inicio = max(inicio, pd.Timestamp(cfg["desde"]).tz_convert(ancha.index.tz))
+    d0 = max(int(ancha.index.searchsorted(inicio)), 0)
+
+    def escala(t):
+        return np.maximum(Y[max(t - 15, 0):t + 1].mean(axis=0), 20.0)
+
+    def rasgos(t, e):
+        return np.stack([(Y[t - k] - Y[t - k - 1]) / e for k in range(K)], axis=1)
+
+    pred = {}
+    for h in sorted({round((t - origen) / paso) for _, t in objetivos}):
+        filas, ys = [], []
+        for t in range(max(d0, 0) + K + 1, o - h + 1):     # los rezagos tampoco cruzan `inicio`
+            e = escala(t)
+            filas.append(rasgos(t, e))
+            ys.append((Y[t + h] - Y[t]) / e)
+        if len(filas) < 3:
+            pred[h] = np.maximum(Y[o], 0)
+            continue
+        X = np.vstack(filas)
+        X = np.c_[X, np.ones(len(X))]
+        c = np.linalg.solve(X.T @ X + lam * np.eye(X.shape[1]), X.T @ np.concatenate(ys))
+        e = escala(o)
+        pred[h] = np.maximum(Y[o] + np.c_[rasgos(o, e), np.ones(len(est))] @ c * e, 0)
+    col = {s: j for j, s in enumerate(est)}
+    return [float(pred[round((t - origen) / paso)][col[s]]) for s, t in objetivos]
 
 
 EMPATE = 0.25    # tolerancia relativa para preferir el período más corto
