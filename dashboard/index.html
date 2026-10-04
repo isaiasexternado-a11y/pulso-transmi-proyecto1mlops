@@ -423,8 +423,21 @@
   <section class="tarjeta seccion">
     <h2>Entrenamientos</h2>
     <p class="nota">Cada corrida de <code>train.yml</code>, haya candidato o no. La cadencia es
-      cada ~2 h: un hueco de más de 3 h entre dos corridas significa que el disparo falló.</p>
+      cada ~2 h: un hueco de más de 3 h entre dos corridas significa que el disparo falló.
+      <strong>Desde el 4-oct 01:58Z <code>train.yml</code> está pausado a mano</strong>: medía sobre 24 h casi
+      todas del régimen anterior y devolvía la capa estacional. El reentrenamiento pasó a hacerse en
+      línea en cada ciclo (sección siguiente).</p>
     <div id="entrenamientos"></div>
+  </section>
+
+  <section class="tarjeta seccion">
+    <h2>Reentrenamiento en línea por ciclo</h2>
+    <p class="nota">Desde la fase final (4-oct) el champion no es un artefacto fijo: en cada ciclo la
+      capa <code>ar</code> entrena desde cero un modelo por horizonte con los datos del régimen vigente
+      hasta el <code>data_cutoff</code>, y predice con él. Cada fila es uno de esos entrenamientos
+      (<code>ajustes_ciclo</code>). La ventana va en hora virtual de Bogotá; el error de ajuste es el MAE
+      dentro de la muestra, en unidades del nivel de la estación.</p>
+    <div id="ajustes"></div>
   </section>
 
   <footer>
@@ -1014,6 +1027,41 @@ function pintarEntrenamientos(entrenos) {
       </li>`;
     }).join("")}</ol>`;
 }
+function pintarAjustes(ajustes) {
+  const caja = $("#ajustes");
+  if (ajustes === null) {
+    caja.innerHTML = `<p class="vacio">Falta la tabla <code>ajustes_ciclo</code>
+      (migración <code>sql/20261004_ajustes_ciclo.sql</code>).</p>`;
+    return;
+  }
+  if (!ajustes.length) { caja.innerHTML = `<p class="vacio">Sin reentrenamientos por ciclo todavía.</p>`; return; }
+  // Una fila por ciclo con sus cuatro horizontes: +15 y +60 son los extremos.
+  const ciclos = new Map();
+  for (const a of ajustes) {
+    const c = ciclos.get(a.cycle_id) ?? ciclos.set(a.cycle_id, {}).get(a.cycle_id);
+    c[a.horizon] = a;
+  }
+  const filas = [...ciclos.values()].slice(0, 12).map(c => {
+    const h1 = c[1] ?? Object.values(c)[0], h4 = c[4] ?? h1;
+    return [
+      esc(fechaHora(h1.data_cutoff)),
+      esc(hace(h1.fitted_at)),
+      esc(h1.algorithm),
+      `${esc(fechaHora(h1.window_start))} → ${esc(hora(h1.window_end))}`,
+      `${esc(h1.n_rows)} · ${esc(h4.n_rows)}`,
+      `${num(h1.train_mae_rel, 3)} · ${num(h4.train_mae_rel, 3)}`,
+      `<span title="${esc(h1.model_version)}">${esc(h1.model_version.split("-").slice(1).join("-") || h1.model_version)}</span>`,
+    ];
+  });
+  const total = ajustes.length;
+  caja.innerHTML = `
+    <div class="pie-flujo" style="margin:0 0 14px">${estadoHTML("bien",
+      `${ciclos.size} ciclo${ciclos.size > 1 ? "s" : ""} reentrenado${ciclos.size > 1 ? "s" : ""}`)}
+      <span style="color:var(--tinta-mute)"> · ${total} modelos entrenados · el último ${esc(hace(ajustes[0].fitted_at))}</span></div>
+    <div style="overflow-x:auto">${tabla(
+      ["Corte (virtual)", "Entrenado", "Algoritmo", "Ventana de datos", "Filas +15 · +60",
+       "Error ajuste +15 · +60", "Versión"], filas)}</div>`;
+}
 const icono = (n) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
   stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONOS[n]}</svg>`;
 
@@ -1021,7 +1069,7 @@ const icono = (n) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
 async function pintar() {
   $("#principal").classList.add("recargando");
   guardadoDesde = null;
-  const [lb, senales, decisiones, runs, subs, champion, estaciones, scoresTodos, relojes, entrenos, vigia] =
+  const [lb, senales, decisiones, runs, subs, champion, estaciones, scoresTodos, relojes, entrenos, vigia, ajustes] =
     await Promise.all([
       pedir("leaderboard_snapshots?select=*&order=captured_at.asc"),
       pedir("drift_signals?select=*&order=computed_at.desc&limit=400"),
@@ -1036,6 +1084,7 @@ async function pintar() {
       // null (no []) si la tabla no existe: "sin registro" no es "nunca entrenó".
       pedir("training_runs?select=*&order=started_at.desc&limit=30").catch(() => null),
       pedir("data_watch?select=*&order=last_seen_at.desc&limit=100").catch(() => null),
+      pedir("ajustes_ciclo?select=*&order=data_cutoff.desc,horizon.asc&limit=96").catch(() => null),
     ]);
   const est = new Map(estaciones.map(e => [e.station_id, e]));
   // La vista trae TODAS las predicciones, también las de un ciclo reenviado
@@ -1333,6 +1382,7 @@ async function pintar() {
   }
 
   pintarEntrenamientos(entrenos);
+  pintarAjustes(ajustes);
   pintarVigia(vigia);
 
   // --- decisiones: una línea de tiempo que agrupa las repeticiones seguidas
