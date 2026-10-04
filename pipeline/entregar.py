@@ -184,6 +184,9 @@ def predecir(modelo: object, ficha: dict, ancha, ctx, origen, objetivos) -> list
     return valores
 
 
+AJUSTES: list[dict] = []   # lo que entrenó la capa AR en la última llamada
+
+
 def autorregresivo(ancha, origen, objetivos, cfg: dict) -> list[float]:
     """AR común a las estaciones, reajustado en cada ciclo con el régimen vigente.
 
@@ -229,14 +232,19 @@ def autorregresivo(ancha, origen, objetivos, cfg: dict) -> list[float]:
         return np.stack([(Y[t - k] - Y[t - k - 1]) / e for k in range(K)], axis=1)
 
     pred = {}
+    AJUSTES.clear()
     for h in sorted({round((t - origen) / paso) for _, t in objetivos}):
         filas, ys = [], []
         for t in range(max(d0, 0) + K + 1, o - h + 1):     # los rezagos tampoco cruzan `inicio`
             e = escala(t)
             filas.append(rasgos(t, e))
             ys.append((Y[t + h] - Y[t]) / e)
+        ajuste = {"horizon": h, "window_start": ancha.index[max(d0, 0)].isoformat(),
+                  "window_end": ancha.index[o - h].isoformat(), "n_origins": len(filas),
+                  "n_rows": len(filas) * len(est)}
         if len(filas) < 3:
             pred[h] = np.maximum(Y[o], 0)
+            AJUSTES.append({**ajuste, "algorithm": "persistencia", "params": None, "train_mae_rel": None})
             continue
         X = np.vstack(filas)
         e = escala(o)
@@ -249,10 +257,17 @@ def autorregresivo(ancha, origen, objetivos, cfg: dict) -> list[float]:
                 max_leaf_nodes=15, min_samples_leaf=20, random_state=0,
             ).fit(X, np.concatenate(ys))
             cambio = m.predict(np.c_[rasgos(o, e), nivel(o)])
+            mae = float(np.mean(np.abs(m.predict(X) - np.concatenate(ys))))
+            AJUSTES.append({**ajuste, "algorithm": "gbm", "train_mae_rel": mae, "params": {
+                "rezagos": K, "loss": "absolute_error", "max_iter": 200, "learning_rate": 0.06,
+                "max_leaf_nodes": 15, "min_samples_leaf": 20}})
         else:
             X = np.c_[X, np.ones(len(X))]
             c = np.linalg.solve(X.T @ X + lam * np.eye(X.shape[1]), X.T @ np.concatenate(ys))
             cambio = np.c_[rasgos(o, e), np.ones(len(est))] @ c
+            mae = float(np.mean(np.abs(X @ c - np.concatenate(ys))))
+            AJUSTES.append({**ajuste, "algorithm": "ridge", "train_mae_rel": mae,
+                            "params": {"rezagos": K, "lam": lam}})
         pred[h] = np.maximum(Y[o] + cambio * e, 0)
     # Tope de seguridad ante un dato raro: 1,5 veces el máximo de la ventana.
     # En el backtest nunca se activa.
@@ -569,6 +584,26 @@ def enviar(base: str, key: str, payload: dict, llave: str) -> dict:
         return {"status": e.code, "body": json.loads(e.read() or b"{}")}
 
 
+def guardar_ajustes(sb: Supabase, ciclo: dict, ficha: dict, sub_id: str) -> None:
+    """Deja en `ajustes_ciclo` lo que la capa AR entrenó para este ciclo.
+
+    Es la evidencia del reentrenamiento en línea. No puede tumbar el turno:
+    el recibo y las predicciones ya quedaron guardados.
+    """
+    if not AJUSTES:
+        return
+    try:
+        sb.upsert("ajustes_ciclo", [{
+            **a, "cycle_id": ciclo["cycle_id"], "model_id": ficha["model_id"],
+            "model_version": ficha["hyperparams"]["version"],
+            "submission_id": sub_id, "data_cutoff": ciclo["data_cutoff"],
+        } for a in AJUSTES], conflicto="cycle_id,model_version,horizon")
+        print(f"ajustes : {len(AJUSTES)} modelos entrenados en este ciclo, "
+              f"{AJUSTES[-1]['n_rows']} filas, desde {AJUSTES[0]['window_start']}")
+    except Exception as e:
+        print(f"AVISO: no se pudieron guardar los ajustes del ciclo: {e}")
+
+
 def guardar_recibo(sb: Supabase, ciclo: dict, ficha: dict, llave: str,
                    respuesta: dict, run_id: int | None,
                    predicciones: list[dict]) -> None:
@@ -608,6 +643,7 @@ def guardar_recibo(sb: Supabase, ciclo: dict, ficha: dict, llave: str,
     } for p, t in zip(predicciones, ciclo["targets"])],
         conflicto="run_id,station_id,target_at")
     print(f"recibo guardado: {sub_id}  (origen {origen})")
+    guardar_ajustes(sb, ciclo, ficha, sub_id)
 
     # El último intento válido reemplaza al anterior como entrega oficial:
     # sin esto, cada reenvío deja dos o tres filas oficiales por ciclo.
