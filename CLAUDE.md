@@ -116,6 +116,13 @@ El histórico semilla (45 días, 51.840 obs, 2026-07-26 → 2026-09-08) se extie
   mezcla v1 y v2. Un faltante no es cero: `collector/recolectar.py::demanda` no lo guarda, `ml/data.py::cargar`
   rellena la grilla con el último valor observado de cada estación y `pipeline/entregar.py` extiende hasta el
   corte si faltan las 12 (hueco ≤ 1 h). Primeras filas v2 ingestadas 23:20Z (run 983), 24/24 `observed`.
+  **Régimen nuevo** desde 2026-09-20T12:00Z virtual: se acabó la oscilación de 4 h y la demanda pasó a tendencias
+  suaves por estación. El champion con capa estacional cayó a 45 % y 21 % (ciclos 12:00Z y 13:00Z); sin la capa,
+  38 %. En los 5 orígenes de 15 min disponibles: persistencia 61,5 %, con tendencia amortiguada (k=1, φ=0,5) 65,2 %.
+  2026-10-04 01:58Z se promovió `gbm + persistencia pura (fase final)` (`20261004T011104Z-pers1`): mismo artefacto,
+  `mezcla_persistencia` en 1,0 los 4 horizontes y `estacional_apagada`. **No es un reentrenamiento.** Primera entrega:
+  ciclo 15:00Z virtual, intento 2, 02:00:52Z. **`train.yml` está deshabilitado** a mano: `medir_vivo` mira 24 h casi
+  todas del régimen viejo y devolvería la capa estacional. Reactivar con 6-12 h del régimen nuevo y comparar en lo vivo.
 - Desde el 2026-09-30 03:00Z **`train.yml` corre cada 2 h** y el champion se renueva solo.
   La cadencia la lleva `evaluate.yml`, no el cron (GitHub se saltó 5 de 6 el 30-sep): en cada corrida
   mira el último run de `train.yml` y lo dispara si pasaron ≥110 min y no hay uno en cola o corriendo.
