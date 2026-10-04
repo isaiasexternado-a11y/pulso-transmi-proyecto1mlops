@@ -140,6 +140,16 @@ El histórico semilla (45 días, 51.840 obs, 2026-07-26 → 2026-09-08) se extie
   retroalimentación compartida en el curso. **Champion desde 2026-10-04 11:2xZ**: `GBM dinámico reajustado por ciclo
   (fase final)` (`20261004T011104Z-argbm`), `ar = {rezagos 8, lam 1, desde 2026-09-20T12:00Z, ventana_h 24, modelo gbm}`.
   Promover sólo con un turno de `predict` que ya corra el código de la capa (ver trampas).
+  GBM en vivo (ciclos 01:00Z-08:00Z del 21 virtual): 81-91 %, ~87 de promedio.
+- **Capa onda** (2026-10-04 19:38Z, `pipeline/entregar.py::onda`, `hyperparams.onda`): con ~20 h del régimen nuevo
+  la onda es de **~8 h (32 pasos)**, común a las estaciones. En cada ciclo detecta el período (rezago 20-44 pasos
+  con menor WAPE en los últimos 16), ajusta 3 armónicos por estación sobre 1,5 períodos (log y lineal) y una
+  plantilla común alineada por desfase, y promedia las tres. Backtest causal en 31 orígenes (21-sep 00:00Z a
+  07:30Z virtual): **91,2 %** (92,0 en la segunda mitad) vs 86,4 del GBM; armónica con P=32 fijo 91,5. La idea
+  sale de la retroalimentación compartida en el curso. Champion `Onda de 8 h: armónicos + forma común (fase
+  final)` (`20261004T011104Z-onda`); la llave `ar` sigue en la ficha como respaldo (quitar `onda` vuelve al GBM).
+  Lección: el GBM ganó a las 11:15Z porque aún no había un período completo; al pasar 1,5 períodos había que
+  volver a comparar todas las familias, no sólo afinar el champion.
 - Desde el 2026-09-30 03:00Z **`train.yml` corre cada 2 h** y el champion se renueva solo.
   La cadencia la lleva `evaluate.yml`, no el cron (GitHub se saltó 5 de 6 el 30-sep): en cada corrida
   mira el último run de `train.yml` y lo dispara si pasaron ≥110 min y no hay uno en cola o corriendo.
