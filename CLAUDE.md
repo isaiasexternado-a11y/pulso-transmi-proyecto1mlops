@@ -126,6 +126,14 @@ El histórico semilla (45 días, 51.840 obs, 2026-07-26 → 2026-09-08) se extie
   02:10Z: `-pers2` (`gbm + persistencia pura sin nivel`), con `correccion_nivel_apagada`: en 9 orígenes del régimen
   nuevo, persistencia 66,4 % sin nivel vs 62,6 % con nivel; tendencia amortiguada 69,7 % (no implementada).
   Primera entrega: ciclo 15:00Z virtual, intento 3, 02:11:40Z.
+  **Capa AR** (2026-10-04, `pipeline/entregar.py::autorregresivo`, `hyperparams.ar`): con 11 h del régimen nuevo
+  se ve que cada estación oscila con su propio período de 7-9 h (02300 7,5 h, 06111 7,25 h, 06000 9,5 h…) y el
+  histórico no se parece (correlación 0,2 con d-1 y s-1). Ridge común a las 12 estaciones sobre los cambios de los
+  últimos 8 pasos normalizados por el nivel de 4 h, una por horizonte, reajustada en cada ciclo desde
+  max(`desde`, origen − 24 h) sólo con datos hasta el corte. Backtest causal en 31 orígenes (15:00Z a 22:30Z
+  virtual): **78,5 %** vs persistencia 72,4, tendencia amortiguada 74,7, ondas por período ≤ 64 (sus rezagos de
+  7-9 h caían en el régimen viejo). Los rezagos no deben cruzar `desde`: cruzarlos cuesta 3 puntos. Si la ficha
+  trae `ar`, reemplaza al modelo y a las capas. `evaluate.yml` ya no falla cuando `train.yml` está deshabilitado.
 - Desde el 2026-09-30 03:00Z **`train.yml` corre cada 2 h** y el champion se renueva solo.
   La cadencia la lleva `evaluate.yml`, no el cron (GitHub se saltó 5 de 6 el 30-sep): en cada corrida
   mira el último run de `train.yml` y lo dispara si pasaron ≥110 min y no hay uno en cola o corriendo.
