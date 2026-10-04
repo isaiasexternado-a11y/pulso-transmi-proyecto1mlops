@@ -172,6 +172,8 @@ def predecir(modelo: object, ficha: dict, ancha, ctx, origen, objetivos) -> list
     La promoción la reusa por la misma razón que `cargar_artefacto`.
     """
     hp = ficha.get("hyperparams") or {}
+    if hp.get("onda"):
+        return onda(ancha, origen, objetivos, hp["onda"])
     if hp.get("ar"):
         return autorregresivo(ancha, origen, objetivos, hp["ar"])
     valores = _mezclado(modelo, ficha, ancha, ctx, origen, objetivos)
@@ -185,6 +187,76 @@ def predecir(modelo: object, ficha: dict, ancha, ctx, origen, objetivos) -> list
 
 
 AJUSTES: list[dict] = []   # lo que entrenó la capa AR en la última llamada
+
+
+def onda(ancha, origen, objetivos, cfg: dict) -> list[float]:
+    """Proyecta la onda del régimen vigente: armónicos por estación y forma común.
+
+    `hyperparams.onda` = {periodo_min, periodo_max, ventana, armonicos, span}.
+    Revisión 4 (fase final): con ~20 h del régimen nuevo cada estación repite
+    una onda de ~8 h (32 pasos). En cada ciclo, sólo con datos hasta el corte:
+
+    1. período P: el rezago entre `periodo_min` y `periodo_max` pasos con menor
+       WAPE de y[t] contra y[t-P] en los últimos `ventana` pasos (12 estaciones);
+    2. por estación, `armonicos` armónicos de P ajustados por mínimos cuadrados
+       a los últimos `span`·P pasos, en escala log y en escala lineal;
+    3. una plantilla común: cada estación normalizada por su media del último
+       período y alineada por desfase; se promedia y se reescala por estación.
+
+    La predicción es el promedio de las tres. Backtest causal en 31 orígenes
+    (21-sep 00:00Z a 07:30Z virtual): 91,2 % (92,0 en la segunda mitad) vs 86,4
+    del GBM dinámico. La idea de proyectar la onda con armónicos y una forma
+    común sale de la retroalimentación compartida en el curso.
+    """
+    import numpy as np
+
+    est = list(ancha.columns)
+    Y = ancha.loc[:origen, est].to_numpy(dtype=float)
+    o = len(Y) - 1
+    paso = ancha.index[1] - ancha.index[0]
+    hs = sorted({round((t - origen) / paso) for _, t in objetivos})
+    W = int(cfg.get("ventana", 16))
+    mejor = None
+    for P in range(int(cfg.get("periodo_min", 20)), int(cfg.get("periodo_max", 44)) + 1):
+        y, x = Y[o - W + 1:o + 1], Y[o - W + 1 - P:o + 1 - P]
+        w = float(np.abs(y - x).sum() / max(y.sum(), 1.0))
+        if mejor is None or w < mejor[0]:
+            mejor = (w, P)
+    P = mejor[1]
+    K, span = int(cfg.get("armonicos", 3)), float(cfg.get("span", 1.5))
+
+    def base(tt):
+        tt = np.asarray(tt, dtype=float)
+        return np.stack([np.ones(len(tt))] + [f(k * 2 * np.pi * tt / P)
+                         for k in range(1, K + 1) for f in (np.sin, np.cos)], axis=1)
+
+    t = np.arange(o - int(span * P) + 1, o + 1)
+    futuro = base(o + np.array(hs))
+    partes = []
+    for log in (True, False):
+        Z = np.log1p(Y[t]) if log else Y[t]
+        c, *_ = np.linalg.lstsq(base(t), Z, rcond=None)
+        v = futuro @ c
+        partes.append(np.clip(np.expm1(v) if log else v, 0, None))
+    seg = Y[o - P + 1:o + 1]
+    nivel = seg.mean(axis=0)
+    F = seg / np.maximum(nivel, 1.0)
+    desf = [min(range(P), key=lambda s: np.abs(np.roll(F[:, j], -s) - F[:, 0]).sum())
+            for j in range(len(est))]
+    comun = np.mean([np.roll(F[:, j], -s) for j, s in enumerate(desf)], axis=0)
+    partes.append(np.array([[comun[(P - 1 + h - s) % P] * nivel[j] for j, s in enumerate(desf)]
+                            for h in hs]))
+    pred = np.mean(partes, axis=0)            # (horizontes, estaciones)
+    print(f"onda    : período {P} pasos ({P / 4:.2f} h), wape del rezago {mejor[0]:.3f}")
+    AJUSTES.clear()
+    AJUSTES.extend({"horizon": h, "window_start": ancha.index[o - int(span * P) + 1].isoformat(),
+                    "window_end": ancha.index[o].isoformat(), "n_origins": int(span * P),
+                    "n_rows": int(span * P) * len(est), "algorithm": "onda",
+                    "params": {"periodo": P, "armonicos": K, "span": span, "wape_rezago": mejor[0]},
+                    "train_mae_rel": None} for h in hs)
+    fila = {h: i for i, h in enumerate(hs)}
+    col = {s: j for j, s in enumerate(est)}
+    return [float(pred[fila[round((t - origen) / paso)], col[s]]) for s, t in objetivos]
 
 
 def autorregresivo(ancha, origen, objetivos, cfg: dict) -> list[float]:
