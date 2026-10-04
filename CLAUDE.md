@@ -134,6 +134,12 @@ El histórico semilla (45 días, 51.840 obs, 2026-07-26 → 2026-09-08) se extie
   virtual): **78,5 %** vs persistencia 72,4, tendencia amortiguada 74,7, ondas por período ≤ 64 (sus rezagos de
   7-9 h caían en el régimen viejo). Los rezagos no deben cruzar `desde`: cruzarlos cuesta 3 puntos. Si la ficha
   trae `ar`, reemplaza al modelo y a las capas. `evaluate.yml` ya no falla cuando `train.yml` está deshabilitado.
+  Con `ar.modelo = "gbm"` la ridge se cambia por un HistGradientBoosting (MAE) con los mismos rasgos más el nivel
+  relativo: **81,1 %** en los mismos 31 orígenes (84,4 en la segunda mitad); entrenado con 3 o 7 días de historia
+  da 79,1-79,2 y la mezcla AR+GBM 80,8. La idea de aprender la dinámica de rezagos cortos sale de la
+  retroalimentación compartida en el curso. **Champion desde 2026-10-04 11:2xZ**: `GBM dinámico reajustado por ciclo
+  (fase final)` (`20261004T011104Z-argbm`), `ar = {rezagos 8, lam 1, desde 2026-09-20T12:00Z, ventana_h 24, modelo gbm}`.
+  Promover sólo con un turno de `predict` que ya corra el código de la capa (ver trampas).
 - Desde el 2026-09-30 03:00Z **`train.yml` corre cada 2 h** y el champion se renueva solo.
   La cadencia la lleva `evaluate.yml`, no el cron (GitHub se saltó 5 de 6 el 30-sep): en cada corrida
   mira el último run de `train.yml` y lo dispara si pasaron ≥110 min y no hay uno en cola o corriendo.
