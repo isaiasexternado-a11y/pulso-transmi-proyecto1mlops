@@ -123,6 +123,9 @@ El histórico semilla (45 días, 51.840 obs, 2026-07-26 → 2026-09-08) se extie
   `mezcla_persistencia` en 1,0 los 4 horizontes y `estacional_apagada`. **No es un reentrenamiento.** Primera entrega:
   ciclo 15:00Z virtual, intento 2, 02:00:52Z. **`train.yml` está deshabilitado** a mano: `medir_vivo` mira 24 h casi
   todas del régimen viejo y devolvería la capa estacional. Reactivar con 6-12 h del régimen nuevo y comparar en lo vivo.
+  02:10Z: `-pers2` (`gbm + persistencia pura sin nivel`), con `correccion_nivel_apagada`: en 9 orígenes del régimen
+  nuevo, persistencia 66,4 % sin nivel vs 62,6 % con nivel; tendencia amortiguada 69,7 % (no implementada).
+  Primera entrega: ciclo 15:00Z virtual, intento 3, 02:11:40Z.
 - Desde el 2026-09-30 03:00Z **`train.yml` corre cada 2 h** y el champion se renueva solo.
   La cadencia la lleva `evaluate.yml`, no el cron (GitHub se saltó 5 de 6 el 30-sep): en cada corrida
   mira el último run de `train.yml` y lo dispara si pasaron ≥110 min y no hay uno en cola o corriendo.
