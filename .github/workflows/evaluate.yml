@@ -71,6 +71,13 @@ jobs:
           CADA_MIN: "110"     # evaluar despierta cada ~50 min: ciclo real de 2-2,7 h
         run: |
           set -euo pipefail
+          # Un train.yml deshabilitado a mano es una decisión (2026-10-04: se pausó
+          # para que no devolviera la capa estacional tras el régimen nuevo), no un
+          # fallo: se respeta y la corrida sigue en verde.
+          if [ "$(gh api "repos/$GH_REPO/actions/workflows/train.yml" --jq .state)" != active ]; then
+            echo "train.yml está deshabilitado a mano; no se dispara"
+            exit 0
+          fi
           ultimo=$(gh run list --workflow train.yml --limit 1 \
                      --json status,createdAt --jq '.[0] | "\(.status) \(.createdAt)"')
           if [ -z "$ultimo" ]; then
