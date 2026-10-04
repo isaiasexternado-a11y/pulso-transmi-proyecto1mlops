@@ -237,8 +237,12 @@ def autorregresivo(ancha, origen, objetivos, cfg: dict) -> list[float]:
         c = np.linalg.solve(X.T @ X + lam * np.eye(X.shape[1]), X.T @ np.concatenate(ys))
         e = escala(o)
         pred[h] = np.maximum(Y[o] + np.c_[rasgos(o, e), np.ones(len(est))] @ c * e, 0)
+    # Tope de seguridad ante un dato raro: 1,5 veces el máximo de la ventana.
+    # En el backtest nunca se activa.
+    tope = 1.5 * Y[max(d0, 0):o + 1].max(axis=0)
     col = {s: j for j, s in enumerate(est)}
-    return [float(pred[round((t - origen) / paso)][col[s]]) for s, t in objetivos]
+    return [float(min(pred[round((t - origen) / paso)][col[s]], tope[col[s]]))
+            for s, t in objetivos]
 
 
 EMPATE = 0.25    # tolerancia relativa para preferir el período más corto
