@@ -79,7 +79,16 @@ Para que la comparación signifique algo, todos los candidatos se miden igual:
 
 ## Estado actual
 
-**La competencia está corriendo** desde el 2026-09-21 15:30Z (reloj `official-20260921`, estado `running`).
+**La competencia terminó.** Corrió desde el 2026-09-21 15:30Z (reloj `official-20260921`) hasta el cierre de la
+fase final, domingo 4-oct 23:59 Bogotá (`2026-10-05T04:59Z`). Desde ahí `/v1/clock` responde `waiting` y
+`/v1/forecast-cycles/current` da `404 no_open_cycle`; el último commit del profe (2026-10-04 07:52Z) no anuncia reapertura.
+Última ingesta 2026-10-05 04:54Z (último dato virtual 2026-09-21 18:00Z); última entrega 03:55Z, 34 en la fase final.
+Champion final: `Onda de 8 h: armónicos + forma común (fase final)` (`20261004T011104Z-onda`).
+Accuracy por ciclo resuelto: 81,45 % de promedio en 250 ciclos antes de la fase final; 77,70 % en los 30 de la fase final
+(arrancó en 21 % al cambiar el régimen) y **92,42 % en los últimos 6** con la capa onda.
+Para apagar la operación: `gh workflow disable` de `pulso-transmi-predict`, `-evaluate` y `-watchdog`, y desactivar el
+vigía en la nube `trig_012tAcmDaGKiLSSo1qmwdkxx`. Si el reloj volviera a `running`, reactivarlos basta para retomar.
+
 El histórico semilla (45 días, 51.840 obs, 2026-07-26 → 2026-09-08) se extiende ahora por el stream.
 
 - **Corte 1 en curso** desde 2026-09-24 05:00Z (00:00 Bogotá), inicio fijo. Cuenta ciclos resueltos
