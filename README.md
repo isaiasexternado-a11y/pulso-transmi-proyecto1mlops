@@ -5,6 +5,7 @@ Pronosticar la demanda de pasajeros en 12 estaciones de TransMilenio **mientras 
 sosteniendo el ciclo completo: **datos → modelo → predicción → evaluación → drift → reentrenamiento**.
 
 **Dashboard:** https://pulso-transmi-proyecto1mlops.vercel.app
+**Informe final** (qué cambió, qué funcionó y qué haríamos después): [`docs/informe-final.md`](docs/informe-final.md)
 
 ## Resultado
 
