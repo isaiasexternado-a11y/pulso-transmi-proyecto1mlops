@@ -89,8 +89,9 @@ aprendizaje y no entra. Con la regla del profe (ciclos con `opens_at` desde el c
 ciclos, promedio no ponderado): **215/215 ciclos entregados (cobertura 100 %), accuracy 81,37 %**; 81,47 % hasta la pausa
 del 3-oct y 77,75 % en la fase final (arrancó en 21 % al cambiar el régimen; **92,42 % en los últimos 6** con la capa onda).
 Los dos huecos de `opens_at` (28-sep 14:50→21:35Z y 3-oct 03:50→22:49Z) son pausas de la API: el reloj virtual sigue consecutivo.
-Para apagar la operación: `gh workflow disable` de `pulso-transmi-predict`, `-evaluate` y `-watchdog`, y desactivar el
-vigía en la nube `trig_012tAcmDaGKiLSSo1qmwdkxx`. Si el reloj volviera a `running`, reactivarlos basta para retomar.
+**Operación apagada el 2026-10-05 20:33Z**: `pulso-transmi-predict`, `-evaluate`, `-watchdog` y `-train` deshabilitados
+(`gh workflow disable`) y el vigía en la nube `trig_012tAcmDaGKiLSSo1qmwdkxx` desactivado. Si el reloj volviera a
+`running`, basta `gh workflow enable` de predict, evaluate y watchdog (y reactivar el vigía) para retomar.
 
 El histórico semilla (45 días, 51.840 obs, 2026-07-26 → 2026-09-08) se extiende ahora por el stream.
 
