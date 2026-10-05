@@ -1,0 +1,34 @@
+# Mantiene despierto el proyecto de Supabase tras el cierre de la competencia.
+#
+# Con la operación apagada nadie consulta la base, y el plan gratuito de
+# Supabase pausa el proyecto tras ~7 días sin actividad: el dashboard de
+# Vercel quedaría sin datos mientras el profesor revisa. Una lectura diaria
+# basta. No escribe nada.
+name: pulso-transmi-keepalive
+
+on:
+  schedule:
+    - cron: "17 7 * * *"     # 02:17 Bogotá, una vez al día
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Lectura mínima en Supabase
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+        run: |
+          for intento in 1 2 3; do
+            codigo=$(curl -s -o respuesta.json -w "%{http_code}" \
+              "$SUPABASE_URL/rest/v1/stations?select=station_id&limit=1" \
+              -H "apikey: $SUPABASE_SECRET_KEY" \
+              -H "Authorization: Bearer $SUPABASE_SECRET_KEY")
+            echo "intento $intento: HTTP $codigo"
+            [ "$codigo" = "200" ] && exit 0
+            sleep 20
+          done
+          echo "::error::Supabase no respondió 200; revisar si el proyecto quedó pausado"
+          exit 1
