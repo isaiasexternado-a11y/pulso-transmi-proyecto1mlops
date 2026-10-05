@@ -1,0 +1,75 @@
+{
+  "model_id": "a1a355cd-eccb-4e2b-aabd-95e02b638204",
+  "name": "gbm + perfil normalizado 3 escalas semivida 12h (mae)",
+  "kind": "ml",
+  "algorithm": "GBMconPerfil",
+  "hyperparams": {
+    "folds": 3,
+    "receta": "gbm + perfil normalizado 3 escalas \u00b7 14d semivida 12h",
+    "sklearn": "1.9.1",
+    "version": "20261001T113319Z",
+    "por_fold": [
+      87.3,
+      86.42,
+      69.06
+    ],
+    "reserva_h": 2,
+    "ventana_dias": 14,
+    "ruta_promocion": "refresco",
+    "dias_validacion": 7,
+    "validacion_vivo": {
+      "vara": 68.55,
+      "corte": "2026-09-17 13:30:00-05:00",
+      "ciclos": 23,
+      "accuracy": 68.55,
+      "fuente_vara": "receta del champion al corte (gbm + perfil normalizado 3 escalas \u00b7 14d semivida 12h)"
+    },
+    "mezcla_persistencia": {
+      "1": 0.6,
+      "2": 0.4,
+      "3": 0.2,
+      "4": 0.2
+    },
+    "validacion_accuracy": 80.93,
+    "validacion_reciente": 59.77,
+    "validacion_con_capas": [],
+    "validacion_peor_fold": 69.06,
+    "champion_previo_accuracy": 80.93,
+    "correccion_nivel_apagada": {
+      "alfa": 0.5,
+      "r_max": 2.5,
+      "r_min": 0.4,
+      "ventana_h": 2
+    }
+  },
+  "feature_set": "fs-v2-sin-contexto",
+  "feature_list": [
+    "horizon",
+    "lag0",
+    "lag1",
+    "lag2",
+    "lag3",
+    "lag4",
+    "lag_dia",
+    "lag_sem",
+    "roll1h",
+    "roll24h",
+    "roll7d",
+    "slot",
+    "dow",
+    "es_finde",
+    "perfil"
+  ],
+  "train_start": "2026-09-04T18:30:00+00:00",
+  "train_end": "2026-09-18T16:30:00+00:00",
+  "n_train_rows": 16044,
+  "artifact_uri": "supabase://modelos/champion/champion_20261001T113319Z.joblib",
+  "artifact_sha256": "458605fa41240bbde8f194a970658ad93901fd027ce33d0b3e7ffc47c0dc087f",
+  "git_commit": "ce5cf51639774e1f9f6dace353f728d6c584b201",
+  "trained_by_run_id": 782,
+  "parent_model_id": "0ba1d475-80f0-4119-9465-5180c984e756",
+  "status": "retired",
+  "activated_at": "2026-10-01T11:34:07.911454+00:00",
+  "retired_at": "2026-10-01T14:13:33.61369+00:00",
+  "created_at": "2026-10-01T11:33:21.276643+00:00"
+}

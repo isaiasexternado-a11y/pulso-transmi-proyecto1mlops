@@ -1,0 +1,83 @@
+{
+  "model_id": "16f9d0b8-b232-4e08-9ccc-3b2ee7e6fa63",
+  "name": "gbm + perfil sin contexto (mae)",
+  "kind": "ml",
+  "algorithm": "GBMconPerfil",
+  "hyperparams": {
+    "folds": 3,
+    "receta": "gbm + perfil sin contexto \u00b7 14d",
+    "sklearn": "1.9.1",
+    "version": "20260930T170955Z",
+    "por_fold": [
+      85.87,
+      85.84,
+      84.12
+    ],
+    "reserva_h": 6,
+    "ventana_dias": 14,
+    "ruta_promocion": "cambio de receta",
+    "dias_validacion": 7,
+    "validacion_vivo": {
+      "vara": 86.77,
+      "corte": "2026-09-16 19:00:00-05:00",
+      "ciclos": 24,
+      "accuracy": 86.99,
+      "fuente_vara": "receta del champion al corte (gbm + perfil normalizado 3 escalas \u00b7 14d)"
+    },
+    "correccion_nivel": {
+      "alfa": 0.5,
+      "r_max": 2.5,
+      "r_min": 0.4,
+      "quiebre": {
+        "r_max": 5.0,
+        "r_min": 0.15,
+        "umbral": 0.2
+      },
+      "ventana_h": 2
+    },
+    "mezcla_persistencia": {
+      "1": 0.6,
+      "2": 0.4,
+      "3": 0.2,
+      "4": 0.2
+    },
+    "validacion_accuracy": 85.28,
+    "validacion_reciente": 84.53,
+    "validacion_con_capas": [
+      "mezcla_persistencia",
+      "correccion_nivel"
+    ],
+    "validacion_peor_fold": 84.12,
+    "champion_previo_accuracy": 85.26
+  },
+  "feature_set": "fs-v2-sin-contexto",
+  "feature_list": [
+    "horizon",
+    "lag0",
+    "lag1",
+    "lag2",
+    "lag3",
+    "lag4",
+    "lag_dia",
+    "lag_sem",
+    "roll1h",
+    "roll24h",
+    "roll7d",
+    "slot",
+    "dow",
+    "es_finde",
+    "perfil"
+  ],
+  "train_start": "2026-09-04T00:00:00+00:00",
+  "train_end": "2026-09-17T18:00:00+00:00",
+  "n_train_rows": 15852,
+  "artifact_uri": "supabase://modelos/champion/champion_20260930T170955Z.joblib",
+  "artifact_sha256": "6c35273ecf64db80a803d7038747e9a0b2c48c2a60a216c710acaa0ec16934f1",
+  "git_commit": "49de48becbf64d431bbc92f0513a925519647321",
+  "trained_by_run_id": 708,
+  "parent_model_id": "cc98d428-424d-4436-b577-81e30ed8b8bc",
+  "status": "retired",
+  "activated_at": "2026-09-30T17:10:47.594078+00:00",
+  "retired_at": "2026-09-30T18:03:21.767516+00:00",
+  "created_at": "2026-09-30T17:09:57.390707+00:00"
+}

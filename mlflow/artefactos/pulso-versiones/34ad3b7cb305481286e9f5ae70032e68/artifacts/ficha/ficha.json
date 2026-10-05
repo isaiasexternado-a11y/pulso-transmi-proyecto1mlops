@@ -1,0 +1,83 @@
+{
+  "model_id": "9d2f4dd9-fc5c-4490-bd5c-4b7c5e9f4f8f",
+  "name": "gbm + perfil normalizado 3 escalas semivida 12h (mae)",
+  "kind": "ml",
+  "algorithm": "GBMconPerfil",
+  "hyperparams": {
+    "folds": 3,
+    "receta": "gbm + perfil normalizado 3 escalas \u00b7 14d semivida 12h",
+    "sklearn": "1.9.1",
+    "version": "20261002T212313Z",
+    "por_fold": [
+      87.09,
+      85.71,
+      62.69
+    ],
+    "reserva_h": 2,
+    "estacional": {
+      "n": 2,
+      "ventana_h": 6,
+      "umbral_pleno": 0.15,
+      "periodo_max_h": 12,
+      "periodo_min_h": 2,
+      "umbral_apagado": 0.25
+    },
+    "ventana_dias": 14,
+    "ruta_promocion": "refresco",
+    "dias_validacion": 7,
+    "validacion_vivo": {
+      "vara": 86.63,
+      "corte": "2026-09-18 23:00:00-05:00",
+      "ciclos": 24,
+      "accuracy": 86.63,
+      "fuente_vara": "receta del champion al corte (gbm + perfil normalizado 3 escalas \u00b7 14d semivida 12h)"
+    },
+    "validacion_accuracy": 78.5,
+    "validacion_reciente": 47.55,
+    "validacion_con_capas": [],
+    "validacion_peor_fold": 62.69,
+    "champion_previo_accuracy": 78.5,
+    "correccion_nivel_apagada": {
+      "alfa": 0.5,
+      "r_max": 2.5,
+      "r_min": 0.4,
+      "ventana_h": 2
+    },
+    "mezcla_persistencia_apagada": {
+      "1": 0.6,
+      "2": 0.4,
+      "3": 0.2,
+      "4": 0.2
+    }
+  },
+  "feature_set": "fs-v2-sin-contexto",
+  "feature_list": [
+    "horizon",
+    "lag0",
+    "lag1",
+    "lag2",
+    "lag3",
+    "lag4",
+    "lag_dia",
+    "lag_sem",
+    "roll1h",
+    "roll24h",
+    "roll7d",
+    "slot",
+    "dow",
+    "es_finde",
+    "perfil"
+  ],
+  "train_start": "2026-09-06T04:00:00+00:00",
+  "train_end": "2026-09-20T02:00:00+00:00",
+  "n_train_rows": 16044,
+  "artifact_uri": "supabase://modelos/champion/champion_20261002T212313Z.joblib",
+  "artifact_sha256": "750566e72509ba1db440407a1eb8a0edce094ea47a19e3273505b8fe30f40237",
+  "git_commit": "ed4703463814be1ed9265cca6ea380d44cf52e0f",
+  "trained_by_run_id": 917,
+  "parent_model_id": "14c976b7-e0d6-41c9-9e04-75dea66c6e90",
+  "status": "retired",
+  "activated_at": "2026-10-02T21:24:10.174772+00:00",
+  "retired_at": "2026-10-02T23:51:51.811062+00:00",
+  "created_at": "2026-10-02T21:23:16.232453+00:00"
+}

@@ -1,0 +1,362 @@
+[
+  {
+    "fold": 1,
+    "receta": "gbm + perfil (champion)",
+    "usa_contexto": true,
+    "tramo": "0-24h",
+    "A_real": 88.08307311284644,
+    "B_congelado": 87.8931736770894,
+    "costo": 0.1898994357570416,
+    "n": 1140
+  },
+  {
+    "fold": 1,
+    "receta": "gbm + perfil (champion)",
+    "usa_contexto": true,
+    "tramo": "24-48h",
+    "A_real": 88.23484959440027,
+    "B_congelado": 88.16979312090973,
+    "costo": 0.065056473490543,
+    "n": 1152
+  },
+  {
+    "fold": 1,
+    "receta": "gbm + perfil (champion)",
+    "usa_contexto": true,
+    "tramo": "48-168h",
+    "A_real": 87.63913653008451,
+    "B_congelado": 87.30569830822742,
+    "costo": 0.3334382218570937,
+    "n": 5760
+  },
+  {
+    "fold": 1,
+    "receta": "gbm + perfil (champion)",
+    "usa_contexto": true,
+    "tramo": "todo",
+    "A_real": 87.78102867268164,
+    "B_congelado": 87.50412980738285,
+    "costo": 0.27689886529879004,
+    "n": 8112
+  },
+  {
+    "fold": 1,
+    "receta": "gbm + perfil sin contexto",
+    "usa_contexto": false,
+    "tramo": "0-24h",
+    "A_real": 87.97023397268485,
+    "B_congelado": 87.97023397268485,
+    "costo": 0.0,
+    "n": 1140
+  },
+  {
+    "fold": 1,
+    "receta": "gbm + perfil sin contexto",
+    "usa_contexto": false,
+    "tramo": "24-48h",
+    "A_real": 87.9623462226984,
+    "B_congelado": 87.9623462226984,
+    "costo": 0.0,
+    "n": 1152
+  },
+  {
+    "fold": 1,
+    "receta": "gbm + perfil sin contexto",
+    "usa_contexto": false,
+    "tramo": "48-168h",
+    "A_real": 87.18682707589483,
+    "B_congelado": 87.18682707589483,
+    "costo": 0.0,
+    "n": 5760
+  },
+  {
+    "fold": 1,
+    "receta": "gbm + perfil sin contexto",
+    "usa_contexto": false,
+    "tramo": "todo",
+    "A_real": 87.40159344456906,
+    "B_congelado": 87.40159344456906,
+    "costo": 0.0,
+    "n": 8112
+  },
+  {
+    "fold": 1,
+    "receta": "perfil (control)",
+    "usa_contexto": false,
+    "tramo": "0-24h",
+    "A_real": 87.762027496317,
+    "B_congelado": 87.762027496317,
+    "costo": 0.0,
+    "n": 1140
+  },
+  {
+    "fold": 1,
+    "receta": "perfil (control)",
+    "usa_contexto": false,
+    "tramo": "24-48h",
+    "A_real": 88.09841658849768,
+    "B_congelado": 88.09841658849768,
+    "costo": 0.0,
+    "n": 1152
+  },
+  {
+    "fold": 1,
+    "receta": "perfil (control)",
+    "usa_contexto": false,
+    "tramo": "48-168h",
+    "A_real": 87.3820612059804,
+    "B_congelado": 87.3820612059804,
+    "costo": 0.0,
+    "n": 5760
+  },
+  {
+    "fold": 1,
+    "receta": "perfil (control)",
+    "usa_contexto": false,
+    "tramo": "todo",
+    "A_real": 87.53327636622446,
+    "B_congelado": 87.53327636622446,
+    "costo": 0.0,
+    "n": 8112
+  },
+  {
+    "fold": 2,
+    "receta": "gbm + perfil (champion)",
+    "usa_contexto": true,
+    "tramo": "0-24h",
+    "A_real": 87.6253735268,
+    "B_congelado": 87.30805044943719,
+    "costo": 0.31732307736281484,
+    "n": 1140
+  },
+  {
+    "fold": 2,
+    "receta": "gbm + perfil (champion)",
+    "usa_contexto": true,
+    "tramo": "24-48h",
+    "A_real": 87.63275772542659,
+    "B_congelado": 87.5550799539461,
+    "costo": 0.07767777148048083,
+    "n": 1152
+  },
+  {
+    "fold": 2,
+    "receta": "gbm + perfil (champion)",
+    "usa_contexto": true,
+    "tramo": "48-168h",
+    "A_real": 87.96284848914479,
+    "B_congelado": 87.86199337721486,
+    "costo": 0.10085511192993124,
+    "n": 5760
+  },
+  {
+    "fold": 2,
+    "receta": "gbm + perfil (champion)",
+    "usa_contexto": true,
+    "tramo": "todo",
+    "A_real": 87.86934012832246,
+    "B_congelado": 87.73985302904731,
+    "costo": 0.12948709927515267,
+    "n": 8112
+  },
+  {
+    "fold": 2,
+    "receta": "gbm + perfil sin contexto",
+    "usa_contexto": false,
+    "tramo": "0-24h",
+    "A_real": 87.3220210958612,
+    "B_congelado": 87.3220210958612,
+    "costo": 0.0,
+    "n": 1140
+  },
+  {
+    "fold": 2,
+    "receta": "gbm + perfil sin contexto",
+    "usa_contexto": false,
+    "tramo": "24-48h",
+    "A_real": 87.74312495439769,
+    "B_congelado": 87.74312495439769,
+    "costo": 0.0,
+    "n": 1152
+  },
+  {
+    "fold": 2,
+    "receta": "gbm + perfil sin contexto",
+    "usa_contexto": false,
+    "tramo": "48-168h",
+    "A_real": 87.86193844633182,
+    "B_congelado": 87.86193844633182,
+    "costo": 0.0,
+    "n": 5760
+  },
+  {
+    "fold": 2,
+    "receta": "gbm + perfil sin contexto",
+    "usa_contexto": false,
+    "tramo": "todo",
+    "A_real": 87.76795677156527,
+    "B_congelado": 87.76795677156527,
+    "costo": 0.0,
+    "n": 8112
+  },
+  {
+    "fold": 2,
+    "receta": "perfil (control)",
+    "usa_contexto": false,
+    "tramo": "0-24h",
+    "A_real": 87.08613223624458,
+    "B_congelado": 87.08613223624458,
+    "costo": 0.0,
+    "n": 1140
+  },
+  {
+    "fold": 2,
+    "receta": "perfil (control)",
+    "usa_contexto": false,
+    "tramo": "24-48h",
+    "A_real": 87.32059467021317,
+    "B_congelado": 87.32059467021317,
+    "costo": 0.0,
+    "n": 1152
+  },
+  {
+    "fold": 2,
+    "receta": "perfil (control)",
+    "usa_contexto": false,
+    "tramo": "48-168h",
+    "A_real": 87.85577749027122,
+    "B_congelado": 87.85577749027122,
+    "costo": 0.0,
+    "n": 5760
+  },
+  {
+    "fold": 2,
+    "receta": "perfil (control)",
+    "usa_contexto": false,
+    "tramo": "todo",
+    "A_real": 87.6729857829264,
+    "B_congelado": 87.6729857829264,
+    "costo": 0.0,
+    "n": 8112
+  },
+  {
+    "fold": 3,
+    "receta": "gbm + perfil (champion)",
+    "usa_contexto": true,
+    "tramo": "0-24h",
+    "A_real": 88.43415039950109,
+    "B_congelado": 88.3029202417286,
+    "costo": 0.13123015777249236,
+    "n": 1140
+  },
+  {
+    "fold": 3,
+    "receta": "gbm + perfil (champion)",
+    "usa_contexto": true,
+    "tramo": "24-48h",
+    "A_real": 87.22782457662015,
+    "B_congelado": 85.75562590422726,
+    "costo": 1.4721986723928921,
+    "n": 1152
+  },
+  {
+    "fold": 3,
+    "receta": "gbm + perfil (champion)",
+    "usa_contexto": true,
+    "tramo": "48-168h",
+    "A_real": 87.54412506141536,
+    "B_congelado": 87.58174435602716,
+    "costo": -0.037619294611801024,
+    "n": 5760
+  },
+  {
+    "fold": 3,
+    "receta": "gbm + perfil (champion)",
+    "usa_contexto": true,
+    "tramo": "todo",
+    "A_real": 87.63115073742512,
+    "B_congelado": 87.40606846730861,
+    "costo": 0.22508227011650206,
+    "n": 8064
+  },
+  {
+    "fold": 3,
+    "receta": "gbm + perfil sin contexto",
+    "usa_contexto": false,
+    "tramo": "0-24h",
+    "A_real": 88.3889299672349,
+    "B_congelado": 88.3889299672349,
+    "costo": 0.0,
+    "n": 1140
+  },
+  {
+    "fold": 3,
+    "receta": "gbm + perfil sin contexto",
+    "usa_contexto": false,
+    "tramo": "24-48h",
+    "A_real": 85.49788377668112,
+    "B_congelado": 85.49788377668112,
+    "costo": 0.0,
+    "n": 1152
+  },
+  {
+    "fold": 3,
+    "receta": "gbm + perfil sin contexto",
+    "usa_contexto": false,
+    "tramo": "48-168h",
+    "A_real": 87.63640326917532,
+    "B_congelado": 87.63640326917532,
+    "costo": 0.0,
+    "n": 5760
+  },
+  {
+    "fold": 3,
+    "receta": "gbm + perfil sin contexto",
+    "usa_contexto": false,
+    "tramo": "todo",
+    "A_real": 87.42396472385529,
+    "B_congelado": 87.42396472385529,
+    "costo": 0.0,
+    "n": 8064
+  },
+  {
+    "fold": 3,
+    "receta": "perfil (control)",
+    "usa_contexto": false,
+    "tramo": "0-24h",
+    "A_real": 88.35114589578671,
+    "B_congelado": 88.35114589578671,
+    "costo": 0.0,
+    "n": 1140
+  },
+  {
+    "fold": 3,
+    "receta": "perfil (control)",
+    "usa_contexto": false,
+    "tramo": "24-48h",
+    "A_real": 86.15237922340388,
+    "B_congelado": 86.15237922340388,
+    "costo": 0.0,
+    "n": 1152
+  },
+  {
+    "fold": 3,
+    "receta": "perfil (control)",
+    "usa_contexto": false,
+    "tramo": "48-168h",
+    "A_real": 87.67342506822096,
+    "B_congelado": 87.67342506822096,
+    "costo": 0.0,
+    "n": 5760
+  },
+  {
+    "fold": 3,
+    "receta": "perfil (control)",
+    "usa_contexto": false,
+    "tramo": "todo",
+    "A_real": 87.53635637771647,
+    "B_congelado": 87.53635637771647,
+    "costo": 0.0,
+    "n": 8064
+  }
+]

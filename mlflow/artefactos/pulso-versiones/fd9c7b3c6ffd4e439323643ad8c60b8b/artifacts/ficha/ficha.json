@@ -1,0 +1,88 @@
+{
+  "model_id": "8fbf1422-49a7-42be-9e8b-b78de963672f",
+  "name": "gbm + perfil por estacion (mae)",
+  "kind": "ml",
+  "algorithm": "GBMconPerfil",
+  "hyperparams": {
+    "folds": 3,
+    "receta": "gbm + perfil por estacion",
+    "sklearn": "1.9.1",
+    "version": "20260930T221549Z",
+    "por_fold": [
+      85.84,
+      85.85,
+      83.82
+    ],
+    "reserva_h": 6,
+    "ventana_dias": null,
+    "ruta_promocion": "cambio de receta",
+    "dias_validacion": 7,
+    "validacion_vivo": {
+      "vara": 86.4,
+      "corte": "2026-09-17 00:00:00-05:00",
+      "ciclos": 24,
+      "accuracy": 86.66,
+      "fuente_vara": "receta del champion al corte (gbm + perfil sin contexto \u00b7 14d)"
+    },
+    "correccion_nivel": {
+      "alfa": 0.5,
+      "r_max": 2.5,
+      "r_min": 0.4,
+      "quiebre": {
+        "r_max": 5.0,
+        "r_min": 0.15,
+        "umbral": 0.2
+      },
+      "ventana_h": 2
+    },
+    "mezcla_persistencia": {
+      "1": 0.6,
+      "2": 0.4,
+      "3": 0.2,
+      "4": 0.2
+    },
+    "validacion_accuracy": 85.17,
+    "validacion_reciente": 84.21,
+    "validacion_con_capas": [
+      "mezcla_persistencia",
+      "correccion_nivel"
+    ],
+    "validacion_peor_fold": 83.82,
+    "champion_previo_accuracy": 85.28
+  },
+  "feature_set": "fs-v1",
+  "feature_list": [
+    "horizon",
+    "lag0",
+    "lag1",
+    "lag2",
+    "lag3",
+    "lag4",
+    "lag_dia",
+    "lag_sem",
+    "roll1h",
+    "roll24h",
+    "roll7d",
+    "slot",
+    "dow",
+    "es_finde",
+    "rain_forecast",
+    "temp_forecast",
+    "rain_origen",
+    "temp_origen",
+    "evento_origen",
+    "perfil"
+  ],
+  "train_start": "2026-08-02T05:15:00+00:00",
+  "train_end": "2026-09-17T23:00:00+00:00",
+  "n_train_rows": 53856,
+  "artifact_uri": "supabase://modelos/champion/champion_20260930T221549Z.joblib",
+  "artifact_sha256": "d13dfb4fab55cf562e773defcbed831d102c91872cb1401339a8ed61954dcbd8",
+  "git_commit": "91b4b382d3e2f098e95f7c397e6dbe7d3309c3aa",
+  "trained_by_run_id": 729,
+  "parent_model_id": "c0c6b6f6-abfa-4292-9e0b-0ed2c6327e2c",
+  "status": "retired",
+  "activated_at": "2026-09-30T22:16:46.901451+00:00",
+  "retired_at": "2026-09-30T22:46:22.539379+00:00",
+  "created_at": "2026-09-30T22:15:52.903937+00:00"
+}

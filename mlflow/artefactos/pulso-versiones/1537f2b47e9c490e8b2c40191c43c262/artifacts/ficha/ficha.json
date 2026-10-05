@@ -1,0 +1,85 @@
+{
+  "model_id": "ba000298-70f7-495f-b965-2c29a9036a01",
+  "name": "gbm + perfil normalizado 3 escalas semivida 12h (mae)",
+  "kind": "ml",
+  "algorithm": "GBMconPerfil",
+  "hyperparams": {
+    "folds": 3,
+    "receta": "gbm + perfil normalizado 3 escalas \u00b7 14d semivida 12h",
+    "sklearn": "1.9.1",
+    "version": "20261001T193432Z",
+    "por_fold": [
+      85.51,
+      85.32,
+      74.77
+    ],
+    "reserva_h": 2,
+    "estacional": {
+      "n": 2,
+      "ventana_h": 6,
+      "umbral_pleno": 0.15,
+      "periodo_max_h": 12,
+      "periodo_min_h": 2,
+      "umbral_apagado": 0.25
+    },
+    "ventana_dias": 14,
+    "ruta_promocion": "refresco",
+    "dias_validacion": 7,
+    "validacion_vivo": {
+      "vara": 54.56,
+      "corte": "2026-09-17 21:30:00-05:00",
+      "ciclos": 23,
+      "accuracy": 54.56,
+      "fuente_vara": "receta del champion al corte (gbm + perfil normalizado 3 escalas \u00b7 14d semivida 12h)"
+    },
+    "mezcla_persistencia": {
+      "1": 0.6,
+      "2": 0.4,
+      "3": 0.2,
+      "4": 0.2
+    },
+    "validacion_accuracy": 81.87,
+    "validacion_reciente": 65.4,
+    "validacion_con_capas": [
+      "mezcla_persistencia"
+    ],
+    "validacion_peor_fold": 74.77,
+    "champion_previo_accuracy": 81.87,
+    "correccion_nivel_apagada": {
+      "alfa": 0.5,
+      "r_max": 2.5,
+      "r_min": 0.4,
+      "ventana_h": 2
+    }
+  },
+  "feature_set": "fs-v2-sin-contexto",
+  "feature_list": [
+    "horizon",
+    "lag0",
+    "lag1",
+    "lag2",
+    "lag3",
+    "lag4",
+    "lag_dia",
+    "lag_sem",
+    "roll1h",
+    "roll24h",
+    "roll7d",
+    "slot",
+    "dow",
+    "es_finde",
+    "perfil"
+  ],
+  "train_start": "2026-09-05T02:30:00+00:00",
+  "train_end": "2026-09-19T00:30:00+00:00",
+  "n_train_rows": 16044,
+  "artifact_uri": "supabase://modelos/champion/champion_20261001T193432Z.joblib",
+  "artifact_sha256": "cc9b79e801f525f3f1b6dc25ae32edab71bb473e7d331893f42252edb138c1cf",
+  "git_commit": "34d240349d99f40edc1882ed5f580a00f339304f",
+  "trained_by_run_id": 815,
+  "parent_model_id": "7d27faf9-3199-4519-ab31-54260fdf4f75",
+  "status": "retired",
+  "activated_at": "2026-10-01T19:35:25.704145+00:00",
+  "retired_at": "2026-10-01T22:07:25.050442+00:00",
+  "created_at": "2026-10-01T19:34:35.275416+00:00"
+}

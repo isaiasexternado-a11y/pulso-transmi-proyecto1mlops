@@ -1,0 +1,90 @@
+{
+  "model_id": "388b3e6e-f882-4ce4-a40b-d9c225adff87",
+  "name": "gbm + persistencia pura sin nivel (fase final)",
+  "kind": "ml",
+  "algorithm": "GBMconPerfil",
+  "hyperparams": {
+    "folds": 3,
+    "motivo": "fase final: persistencia sin correcci\u00f3n de nivel; en 9 or\u00edgenes del r\u00e9gimen nuevo 66,4 % vs 62,6 % con nivel. Mismo artefacto, sin reentrenar.",
+    "receta": "gbm + perfil normalizado 3 escalas \u00b7 14d semivida 12h",
+    "sklearn": "1.9.1",
+    "version": "20261004T011104Z-pers2",
+    "por_fold": [
+      87.07,
+      85.47,
+      58.92
+    ],
+    "reserva_h": 2,
+    "ventana_dias": 14,
+    "ruta_promocion": "refresco",
+    "dias_validacion": 7,
+    "validacion_vivo": {
+      "vara": 85.96,
+      "corte": "2026-09-19 09:00:00-05:00",
+      "ciclos": 24,
+      "accuracy": 85.96,
+      "fuente_vara": "receta del champion al corte (gbm + perfil normalizado 3 escalas \u00b7 14d semivida 12h)"
+    },
+    "estacional_apagada": {
+      "n": 2,
+      "ventana_h": 6,
+      "umbral_pleno": 0.15,
+      "periodo_max_h": 12,
+      "periodo_min_h": 2,
+      "umbral_apagado": 0.25
+    },
+    "mezcla_persistencia": {
+      "1": 1.0,
+      "2": 1.0,
+      "3": 1.0,
+      "4": 1.0
+    },
+    "validacion_accuracy": 77.15,
+    "validacion_reciente": 41.76,
+    "validacion_con_capas": [],
+    "validacion_peor_fold": 58.92,
+    "champion_previo_accuracy": 77.15,
+    "correccion_nivel_apagada": {
+      "alfa": 0.5,
+      "r_max": 2.5,
+      "r_min": 0.4,
+      "ventana_h": 2
+    },
+    "mezcla_persistencia_apagada": {
+      "1": 0.6,
+      "2": 0.4,
+      "3": 0.2,
+      "4": 0.2
+    }
+  },
+  "feature_set": "fs-v2-sin-contexto",
+  "feature_list": [
+    "horizon",
+    "lag0",
+    "lag1",
+    "lag2",
+    "lag3",
+    "lag4",
+    "lag_dia",
+    "lag_sem",
+    "roll1h",
+    "roll24h",
+    "roll7d",
+    "slot",
+    "dow",
+    "es_finde",
+    "perfil"
+  ],
+  "train_start": "2026-09-06T14:00:00+00:00",
+  "train_end": "2026-09-20T12:00:00+00:00",
+  "n_train_rows": 16044,
+  "artifact_uri": "supabase://modelos/champion/champion_20261004T011104Z.joblib",
+  "artifact_sha256": "6b1fe5194fbabc754cda284f7564d311dcfdf34316bcf08bd400a8c4169af526",
+  "git_commit": "ee77313c056840d398fbd9963d3898575f105787",
+  "trained_by_run_id": 990,
+  "parent_model_id": "60812e50-1acf-4670-bbf3-d84bc009c7b1",
+  "status": "retired",
+  "activated_at": "2026-10-04T02:09:33.697492+00:00",
+  "retired_at": "2026-10-04T11:22:17.682159+00:00",
+  "created_at": "2026-10-04T02:08:36.798846+00:00"
+}
