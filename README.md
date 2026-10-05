@@ -105,6 +105,31 @@ viven en la ficha del modelo (`hyperparams`), no en el pickle, así que cada una
   manejan sin tratar un faltante como cero.
 - `training_runs`: cada entrenamiento, con su candidato y si se promovió.
 
+## Pruebas automatizadas
+
+```bash
+pip install -r requirements-dev.txt
+python -m pytest        # 50 pruebas, sin red ni secretos
+```
+
+[`tests/`](tests/) cubre la métrica oficial (WAPE por estación, promedio no ponderado, target ausente = 0), el collector
+(stream v1 y v2, faltantes, formatos desconocidos, cursor), el contrato del batch de 48 valores, la idempotencia
+(llave estable y "sólo un recibo aceptado cierra el ciclo"), promoción y rollback, la regla de reentrenamiento
+(persistencia, datos nuevos, enfriamiento) y que las capas del champion **no usen información posterior al corte**.
+Supabase se reemplaza por un doble en memoria. Corren en cada push con
+[`tests.yml`](.github/workflows/tests.yml).
+
+## MLflow
+
+Los estudios de `ml/resultados/`, las 58 versiones del modelo con su linaje y un Model Registry con alias
+`champion` están en un almacén MLflow versionado en la rama `experimentos-ml`
+([`docs/mlflow.md`](https://github.com/isaiasexternado-a11y/pulso-transmi-proyecto1mlops/blob/experimentos-ml/docs/mlflow.md)):
+
+```bash
+git checkout experimentos-ml && pip install "mlflow>=3"
+mlflow ui --backend-store-uri sqlite:///mlflow/mlflow.db
+```
+
 ## Base de datos
 
 Supabase (PostgreSQL 17). El esquema base son 10 tablas y 3 vistas según el ERD en

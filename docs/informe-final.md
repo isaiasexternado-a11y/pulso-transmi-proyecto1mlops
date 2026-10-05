@@ -99,10 +99,10 @@ contra el piso naive s-1 de 83,11 %. Los experimentos y sus resultados están en
    ciclo, sin esperar las 3 corridas de la regla de reentrenamiento.
 2. **Selección de familia en línea:** en cada ciclo, medir en los últimos ciclos resueltos varias familias
    (persistencia, GBM dinámico, armónicos, champion) y elegir o combinar, en vez de un único champion afinado.
-3. **Pruebas automatizadas** del contrato de la API, del batch de 48 valores y de la idempotencia, corriendo en
-   cada push antes de tocar la operación.
-4. **MLflow** para registrar experimentos y linaje con una interfaz estándar; hoy el linaje está en la tabla
-   `models` y los resultados en archivos JSON.
+3. **Pruebas como compuerta de la operación**: hoy corren en cada push; el siguiente paso es que `predict.yml` y
+   `train.yml` sólo usen código cuyo commit las pasó, y sumar pruebas de integración contra un stream grabado.
+4. **MLflow en línea**: hoy el almacén se genera desde Supabase y los resultados (`ml/registro_mlflow.py`); lo ideal
+   es que `train.yml` registre cada candidato en un servidor MLflow al momento de entrenarlo.
 5. **Ensayar los cambios de formato antes de que lleguen**, con un stream sintético que mezcle versiones y
    faltantes.
 
@@ -127,5 +127,5 @@ contra el piso naive s-1 de 83,11 %. Los experimentos y sus resultados están en
 | Dashboard en Vercel | Sí — https://pulso-transmi-proyecto1mlops.vercel.app |
 | Estrategia de rollback del modelo | Sí — versiones `retired` reactivables y capas apagables desde la ficha |
 | Monitoreo de drift más allá del desempeño | Sí — `profile_corr`, `level_shift_7d`, `residual_bias`, `ingest_gap` y vigilancia de formato (`data_watch`) |
-| MLflow | No |
-| Pruebas automatizadas | No (hay controles en tiempo de ejecución: validación del batch, huellas de formato) |
+| MLflow | Sí — estudios, linaje de las 58 versiones y Model Registry con alias `champion` ([`docs/mlflow.md`](https://github.com/isaiasexternado-a11y/pulso-transmi-proyecto1mlops/blob/experimentos-ml/docs/mlflow.md), rama `experimentos-ml`) |
+| Pruebas automatizadas | Sí — 50 pruebas en [`tests/`](../tests/) que corren en cada push ([`tests.yml`](../.github/workflows/tests.yml)), además de los controles en tiempo de ejecución (validación del batch, huellas de formato) |
